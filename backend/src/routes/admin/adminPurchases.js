@@ -1,26 +1,23 @@
 const express = require('express');
 const router = express.Router();
+const { 
+  getPurchases,
+  createPurchase,
+  updatePurchase,
+  deletePurchase,
+  receivePurchase
+} = require('../../controllers/admin/adminPurchaseController');
 const { protect, admin } = require('../../middleware/adminAuth');
 
-// Placeholder routes - will implement controller functions later
-router.get('/', protect, admin, (req, res) => {
-  res.json({ message: 'Get all purchases' });
-});
+router.route('/')
+  .get(protect, admin, getPurchases)
+  .post(protect, admin, createPurchase);
 
-router.post('/', protect, admin, (req, res) => {
-  res.json({ message: 'Create new purchase' });
-});
+router.route('/:id')
+  .put(protect, admin, updatePurchase)
+  .delete(protect, admin, deletePurchase);
 
-router.put('/:id', protect, admin, (req, res) => {
-  res.json({ message: 'Update purchase' });
-});
-
-router.delete('/:id', protect, admin, (req, res) => {
-  res.json({ message: 'Delete purchase' });
-});
-
-router.post('/bulk', protect, admin, (req, res) => {
-  res.json({ message: 'Bulk import purchases' });
-});
+router.route('/:id/receive')
+  .put(protect, admin, receivePurchase);
 
 module.exports = router;

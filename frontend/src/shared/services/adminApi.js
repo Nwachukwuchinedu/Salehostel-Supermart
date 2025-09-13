@@ -8,7 +8,7 @@ const adminApi = {
   getProfile: () => api.get('/admin/auth/profile'),
   
   // Dashboard
-  getDashboardStats: () => api.get('/admin/dashboard/stats'),
+  getDashboardStats: () => api.get('/admin/dashboard'),
   getRecentActivity: () => api.get('/admin/dashboard/activity'),
   
   // Products
@@ -19,9 +19,9 @@ const adminApi = {
   deleteProduct: (id) => api.delete(`/admin/products/${id}`),
   
   // Inventory
-  getInventoryOverview: () => api.get('/admin/inventory/overview'),
+  getInventoryOverview: () => api.get('/admin/inventory'),
   getStockMovements: (params) => api.get('/admin/inventory/movements', { params }),
-  adjustStock: (adjustmentData) => api.post('/admin/inventory/adjustments', adjustmentData),
+  adjustStock: (adjustmentData) => api.post('/admin/inventory/adjust', adjustmentData),
   getLowStockAlerts: () => api.get('/admin/inventory/alerts'),
   
   // Purchases
@@ -30,8 +30,8 @@ const adminApi = {
   createPurchase: (purchaseData) => api.post('/admin/purchases', purchaseData),
   updatePurchase: (id, purchaseData) => api.put(`/admin/purchases/${id}`, purchaseData),
   deletePurchase: (id) => api.delete(`/admin/purchases/${id}`),
-  getSuppliers: () => api.get('/admin/purchases/suppliers'),
-  createSupplier: (supplierData) => api.post('/admin/purchases/suppliers', supplierData),
+  getSuppliers: () => api.get('/admin/purchases'),
+  createSupplier: (supplierData) => api.post('/admin/purchases', supplierData),
   
   // Orders
   getOrders: (params) => api.get('/admin/orders', { params }),
@@ -44,7 +44,7 @@ const adminApi = {
   getInventoryReport: (params) => api.get('/admin/reports/inventory', { params }),
   getProfitLossReport: (params) => api.get('/admin/reports/profit-loss', { params }),
   getCustomerReport: (params) => api.get('/admin/reports/customers', { params }),
-  getProductPerformance: (params) => api.get('/admin/reports/product-performance', { params }),
+  getProductPerformance: (params) => api.get('/admin/reports/products', { params }),
   
   // Users
   getUsers: (params) => api.get('/admin/users', { params }),
@@ -52,8 +52,8 @@ const adminApi = {
   createUser: (userData) => api.post('/admin/users', userData),
   updateUser: (id, userData) => api.put(`/admin/users/${id}`, userData),
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
-  getCustomers: (params) => api.get('/admin/users/customers', { params }),
-  getAdmins: (params) => api.get('/admin/users/admins', { params }),
+  getCustomers: (params) => api.get('/admin/users', { params }),
+  getAdmins: (params) => api.get('/admin/users', { params }),
 };
 
 export default adminApi;
