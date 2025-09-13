@@ -1,42 +1,94 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Filter, Grid, List, ChevronDown, Star, ShoppingCart } from 'lucide-react';
+import { useParams } from 'react-router-dom';
 import ProductCard from '../../components/shop/ProductCard';
+import customerApi from '../../../shared/services/customerApi';
 
 const CategoryPage = () => {
+  const { id } = useParams();
   const [viewMode, setViewMode] = useState('grid');
   const [sortBy, setSortBy] = useState('featured');
   const [showFilters, setShowFilters] = useState(false);
-  
-  // Sample category data
-  const category = {
-    name: 'Electronics',
-    description: 'Discover the latest electronics at unbeatable prices',
-    productCount: 1247
+  const [category, setCategory] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({
+    brands: [],
+    priceRanges: [],
+    ratings: []
+  });
+
+  useEffect(() => {
+    fetchCategoryData();
+  }, [id]);
+
+  const fetchCategoryData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch category details
+      // Note: We might need to adjust this based on the actual API response structure
+      const categoryResponse = await customerApi.getCategories();
+      const categories = categoryResponse.data || categoryResponse;
+      const foundCategory = Array.isArray(categories) 
+        ? categories.find(cat => cat._id === id || cat.id === id) 
+        : categories;
+      
+      setCategory(foundCategory || { name: 'Category', description: 'Products in this category', productCount: 0 });
+      
+      // Fetch products for this category
+      const productsResponse = await customerApi.getProducts({ category: id });
+      const productsData = productsResponse.data?.products || productsResponse.data || [];
+      setProducts(productsData);
+      
+      // Set filters based on available data
+      const uniqueBrands = [...new Set(productsData.map(p => p.brand).filter(Boolean))];
+      setFilters({
+        brands: uniqueBrands,
+        priceRanges: [
+          { label: 'Under ₦50', min: 0, max: 50 },
+          { label: '₦50 - ₦100', min: 50, max: 100 },
+          { label: '₦100 - ₦500', min: 100, max: 500 },
+          { label: 'Over ₦500', min: 500, max: Infinity }
+        ],
+        ratings: [4, 3, 2, 1]
+      });
+      
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch category data:', err);
+      setError('Failed to load category data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
-  
-  // Sample products data
-  const products = [
-    { id: 1, name: 'Wireless Headphones', price: 199.99, originalPrice: 249.99, discount: 20, rating: 4.5, reviewCount: 128, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
-    { id: 2, name: 'Smartphone', price: 699.99, originalPrice: 799.99, discount: 12, rating: 4.7, reviewCount: 89, image: 'https://images.unsplash.com/photo-1595941069915-4ebc5197c14a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
-    { id: 3, name: 'Laptop', price: 1299.99, originalPrice: 1499.99, discount: 13, rating: 4.8, reviewCount: 56, image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
-    { id: 4, name: 'Tablet', price: 399.99, originalPrice: 449.99, discount: 11, rating: 4.3, reviewCount: 72, image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
-    { id: 5, name: 'Smart Watch', price: 249.99, originalPrice: 299.99, discount: 17, rating: 4.6, reviewCount: 94, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
-    { id: 6, name: 'Bluetooth Speaker', price: 89.99, originalPrice: 99.99, discount: 10, rating: 4.2, reviewCount: 67, image: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
-    { id: 7, name: 'Gaming Console', price: 499.99, originalPrice: 549.99, discount: 9, rating: 4.9, reviewCount: 112, image: 'https://images.unsplash.com/photo-1590658268037-29a1b244cc32?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
-    { id: 8, name: 'Camera', price: 899.99, originalPrice: 999.99, discount: 10, rating: 4.7, reviewCount: 43, image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: false },
-  ];
-  
-  // Sample filter options
-  const filters = {
-    brands: ['Apple', 'Samsung', 'Sony', 'Microsoft', 'Google', 'Amazon'],
-    priceRanges: [
-      { label: 'Under ₦50', min: 0, max: 50 },
-      { label: '₦50 - ₦100', min: 50, max: 100 },
-      { label: '₦100 - ₦500', min: 100, max: 500 },
-      { label: 'Over ₦500', min: 500, max: Infinity }
-    ],
-    ratings: [4, 3, 2, 1]
-  };
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-customer-primary"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="customer-glass-card p-8 text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button 
+            onClick={fetchCategoryData}
+            className="customer-btn-primary"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -49,7 +101,7 @@ const CategoryPage = () => {
           <li aria-current="page">
             <div className="flex items-center">
               <span className="text-customer-gray-400 mx-2">/</span>
-              <span className="text-customer-gray-700">{category.name}</span>
+              <span className="text-customer-gray-700">{category?.name || 'Category'}</span>
             </div>
           </li>
         </ol>
@@ -57,9 +109,9 @@ const CategoryPage = () => {
 
       {/* Category Header */}
       <div className="mb-12 text-center">
-        <h1 className="text-4xl font-bold text-customer-gray-900 mb-4">{category.name}</h1>
-        <p className="text-customer-gray-600 max-w-2xl mx-auto">{category.description}</p>
-        <p className="mt-4 text-customer-gray-500">{category.productCount} products</p>
+        <h1 className="text-4xl font-bold text-customer-gray-900 mb-4">{category?.name || 'Category'}</h1>
+        <p className="text-customer-gray-600 max-w-2xl mx-auto">{category?.description || 'Products in this category'}</p>
+        <p className="mt-4 text-customer-gray-500">{products.length} products</p>
       </div>
 
       {/* Filters and Sorting */}
@@ -272,16 +324,16 @@ const CategoryPage = () => {
           {viewMode === 'grid' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product._id || product.id} product={product} />
               ))}
             </div>
           ) : (
             <div className="space-y-6">
               {products.map((product) => (
-                <div key={product.id} className="customer-glass-card rounded-2xl p-6 flex">
+                <div key={product._id || product.id} className="customer-glass-card rounded-2xl p-6 flex">
                   <div className="w-32 h-32 flex-shrink-0">
                     <img 
-                      src={product.image} 
+                      src={product.image || product.images?.[0] || "https://placehold.co/300x300"} 
                       alt={product.name}
                       className="w-full h-full object-cover rounded-xl"
                     />
@@ -294,7 +346,7 @@ const CategoryPage = () => {
                           <Star 
                             key={i}
                             className={`w-4 h-4 ${
-                              i < Math.floor(product.rating) 
+                              i < Math.floor(product.rating || 4.5) 
                                 ? 'text-amber-400 fill-current' 
                                 : 'text-customer-gray-300'
                             }`}
@@ -302,16 +354,16 @@ const CategoryPage = () => {
                         ))}
                       </div>
                       <span className="ml-2 text-sm text-customer-gray-600">
-                        {product.rating} ({product.reviewCount})
+                        {product.rating || 4.5} ({product.reviewCount || 12})
                       </span>
                     </div>
                     <div className="mt-2 flex items-center">
-                      <span className="text-xl font-bold text-customer-gray-900">${product.price}</span>
-                      {product.originalPrice && (
+                      <span className="text-xl font-bold text-customer-gray-900">₦{product.price || product.sellingPrice || 99.99}</span>
+                      {product.originalPrice && product.originalPrice > (product.price || product.sellingPrice || 99.99) && (
                         <>
-                          <span className="ml-2 text-lg text-customer-gray-500 line-through">${product.originalPrice}</span>
+                          <span className="ml-2 text-lg text-customer-gray-500 line-through">₦{product.originalPrice}</span>
                           <span className="ml-2 bg-customer-primary/10 text-customer-primary px-2 py-1 rounded-md text-sm">
-                            {product.discount}% OFF
+                            {product.discount || Math.round(((product.originalPrice - (product.price || product.sellingPrice || 99.99)) / product.originalPrice) * 100)}% OFF
                           </span>
                         </>
                       )}
@@ -330,7 +382,7 @@ const CategoryPage = () => {
           
           {/* Pagination */}
           <div className="flex items-center justify-between mt-12">
-            <p className="text-customer-gray-600">Showing 1 to 8 of {category.productCount} products</p>
+            <p className="text-customer-gray-600">Showing 1 to {products.length} of {products.length} products</p>
             <div className="flex gap-2">
               <button className="customer-btn-secondary">Previous</button>
               <button className="customer-btn-primary">1</button>
@@ -346,13 +398,13 @@ const CategoryPage = () => {
       <div className="md:hidden">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product._id || product.id} product={product} />
           ))}
         </div>
         
         {/* Pagination */}
         <div className="flex items-center justify-between mt-12">
-          <p className="text-customer-gray-600">Showing 1 to 8 of {category.productCount} products</p>
+          <p className="text-customer-gray-600">Showing 1 to {products.length} of {products.length} products</p>
           <div className="flex gap-2">
             <button className="customer-btn-secondary">Previous</button>
             <button className="customer-btn-primary">1</button>

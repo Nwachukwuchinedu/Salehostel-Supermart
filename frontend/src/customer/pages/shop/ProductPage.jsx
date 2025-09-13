@@ -1,59 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Heart, Share2, Star, Truck, Shield, RotateCcw, ShoppingCart, Plus, Minus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import customerApi from '../../../shared/services/customerApi';
 
 const ProductPage = () => {
+  const { id } = useParams();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [selectedSize, setSelectedSize] = useState('M');
-  const [selectedColor, setSelectedColor] = useState('Black');
+  const [selectedSize, setSelectedSize] = useState('');
+  const [selectedColor, setSelectedColor] = useState('');
+  const [product, setProduct] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // Sample product data
-  const product = {
-    id: 1,
-    name: 'Premium Wireless Headphones',
-    brand: 'SoundMax',
-    price: 199.99,
-    originalPrice: 249.99,
-    discount: 20,
-    rating: 4.5,
-    reviewCount: 128,
-    inStock: true,
-    sku: 'SM-WH-001',
-    category: 'Electronics',
-    images: [
-      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1546435770-a3e426bf472b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
-    ],
-    sizes: ['S', 'M', 'L', 'XL'],
-    colors: ['Black', 'White', 'Blue'],
-    description: 'Experience premium sound quality with our wireless headphones. Featuring noise cancellation, 30-hour battery life, and comfortable over-ear design.',
-    features: [
-      'Active Noise Cancellation',
-      '30-hour battery life',
-      'Bluetooth 5.2 connectivity',
-      'Built-in microphone for calls',
-      'Foldable design for travel',
-      'Quick charge technology'
-    ],
-    specifications: {
-      'Driver Size': '40mm',
-      'Frequency Response': '20Hz - 20kHz',
-      'Impedance': '32 Ohms',
-      'Battery Life': '30 hours',
-      'Charging Time': '2 hours',
-      'Weight': '250g'
+  useEffect(() => {
+    fetchProductData();
+  }, [id]);
+
+  const fetchProductData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch product details
+      const productResponse = await customerApi.getProduct(id);
+      const productData = productResponse.data || productResponse;
+      setProduct(productData);
+      
+      // Set default selections if available
+      if (productData.sizes && productData.sizes.length > 0) {
+        setSelectedSize(productData.sizes[0]);
+      }
+      if (productData.colors && productData.colors.length > 0) {
+        setSelectedColor(productData.colors[0]);
+      }
+      
+      // Fetch related products (this is a simplified approach)
+      const relatedResponse = await customerApi.getProducts({ 
+        category: productData.category,
+        limit: 4
+      });
+      const relatedData = relatedResponse.data?.products || relatedResponse.data || [];
+      setRelatedProducts(relatedData.filter(p => (p._id || p.id) !== id).slice(0, 4));
+      
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch product data:', err);
+      setError('Failed to load product data. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
-
-  const relatedProducts = [
-    { id: 2, name: 'Wireless Earbuds', price: 89.99, image: 'https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80' },
-    { id: 3, name: 'Bluetooth Speaker', price: 129.99, image: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80' },
-    { id: 4, name: 'Gaming Headset', price: 149.99, image: 'https://images.unsplash.com/photo-1590658268037-6bf12165ee67?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80' },
-    { id: 5, name: 'Over-Ear Headphones', price: 79.99, image: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80' },
-  ];
 
   const handleAddToCart = () => {
     // Add to cart logic would go here
@@ -76,6 +74,50 @@ const ProductPage = () => {
   const decrementQuantity = () => {
     setQuantity(prev => (prev > 1 ? prev - 1 : 1));
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-customer-primary"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="customer-glass-card p-8 text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button 
+            onClick={fetchProductData}
+            className="customer-btn-primary"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // If product is not found
+  if (!product) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="customer-glass-card p-8 text-center">
+          <h2 className="text-2xl font-bold text-customer-gray-900 mb-4">Product Not Found</h2>
+          <p className="text-customer-gray-600 mb-6">The product you're looking for doesn't exist or is no longer available.</p>
+          <button 
+            onClick={() => navigate('/')}
+            className="customer-btn-primary"
+          >
+            Continue Shopping
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -106,13 +148,13 @@ const ProductPage = () => {
         <div>
           <div className="mb-4">
             <img 
-              src={product.images[selectedImage]} 
+              src={product.images?.[selectedImage] || product.image || "https://placehold.co/600x600"} 
               alt={product.name}
               className="w-full h-96 object-cover rounded-2xl"
             />
           </div>
           <div className="grid grid-cols-4 gap-4">
-            {product.images.map((image, index) => (
+            {(product.images || [product.image]).map((image, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedImage(index)}
@@ -123,7 +165,7 @@ const ProductPage = () => {
                 }`}
               >
                 <img 
-                  src={image} 
+                  src={image || "https://placehold.co/200x200"} 
                   alt={`${product.name} ${index + 1}`}
                   className="w-full h-24 object-cover"
                 />
@@ -144,7 +186,7 @@ const ProductPage = () => {
                   <Star 
                     key={i}
                     className={`w-5 h-5 ${
-                      i < Math.floor(product.rating) 
+                      i < Math.floor(product.rating || 4.5) 
                         ? 'text-amber-400 fill-current' 
                         : 'text-customer-gray-300'
                     }`}
@@ -152,7 +194,7 @@ const ProductPage = () => {
                 ))}
               </div>
               <span className="ml-2 text-customer-gray-600">
-                {product.rating} ({product.reviewCount} reviews)
+                {product.rating || 4.5} ({product.reviewCount || 12} reviews)
               </span>
             </div>
           </div>
@@ -160,12 +202,12 @@ const ProductPage = () => {
           {/* Price */}
           <div className="mb-6">
             <div className="flex items-center">
-              <span className="text-3xl font-bold text-customer-gray-900">${product.price}</span>
-              {product.originalPrice && (
+              <span className="text-3xl font-bold text-customer-gray-900">₦{product.price || product.sellingPrice || 99.99}</span>
+              {product.originalPrice && product.originalPrice > (product.price || product.sellingPrice || 99.99) && (
                 <>
-                  <span className="ml-3 text-xl text-customer-gray-500 line-through">${product.originalPrice}</span>
+                  <span className="ml-3 text-xl text-customer-gray-500 line-through">₦{product.originalPrice}</span>
                   <span className="ml-3 bg-customer-primary/10 text-customer-primary px-2 py-1 rounded-md text-sm font-medium">
-                    {product.discount}% OFF
+                    {product.discount || Math.round(((product.originalPrice - (product.price || product.sellingPrice || 99.99)) / product.originalPrice) * 100)}% OFF
                   </span>
                 </>
               )}
@@ -174,7 +216,7 @@ const ProductPage = () => {
 
           {/* Stock Status */}
           <div className="mb-6">
-            {product.inStock ? (
+            {(product.stock || product.currentStock || 10) > 0 ? (
               <span className="inline-flex items-center text-green-600 bg-green-100 px-3 py-1 rounded-full text-sm">
                 <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
                 In Stock
@@ -188,47 +230,51 @@ const ProductPage = () => {
           </div>
 
           {/* Description */}
-          <p className="text-customer-gray-700 mb-6">{product.description}</p>
+          <p className="text-customer-gray-700 mb-6">{product.description || product.shortDescription || 'No description available for this product.'}</p>
 
           {/* Size Selection */}
-          <div className="mb-6">
-            <h3 className="text-lg font-medium text-customer-gray-900 mb-3">Size</h3>
-            <div className="flex flex-wrap gap-3">
-              {product.sizes.map((size) => (
-                <button
-                  key={size}
-                  onClick={() => setSelectedSize(size)}
-                  className={`px-4 py-2 rounded-lg border ${
-                    selectedSize === size
-                      ? 'border-customer-primary bg-customer-primary/10 text-customer-primary'
-                      : 'border-customer-gray-300 text-customer-gray-700 hover:border-customer-gray-400'
-                  }`}
-                >
-                  {size}
-                </button>
-              ))}
+          {product.sizes && product.sizes.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-medium text-customer-gray-900 mb-3">Size</h3>
+              <div className="flex flex-wrap gap-3">
+                {product.sizes.map((size) => (
+                  <button
+                    key={size}
+                    onClick={() => setSelectedSize(size)}
+                    className={`px-4 py-2 rounded-lg border ${
+                      selectedSize === size
+                        ? 'border-customer-primary bg-customer-primary/10 text-customer-primary'
+                        : 'border-customer-gray-300 text-customer-gray-700 hover:border-customer-gray-400'
+                    }`}
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Color Selection */}
-          <div className="mb-6">
-            <h3 className="text-lg font-medium text-customer-gray-900 mb-3">Color</h3>
-            <div className="flex flex-wrap gap-3">
-              {product.colors.map((color) => (
-                <button
-                  key={color}
-                  onClick={() => setSelectedColor(color)}
-                  className={`px-4 py-2 rounded-lg border ${
-                    selectedColor === color
-                      ? 'border-customer-primary bg-customer-primary/10 text-customer-primary'
-                      : 'border-customer-gray-300 text-customer-gray-700 hover:border-customer-gray-400'
-                  }`}
-                >
-                  {color}
-                </button>
-              ))}
+          {product.colors && product.colors.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-medium text-customer-gray-900 mb-3">Color</h3>
+              <div className="flex flex-wrap gap-3">
+                {product.colors.map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => setSelectedColor(color)}
+                    className={`px-4 py-2 rounded-lg border ${
+                      selectedColor === color
+                        ? 'border-customer-primary bg-customer-primary/10 text-customer-primary'
+                        : 'border-customer-gray-300 text-customer-gray-700 hover:border-customer-gray-400'
+                    }`}
+                  >
+                    {color}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Quantity */}
           <div className="mb-6">
@@ -261,7 +307,7 @@ const ProductPage = () => {
             <button
               onClick={handleAddToCart}
               className="customer-btn-primary flex-1 flex items-center justify-center"
-              disabled={!product.inStock}
+              disabled={(product.stock || product.currentStock || 10) === 0}
             >
               <ShoppingCart className="w-5 h-5 mr-2" />
               Add to Cart
@@ -269,7 +315,7 @@ const ProductPage = () => {
             <button
               onClick={handleBuyNow}
               className="customer-btn-secondary flex-1"
-              disabled={!product.inStock}
+              disabled={(product.stock || product.currentStock || 10) === 0}
             >
               Buy Now
             </button>
@@ -330,12 +376,9 @@ const ProductPage = () => {
         </div>
         <div className="py-8">
           <h3 className="text-xl font-semibold text-customer-gray-900 mb-4">Product Description</h3>
-          <p className="text-customer-gray-700 mb-6">{product.description}</p>
+          <p className="text-customer-gray-700 mb-6">{product.description || product.shortDescription || 'No description available for this product.'}</p>
           <p className="text-customer-gray-700">
-            These premium wireless headphones deliver exceptional sound quality with active noise cancellation technology. 
-            With up to 30 hours of battery life, you can enjoy your music all day long. The comfortable over-ear design 
-            ensures you can wear them for extended periods without discomfort. The foldable design makes them perfect 
-            for travel, and the quick charge technology means you can get hours of playback with just a few minutes of charging.
+            {product.description || product.shortDescription || 'No additional information available for this product.'}
           </p>
         </div>
       </div>
@@ -345,17 +388,17 @@ const ProductPage = () => {
         <h2 className="text-2xl font-bold text-customer-gray-900 mb-8">Related Products</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {relatedProducts.map((relatedProduct) => (
-            <div key={relatedProduct.id} className="customer-product-card">
+            <div key={relatedProduct._id || relatedProduct.id} className="customer-product-card">
               <div className="customer-product-image">
                 <img 
-                  src={relatedProduct.image} 
+                  src={relatedProduct.image || relatedProduct.images?.[0] || "https://placehold.co/300x300"} 
                   alt={relatedProduct.name}
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="customer-product-info">
                 <h3 className="customer-product-title">{relatedProduct.name}</h3>
-                <div className="customer-product-price">₦{relatedProduct.price}</div>
+                <div className="customer-product-price">₦{relatedProduct.price || relatedProduct.sellingPrice || 99.99}</div>
                 <button className="customer-btn-primary w-full mt-3">
                   Add to Cart
                 </button>
