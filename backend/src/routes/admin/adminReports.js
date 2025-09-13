@@ -1,26 +1,27 @@
 const express = require('express');
 const router = express.Router();
+const { 
+  getSalesReport,
+  getInventoryReport,
+  getProfitLossReport,
+  getCustomerReport,
+  getProductPerformance
+} = require('../../controllers/admin/adminReportController');
 const { protect, admin } = require('../../middleware/adminAuth');
 
-// Placeholder routes - will implement controller functions later
-router.get('/sales', protect, admin, (req, res) => {
-  res.json({ message: 'Sales reports' });
-});
+router.route('/sales')
+  .get(protect, admin, getSalesReport);
 
-router.get('/inventory', protect, admin, (req, res) => {
-  res.json({ message: 'Inventory reports' });
-});
+router.route('/inventory')
+  .get(protect, admin, getInventoryReport);
 
-router.get('/profit-loss', protect, admin, (req, res) => {
-  res.json({ message: 'Profit & loss reports' });
-});
+router.route('/profit-loss')
+  .get(protect, admin, getProfitLossReport);
 
-router.get('/customers', protect, admin, (req, res) => {
-  res.json({ message: 'Customer analytics' });
-});
+router.route('/customers')
+  .get(protect, admin, getCustomerReport);
 
-router.get('/products', protect, admin, (req, res) => {
-  res.json({ message: 'Product performance' });
-});
+router.route('/products')
+  .get(protect, admin, getProductPerformance);
 
 module.exports = router;
