@@ -264,3 +264,22 @@ const OrderFulfillment = () => {
                           onClick={markAsDelivered}
                         >
                           Mark as Delivered
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="admin-glass-card p-6 text-center">
+              <p className="text-admin-gray-600">Please select an order to view details and manage fulfillment</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default OrderFulfillment;
