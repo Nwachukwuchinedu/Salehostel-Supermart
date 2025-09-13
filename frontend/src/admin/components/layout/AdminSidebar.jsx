@@ -2,7 +2,7 @@ import React from 'react'
 import { 
   LayoutDashboard, 
   Package, 
-  Warehouse, 
+  Building2, 
   ShoppingCart, 
   BarChart3, 
   Users, 
@@ -17,7 +17,7 @@ const AdminSidebar = () => {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
     { icon: Package, label: 'Products', path: '/admin/products' },
-    { icon: Warehouse, label: 'Inventory', path: '/admin/inventory' },
+    { icon: Building2, label: 'Inventory', path: '/admin/inventory' },
     { icon: ShoppingCart, label: 'Orders', path: '/admin/orders' },
     { icon: BarChart3, label: 'Reports', path: '/admin/reports' },
     { icon: Users, label: 'Users', path: '/admin/users' },
