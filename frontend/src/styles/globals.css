@@ -197,7 +197,8 @@
   }
   
   .customer-product-image {
-    @apply aspect-square overflow-hidden relative;
+    @apply overflow-hidden relative;
+    aspect-ratio: 1 / 1;
   }
   
   .customer-product-overlay {
