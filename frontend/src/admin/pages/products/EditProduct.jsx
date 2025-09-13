@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Save, Image, Tag, DollarSign, Package, FileText, Hash, Barcode, Calendar, User, Layers } from 'lucide-react';
+import { ArrowLeft, Save, Image, Tag, DollarSign, Package, FileText, Hash, QrCode, Calendar, User, Layers } from 'lucide-react';
 import adminApi from '../../../shared/services/adminApi';
 
 const EditProduct = () => {
@@ -360,7 +360,7 @@ const EditProduct = () => {
               <div>
                 <label className="form-label">Barcode</label>
                 <div className="relative">
-                  <Barcode className="absolute left-3 top-1/2 transform -translate-y-1/2 text-admin-gray-400 w-5 h-5" />
+                  <QrCode className="absolute left-3 top-1/2 transform -translate-y-1/2 text-admin-gray-400 w-5 h-5" />
                   <input
                     type="text"
                     name="barcode"

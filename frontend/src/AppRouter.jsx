@@ -52,14 +52,14 @@ const AppRouter = () => {
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
-          
+
           {/* Product Management */}
           <Route path="products">
             <Route index element={<ProductList />} />
             <Route path="add" element={<AddProduct />} />
             <Route path="edit/:id" element={<EditProduct />} />
           </Route>
-          
+
           {/* Inventory Management */}
           <Route path="inventory">
             <Route index element={<InventoryOverview />} />
@@ -67,7 +67,7 @@ const AppRouter = () => {
             <Route path="adjustments" element={<StockAdjustments />} />
             <Route path="alerts" element={<LowStockAlerts />} />
           </Route>
-          
+
           {/* Purchase Management */}
           <Route path="purchases">
             <Route index element={<PurchaseList />} />
@@ -75,7 +75,7 @@ const AppRouter = () => {
             <Route path=":id" element={<PurchaseDetails />} />
             <Route path="suppliers" element={<SupplierManagement />} />
           </Route>
-          
+
           {/* Order Management */}
           <Route path="orders">
             <Route index element={<OrderList />} />
@@ -83,7 +83,7 @@ const AppRouter = () => {
             <Route path=":id/fulfillment" element={<OrderFulfillment />} />
             <Route path="refunds" element={<RefundManagement />} />
           </Route>
-          
+
           {/* Reports */}
           <Route path="reports">
             <Route index element={<SalesReport />} />
@@ -92,7 +92,7 @@ const AppRouter = () => {
             <Route path="customers" element={<CustomerReport />} />
             <Route path="product-performance" element={<ProductPerformance />} />
           </Route>
-          
+
           {/* User Management */}
           <Route path="users">
             <Route index element={<UserManagement />} />
@@ -100,13 +100,13 @@ const AppRouter = () => {
             <Route path="admins" element={<AdminList />} />
           </Route>
         </Route>
-        
+
         {/* Customer Authentication Routes */}
         <Route path="/login" element={<CustomerLogin />} />
         <Route path="/register" element={<CustomerRegister />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        
+
         {/* Customer Routes */}
         <Route path="/" element={<CustomerLayout />}>
           <Route index element={<ProductCatalog />} />
@@ -116,7 +116,7 @@ const AppRouter = () => {
           <Route path="cart" element={<Cart />} />
           <Route path="checkout" element={<Checkout />} />
           <Route path="order-confirmation" element={<OrderConfirmation />} />
-          
+
           {/* Customer Account Routes */}
           <Route path="account">
             <Route path="profile" element={<CustomerProfile />} />
@@ -126,7 +126,7 @@ const AppRouter = () => {
             <Route path="addresses" element={<AddressBook />} />
             <Route path="change-password" element={<ChangePassword />} />
           </Route>
-          
+
           {/* Customer Order Tracking Routes */}
           <Route path="track-order" element={<TrackOrder />} />
         </Route>

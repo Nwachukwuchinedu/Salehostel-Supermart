@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CreditCard, DollarSign, Filter, Search, CheckCircle, XCircle, Calendar, User, Receipt } from 'lucide-react';
+import { CreditCard, DollarSign, Filter, Search, CheckCircle, XCircle, Calendar, User, FileText } from 'lucide-react';
 
 const RefundManagement = () => {
   const [refunds, setRefunds] = useState([
@@ -220,7 +220,7 @@ const RefundManagement = () => {
                       className="p-2 text-admin-primary hover:bg-admin-primary/10 rounded-lg"
                       onClick={() => processRefund(refund.id)}
                     >
-                      <Receipt className="w-4 h-4" />
+                      <FileText className="w-4 h-4" />
                     </button>
                   )}
                 </div>

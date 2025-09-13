@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import ProductCard from '../../components/shop/ProductCard'
 
 const ProductCatalog = () => {
+  console.log("ProductCatalog component rendering");
   // Sample product data
   const [products] = useState([
     {

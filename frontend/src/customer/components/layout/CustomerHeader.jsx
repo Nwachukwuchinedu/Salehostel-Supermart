@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Search, User, ShoppingCart, Heart, Menu, X } from 'lucide-react'
 
 const CustomerHeader = ({ onCartToggle }) => {
@@ -13,40 +14,40 @@ const CustomerHeader = ({ onCartToggle }) => {
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-customer-primary to-customer-secondary bg-clip-text text-transparent">
+              <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-customer-primary to-customer-secondary bg-clip-text text-transparent">
                 Salehostel Supermart
-              </h1>
+              </Link>
             </div>
-            
+
             {/* Navigation Links */}
             <nav className="hidden md:flex items-center space-x-8">
-              <a href="/" className="customer-nav-item">Home</a>
-              <a href="/products" className="customer-nav-item">Products</a>
-              <a href="/categories" className="customer-nav-item">Categories</a>
-              <a href="/about" className="customer-nav-item">About</a>
+              <Link to="/" className="customer-nav-item">Home</Link>
+              <Link to="/products" className="customer-nav-item">Products</Link>
+              <Link to="/categories" className="customer-nav-item">Categories</Link>
+              <Link to="/about" className="customer-nav-item">About</Link>
             </nav>
-            
+
             {/* Actions */}
             <div className="flex items-center gap-4">
               {/* Search */}
               <div className="relative">
-                <input 
+                <input
                   type="text"
                   placeholder="Search products..."
                   className="hidden lg:block w-64 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-2 pl-10 text-gray-900 placeholder:text-gray-600 focus:ring-2 focus:ring-customer-primary focus:border-transparent"
                 />
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               </div>
-              
+
               {/* Cart */}
-              <button 
+              <button
                 className="customer-btn-icon relative"
                 onClick={onCartToggle}
               >
                 <ShoppingCart className="w-6 h-6" />
                 <span className="customer-cart-badge">3</span>
               </button>
-              
+
               {/* User Menu */}
               <button className="customer-btn-icon">
                 <User className="w-6 h-6" />
@@ -66,12 +67,12 @@ const CustomerHeader = ({ onCartToggle }) => {
           >
             <Menu className="w-6 h-6" />
           </button>
-          
+
           {/* Logo */}
-          <h1 className="text-xl font-bold bg-gradient-to-r from-customer-primary to-customer-secondary bg-clip-text text-transparent">
+          <Link to="/" className="text-xl font-bold bg-gradient-to-r from-customer-primary to-customer-secondary bg-clip-text text-transparent">
             Salehostel
-          </h1>
-          
+          </Link>
+
           {/* Actions */}
           <div className="flex items-center gap-2">
             <button
@@ -80,8 +81,8 @@ const CustomerHeader = ({ onCartToggle }) => {
             >
               <Search className="w-6 h-6" />
             </button>
-            
-            <button 
+
+            <button
               className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative"
               onClick={onCartToggle}
             >
@@ -95,12 +96,10 @@ const CustomerHeader = ({ onCartToggle }) => {
       </header>
 
       {/* Mobile Menu Overlay */}
-      <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity duration-300 lg:hidden ${
-        isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-      }`}>
-        <div className={`fixed left-0 top-0 bottom-0 w-80 bg-white transform transition-transform duration-300 ${
-          isMenuOpen ? 'translate-x-0' : '-translate-x-full'
+      <div className={`fixed inset-0 bg-black/50 backdrop-blur-sm z-50 transition-opacity duration-300 lg:hidden ${isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}>
+        <div className={`fixed left-0 top-0 bottom-0 w-80 bg-white transform transition-transform duration-300 ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}>
           {/* Menu Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <h2 className="text-xl font-bold bg-gradient-to-r from-customer-primary to-customer-secondary bg-clip-text text-transparent">
@@ -113,31 +112,31 @@ const CustomerHeader = ({ onCartToggle }) => {
               <X className="w-6 h-6" />
             </button>
           </div>
-          
+
           {/* Menu Items */}
           <nav className="p-6 space-y-4">
-            <a href="/" className="block text-lg font-medium text-gray-900 py-2">
+            <Link to="/" className="block text-lg font-medium text-gray-900 py-2" onClick={() => setIsMenuOpen(false)}>
               Home
-            </a>
-            <a href="/products" className="block text-lg font-medium text-gray-900 py-2">
+            </Link>
+            <Link to="/products" className="block text-lg font-medium text-gray-900 py-2" onClick={() => setIsMenuOpen(false)}>
               Products
-            </a>
-            <a href="/categories" className="block text-lg font-medium text-gray-900 py-2">
+            </Link>
+            <Link to="/categories" className="block text-lg font-medium text-gray-900 py-2" onClick={() => setIsMenuOpen(false)}>
               Categories
-            </a>
-            <a href="/deals" className="block text-lg font-medium text-gray-900 py-2">
+            </Link>
+            <Link to="/deals" className="block text-lg font-medium text-gray-900 py-2" onClick={() => setIsMenuOpen(false)}>
               Deals
-            </a>
-            <a href="/about" className="block text-lg font-medium text-gray-900 py-2">
+            </Link>
+            <Link to="/about" className="block text-lg font-medium text-gray-900 py-2" onClick={() => setIsMenuOpen(false)}>
               About
-            </a>
-            
+            </Link>
+
             <div className="pt-6 border-t border-gray-200 space-y-4">
               <button className="flex items-center gap-3 text-gray-700 py-2">
                 <User className="w-5 h-5" />
                 <span>Account</span>
               </button>
-              
+
               <button className="flex items-center gap-3 text-gray-700 py-2">
                 <Heart className="w-5 h-5" />
                 <span>Wishlist</span>
@@ -148,9 +147,8 @@ const CustomerHeader = ({ onCartToggle }) => {
       </div>
 
       {/* Mobile Search Overlay */}
-      <div className={`fixed inset-0 bg-white z-50 transition-opacity duration-300 lg:hidden ${
-        isSearchOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-      }`}>
+      <div className={`fixed inset-0 bg-white z-50 transition-opacity duration-300 lg:hidden ${isSearchOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}>
         <div className="p-4">
           <div className="flex items-center gap-4 mb-6">
             <div className="flex-1 relative">
@@ -169,7 +167,7 @@ const CustomerHeader = ({ onCartToggle }) => {
               <X className="w-6 h-6" />
             </button>
           </div>
-          
+
           {/* Search suggestions could go here */}
           <div className="space-y-4">
             <div>

@@ -1,15 +1,16 @@
 import React from 'react'
+import { Outlet } from 'react-router-dom'
 import AdminSidebar from './AdminSidebar'
 import AdminHeader from './AdminHeader'
 
-const AdminLayout = ({ children }) => {
+const AdminLayout = () => {
   return (
     <div className="min-h-screen bg-admin-gray-50">
       <AdminSidebar />
       <div className="ml-0 lg:ml-64">
         <AdminHeader />
         <main className="p-4 lg:p-8">
-          {children}
+          <Outlet />
         </main>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Heart, ShoppingCart, Eye, Star, Compare } from 'lucide-react'
+import { Heart, ShoppingCart, Eye, Star, Shuffle } from 'lucide-react'
 
 const ProductCard = ({ product }) => {
   const [isLiked, setIsLiked] = useState(false)
@@ -56,7 +56,7 @@ const ProductCard = ({ product }) => {
           </button>
           
           <button className="customer-btn-icon bg-white/20 text-gray-700 hover:bg-green-500 hover:text-white">
-            <Compare className="w-5 h-5" />
+            <Shuffle className="w-5 h-5" />
           </button>
         </div>
         
