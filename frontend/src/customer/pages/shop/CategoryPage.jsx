@@ -22,7 +22,7 @@ const CategoryPage = () => {
     { id: 4, name: 'Tablet', price: 399.99, originalPrice: 449.99, discount: 11, rating: 4.3, reviewCount: 72, image: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
     { id: 5, name: 'Smart Watch', price: 249.99, originalPrice: 299.99, discount: 17, rating: 4.6, reviewCount: 94, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
     { id: 6, name: 'Bluetooth Speaker', price: 89.99, originalPrice: 99.99, discount: 10, rating: 4.2, reviewCount: 67, image: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
-    { id: 7, name: 'Gaming Console', price: 499.99, originalPrice: 549.99, discount: 9, rating: 4.9, reviewCount: 112, image: 'https://images.unsplash.com/photo-1590658268037-6bf12165ee67?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
+    { id: 7, name: 'Gaming Console', price: 499.99, originalPrice: 549.99, discount: 9, rating: 4.9, reviewCount: 112, image: 'https://images.unsplash.com/photo-1590658268037-29a1b244cc32?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
     { id: 8, name: 'Camera', price: 899.99, originalPrice: 999.99, discount: 10, rating: 4.7, reviewCount: 43, image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: false },
   ];
   
@@ -30,10 +30,10 @@ const CategoryPage = () => {
   const filters = {
     brands: ['Apple', 'Samsung', 'Sony', 'Microsoft', 'Google', 'Amazon'],
     priceRanges: [
-      { label: 'Under $50', min: 0, max: 50 },
-      { label: '$50 - $100', min: 50, max: 100 },
-      { label: '$100 - $500', min: 100, max: 500 },
-      { label: 'Over $500', min: 500, max: Infinity }
+      { label: 'Under ₦50', min: 0, max: 50 },
+      { label: '₦50 - ₦100', min: 50, max: 100 },
+      { label: '₦100 - ₦500', min: 100, max: 500 },
+      { label: 'Over ₦500', min: 500, max: Infinity }
     ],
     ratings: [4, 3, 2, 1]
   };

@@ -79,7 +79,7 @@ const createOrder = async (req, res) => {
     
     // Calculate tax and shipping (simplified)
     const tax = subtotal * 0.1; // 10% tax
-    const shipping = subtotal > 100 ? 0 : 10; // Free shipping over $100
+    const shipping = subtotal > 100 ? 0 : 10; // Free shipping over ₦100
     const totalAmount = subtotal + tax + shipping;
     
     const order = new Order({

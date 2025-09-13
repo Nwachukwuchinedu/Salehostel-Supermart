@@ -106,15 +106,15 @@ const ProductCard = ({ product }) => {
         
         {/* Price */}
         <div className="flex items-center gap-2 mt-2">
-          <span className="customer-product-price">${product.price || 99.99}</span>
+          <span className="customer-product-price">₦{product.price || 99.99}</span>
           {product.originalPrice && product.originalPrice > (product.price || 99.99) && (
             <span className="text-gray-500 line-through text-sm">
-              ${product.originalPrice}
+              ₦{product.originalPrice}
             </span>
           )}
           {product.discount > 0 && (
             <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-semibold">
-              Save ${((product.originalPrice || 120) - (product.price || 99.99)).toFixed(2)}
+              Save ₦{((product.originalPrice || 120) - (product.price || 99.99)).toFixed(2)}
             </span>
           )}
         </div>

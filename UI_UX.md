@@ -735,7 +735,7 @@ export default {
             </div>
             <TrendingUp className="w-5 h-5 text-green-500" />
           </div>
-          <div className="admin-stats-number">$48,392</div>
+          <div className="admin-stats-number">₦48,392</div>
           <div className="admin-stats-label">Revenue Today</div>
         </div>
       </div>
@@ -973,7 +973,7 @@ export default {
             />
             <div className="mt-6">
               <h3 className="text-xl font-semibold text-gray-900">Premium Headphones</h3>
-              <p className="text-customer-primary font-bold text-2xl mt-2">$299.99</p>
+              <p className="text-customer-primary font-bold text-2xl mt-2">₦299.99</p>
               <button className="customer-btn-primary w-full mt-4">
                 Add to Cart
               </button>

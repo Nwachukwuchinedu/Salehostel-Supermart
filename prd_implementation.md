@@ -1159,7 +1159,7 @@ Create a cutting-edge inventory management and e-commerce platform that combines
         <StatsCard title="Total Products" value="2,547" change="+12%" />
         <StatsCard title="Low Stock Items" value="23" change="-5%" />
         <StatsCard title="Orders Today" value="156" change="+18%" />
-        <StatsCard title="Revenue" value="$45,230" change="+22%" />
+        <StatsCard title="Revenue" value="₦45,230" change="+22%" />
       </div>
       
       <div className="admin-charts-grid">

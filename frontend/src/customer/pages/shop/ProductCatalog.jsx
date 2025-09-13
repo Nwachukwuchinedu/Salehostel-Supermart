@@ -112,7 +112,7 @@ const ProductCatalog = () => {
                 />
                 <div className="mt-6">
                   <h3 className="text-xl font-semibold text-gray-900">Premium Headphones</h3>
-                  <p className="text-customer-primary font-bold text-2xl mt-2">$89.99</p>
+                  <p className="text-customer-primary font-bold text-2xl mt-2">₦89.99</p>
                   <button className="customer-btn-primary w-full mt-4">
                     Add to Cart
                   </button>

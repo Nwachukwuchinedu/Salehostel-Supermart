@@ -288,7 +288,7 @@ const ProductPage = () => {
                 <Truck className="w-5 h-5 text-customer-gray-500 mr-3" />
                 <div>
                   <p className="text-sm font-medium text-customer-gray-900">Free Shipping</p>
-                  <p className="text-xs text-customer-gray-500">On orders over $50</p>
+                  <p className="text-xs text-customer-gray-500">On orders over ₦50</p>
                 </div>
               </div>
               <div className="flex items-center">
@@ -355,7 +355,7 @@ const ProductPage = () => {
               </div>
               <div className="customer-product-info">
                 <h3 className="customer-product-title">{relatedProduct.name}</h3>
-                <div className="customer-product-price">${relatedProduct.price}</div>
+                <div className="customer-product-price">₦{relatedProduct.price}</div>
                 <button className="customer-btn-primary w-full mt-3">
                   Add to Cart
                 </button>

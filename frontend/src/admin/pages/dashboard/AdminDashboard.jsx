@@ -37,7 +37,7 @@ const AdminDashboard = () => {
     },
     {
       title: "Revenue Today",
-      value: "$48,392",
+      value: "₦48,392",
       change: "+22%",
       icon: DollarSign,
       color: "admin-success",
@@ -118,7 +118,7 @@ const AdminDashboard = () => {
             </div>
             <div className="flex-1">
               <p className="text-admin-gray-900 font-medium">New order received</p>
-              <p className="text-admin-gray-600 text-sm">Order #12345 for $299.99</p>
+              <p className="text-admin-gray-600 text-sm">Order #12345 for ₦299.99</p>
             </div>
             <span className="text-admin-gray-500 text-sm">15 mins ago</span>
           </div>

@@ -295,7 +295,7 @@ const Checkout = () => {
                       <label htmlFor="standard" className="ml-3 flex-1 cursor-pointer">
                         <div className="flex justify-between">
                           <span className="font-medium text-customer-gray-900">Standard Shipping</span>
-                          <span className="font-medium">$15.99</span>
+                          <span className="font-medium">₦15.99</span>
                         </div>
                         <p className="text-customer-gray-600">5-7 business days</p>
                       </label>
@@ -314,7 +314,7 @@ const Checkout = () => {
                       <label htmlFor="express" className="ml-3 flex-1 cursor-pointer">
                         <div className="flex justify-between">
                           <span className="font-medium text-customer-gray-900">Express Shipping</span>
-                          <span className="font-medium">$29.99</span>
+                          <span className="font-medium">₦29.99</span>
                         </div>
                         <p className="text-customer-gray-600">2-3 business days</p>
                       </label>
@@ -333,7 +333,7 @@ const Checkout = () => {
                       <label htmlFor="overnight" className="ml-3 flex-1 cursor-pointer">
                         <div className="flex justify-between">
                           <span className="font-medium text-customer-gray-900">Overnight Shipping</span>
-                          <span className="font-medium">$49.99</span>
+                          <span className="font-medium">₦49.99</span>
                         </div>
                         <p className="text-customer-gray-600">1 business day</p>
                       </label>
@@ -532,7 +532,7 @@ const Checkout = () => {
                     <p className="text-customer-gray-600">Qty: {item.quantity}</p>
                   </div>
                   <div className="font-medium text-customer-gray-900">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    ₦{(item.price * item.quantity).toFixed(2)}
                   </div>
                 </div>
               ))}
@@ -541,19 +541,19 @@ const Checkout = () => {
             <div className="space-y-4 mb-6">
               <div className="flex justify-between">
                 <span className="text-customer-gray-600">Subtotal</span>
-                <span className="font-medium">${subtotal.toFixed(2)}</span>
+                <span className="font-medium">₦{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-customer-gray-600">Shipping</span>
-                <span className="font-medium">${shipping.toFixed(2)}</span>
+                <span className="font-medium">₦{shipping.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-customer-gray-600">Tax</span>
-                <span className="font-medium">${tax.toFixed(2)}</span>
+                <span className="font-medium">₦{tax.toFixed(2)}</span>
               </div>
               <div className="border-t border-customer-gray-200 pt-4 flex justify-between">
                 <span className="text-customer-gray-900 font-bold">Total</span>
-                <span className="text-customer-gray-900 font-bold text-lg">${total.toFixed(2)}</span>
+                <span className="text-customer-gray-900 font-bold text-lg">₦{total.toFixed(2)}</span>
               </div>
             </div>
             

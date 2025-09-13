@@ -138,7 +138,7 @@ const CustomerReport = () => {
             </div>
             <span className="text-amber-600 font-semibold">Avg. Spend</span>
           </div>
-          <div className="admin-stats-number">$245</div>
+          <div className="admin-stats-number">₦245</div>
           <div className="admin-stats-label">Per customer</div>
         </div>
       </div>
@@ -233,7 +233,7 @@ const CustomerReport = () => {
                   {customer.email}
                 </div>
                 <div className="admin-table-cell">
-                  <span className="font-semibold text-admin-primary">${customer.totalSpent}</span>
+                  <span className="font-semibold text-admin-primary">₦{customer.totalSpent}</span>
                 </div>
                 <div className="admin-table-cell">
                   {customer.orders}

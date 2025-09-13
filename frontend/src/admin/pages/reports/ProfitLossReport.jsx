@@ -103,7 +103,7 @@ const ProfitLossReport = () => {
             </div>
             <span className="text-green-600 font-semibold">Total Revenue</span>
           </div>
-          <div className="admin-stats-number">$324,500</div>
+          <div className="admin-stats-number">₦324,500</div>
           <div className="admin-stats-label">All sales revenue</div>
         </div>
         
@@ -114,7 +114,7 @@ const ProfitLossReport = () => {
             </div>
             <span className="text-red-600 font-semibold">Total Expenses</span>
           </div>
-          <div className="admin-stats-number">$187,300</div>
+          <div className="admin-stats-number">₦187,300</div>
           <div className="admin-stats-label">Operating costs</div>
         </div>
         
@@ -125,7 +125,7 @@ const ProfitLossReport = () => {
             </div>
             <span className="text-blue-600 font-semibold">Net Profit</span>
           </div>
-          <div className="admin-stats-number">$137,200</div>
+          <div className="admin-stats-number">₦137,200</div>
           <div className="admin-stats-label">Revenue - Expenses</div>
         </div>
         

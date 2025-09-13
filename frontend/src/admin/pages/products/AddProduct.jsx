@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Plus, Upload } from 'lucide-react'
+import adminApi from '../../../shared/services/adminApi'
 
 const AddProduct = () => {
   const [product, setProduct] = useState({
@@ -22,6 +23,9 @@ const AddProduct = () => {
     isActive: true,
     isPublished: false
   })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const navigate = useNavigate()
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -31,10 +35,33 @@ const AddProduct = () => {
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Product creation logic would go here
-    console.log('Product to create:', product)
+    setLoading(true)
+    setError(null)
+    
+    try {
+      // Prepare product data for API
+      const productData = {
+        ...product,
+        sellingPrice: parseFloat(product.sellingPrice),
+        costPrice: parseFloat(product.costPrice),
+        salePrice: product.salePrice ? parseFloat(product.salePrice) : undefined,
+        currentStock: parseInt(product.currentStock),
+        minStockLevel: product.minStockLevel ? parseInt(product.minStockLevel) : undefined,
+        maxStockLevel: product.maxStockLevel ? parseInt(product.maxStockLevel) : undefined
+      }
+      
+      const response = await adminApi.createProduct(productData)
+      console.log('Product created:', response)
+      // Redirect to products list
+      navigate('/admin/products')
+    } catch (err) {
+      console.error('Failed to create product:', err)
+      setError(err.message || 'Failed to create product. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -46,6 +73,13 @@ const AddProduct = () => {
         </Link>
         <h1 className="text-3xl font-bold text-admin-gray-900">Add New Product</h1>
       </div>
+      
+      {/* Error Message */}
+      {error && (
+        <div className="admin-glass-card p-6 mb-8 bg-red-50 border border-red-200">
+          <p className="text-red-700">{error}</p>
+        </div>
+      )}
       
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Product Information */}
@@ -307,8 +341,22 @@ const AddProduct = () => {
           <h2 className="text-xl font-semibold text-admin-gray-900 mb-6">Actions</h2>
           
           <div className="space-y-4">
-            <button type="submit" className="admin-btn-primary w-full">
-              Create Product
+            <button 
+              type="submit" 
+              className="admin-btn-primary w-full flex items-center justify-center"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Creating...
+                </>
+              ) : (
+                'Create Product'
+              )}
             </button>
             
             <button type="button" className="admin-btn-secondary w-full">

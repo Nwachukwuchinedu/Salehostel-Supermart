@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Lock, Eye, EyeOff } from 'lucide-react';
+import customerApi from '../../../shared/services/customerApi';
 
 const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -11,7 +12,10 @@ const ResetPassword = () => {
   });
   const [errors, setErrors] = useState({});
   const [isReset, setIsReset] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -48,13 +52,30 @@ const ResetPassword = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (validateForm()) {
-      // Password reset logic would go here
-      console.log('Password reset with:', formData);
-      setIsReset(true);
+      if (!token) {
+        setErrors({
+          general: 'Invalid or missing reset token. Please request a new password reset.'
+        });
+        return;
+      }
+      
+      setLoading(true);
+      try {
+        const response = await customerApi.resetPassword(token, formData.password);
+        console.log('Password reset successful:', response);
+        setIsReset(true);
+      } catch (error) {
+        console.error('Password reset failed:', error);
+        setErrors({
+          general: error.message || 'Failed to reset password. Please try again.'
+        });
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -93,6 +114,12 @@ const ResetPassword = () => {
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6">
+          {errors.general && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-red-700 text-sm">{errors.general}</p>
+            </div>
+          )}
+          
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-customer-gray-700 mb-2">
               New Password
@@ -147,9 +174,20 @@ const ResetPassword = () => {
           
           <button
             type="submit"
-            className="customer-btn-primary w-full"
+            disabled={loading}
+            className="customer-btn-primary w-full flex items-center justify-center"
           >
-            Reset Password
+            {loading ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Resetting...
+              </>
+            ) : (
+              'Reset Password'
+            )}
           </button>
         </form>
         

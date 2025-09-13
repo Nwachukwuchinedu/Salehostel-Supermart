@@ -1,51 +1,68 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Search, Filter, Plus, Edit, Trash2, Eye } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import adminApi from '../../../shared/services/adminApi'
 
 const ProductList = () => {
-  // Sample product data
-  const [products] = useState([
-    {
-      id: 1,
-      name: "Wireless Bluetooth Headphones",
-      sku: "WBH-001",
-      category: "Electronics",
-      stock: 15,
-      price: 89.99,
-      active: true,
-      image: "https://placehold.co/100x100/1e40af/white?text=Headphones"
-    },
-    {
-      id: 2,
-      name: "Smartphone XYZ Pro",
-      sku: "SP-002",
-      category: "Electronics",
-      stock: 8,
-      price: 699.99,
-      active: true,
-      image: "https://placehold.co/100x100/1e40af/white?text=Smartphone"
-    },
-    {
-      id: 3,
-      name: "Fitness Tracker Watch",
-      sku: "FTW-003",
-      category: "Wearables",
-      stock: 25,
-      price: 49.99,
-      active: true,
-      image: "https://placehold.co/100x100/1e40af/white?text=Fitness"
-    },
-    {
-      id: 4,
-      name: "Laptop Backpack",
-      sku: "LB-004",
-      category: "Accessories",
-      stock: 0,
-      price: 29.99,
-      active: false,
-      image: "https://placehold.co/100x100/1e40af/white?text=Backpack"
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+
+  useEffect(() => {
+    fetchProducts()
+  }, [])
+
+  const fetchProducts = async () => {
+    try {
+      setLoading(true)
+      const response = await adminApi.getProducts()
+      setProducts(response.data.products || response.data)
+      setError(null)
+    } catch (err) {
+      console.error('Failed to fetch products:', err)
+      setError('Failed to load products. Please try again.')
+    } finally {
+      setLoading(false)
     }
-  ])
+  }
+
+  const handleDelete = async (productId) => {
+    if (window.confirm('Are you sure you want to delete this product?')) {
+      try {
+        await adminApi.deleteProduct(productId)
+        // Remove the product from the local state
+        setProducts(products.filter(product => product._id !== productId))
+      } catch (err) {
+        console.error('Failed to delete product:', err)
+        alert('Failed to delete product. Please try again.')
+      }
+    }
+  }
+
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          product.sku.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCategory = categoryFilter ? product.category === categoryFilter : true
+    const matchesStatus = statusFilter ? 
+      (statusFilter === 'Active' ? product.active : 
+       statusFilter === 'Inactive' ? !product.active : 
+       statusFilter === 'Low Stock' ? product.stock < 10 : true) : true
+    
+    return matchesSearch && matchesCategory && matchesStatus
+  })
+
+  if (loading) {
+    return (
+      <div className="p-4 lg:p-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-admin-primary"></div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-4 lg:p-8">
@@ -69,26 +86,52 @@ const ProductList = () => {
               type="text" 
               placeholder="Search products..."
               className="admin-input pl-10 w-full"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <select className="admin-select">
-            <option>All Categories</option>
+          <select 
+            className="admin-select"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+          >
+            <option value="">All Categories</option>
             <option>Electronics</option>
             <option>Wearables</option>
             <option>Accessories</option>
           </select>
-          <select className="admin-select">
-            <option>All Status</option>
+          <select 
+            className="admin-select"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="">All Status</option>
             <option>Active</option>
             <option>Inactive</option>
             <option>Low Stock</option>
           </select>
-          <button className="admin-btn-secondary">
+          <button 
+            className="admin-btn-secondary"
+            onClick={fetchProducts}
+          >
             <Filter className="w-5 h-5 mr-2" />
             Apply Filters
           </button>
         </div>
       </div>
+      
+      {/* Error Message */}
+      {error && (
+        <div className="admin-glass-card p-6 mb-8 bg-red-50 border border-red-200">
+          <p className="text-red-700">{error}</p>
+          <button 
+            onClick={fetchProducts}
+            className="mt-2 admin-btn-primary"
+          >
+            Retry
+          </button>
+        </div>
+      )}
       
       {/* Products Table */}
       <div className="admin-table">
@@ -103,12 +146,12 @@ const ProductList = () => {
           </div>
         </div>
         <div>
-          {products.map(product => (
-            <div key={product.id} className="admin-table-row">
+          {filteredProducts.map(product => (
+            <div key={product._id || product.id} className="admin-table-row">
               <div className="admin-table-cell">
                 <div className="flex items-center gap-3">
                   <img 
-                    src={product.image} 
+                    src={product.image || product.images?.[0] || "https://placehold.co/100x100/1e40af/white?text=Product"} 
                     alt={product.name}
                     className="w-12 h-12 rounded-lg object-cover"
                   />
@@ -127,7 +170,7 @@ const ProductList = () => {
                 </span>
               </div>
               <div className="admin-table-cell font-semibold">
-                ${product.price}
+                ₦{product.price}
               </div>
               <div className="admin-table-cell">
                 <span className={`status-badge ${product.active ? 'status-success' : 'status-danger'}`}>
@@ -136,10 +179,13 @@ const ProductList = () => {
               </div>
               <div className="admin-table-cell">
                 <div className="flex items-center gap-2">
-                  <Link to={`/admin/products/edit/${product.id}`} className="p-2 text-admin-gray-400 hover:text-admin-primary">
+                  <Link to={`/admin/products/edit/${product._id || product.id}`} className="p-2 text-admin-gray-400 hover:text-admin-primary">
                     <Edit className="w-4 h-4" />
                   </Link>
-                  <button className="p-2 text-admin-gray-400 hover:text-red-600">
+                  <button 
+                    className="p-2 text-admin-gray-400 hover:text-red-600"
+                    onClick={() => handleDelete(product._id || product.id)}
+                  >
                     <Trash2 className="w-4 h-4" />
                   </button>
                   <button className="p-2 text-admin-gray-400 hover:text-admin-primary">
@@ -151,6 +197,22 @@ const ProductList = () => {
           ))}
         </div>
       </div>
+      
+      {filteredProducts.length === 0 && !loading && (
+        <div className="admin-glass-card p-12 text-center">
+          <p className="text-admin-gray-500">No products found matching your criteria.</p>
+          <button 
+            onClick={() => {
+              setSearchTerm('')
+              setCategoryFilter('')
+              setStatusFilter('')
+            }}
+            className="mt-4 admin-btn-primary"
+          >
+            Clear Filters
+          </button>
+        </div>
+      )}
     </div>
   )
 }

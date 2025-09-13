@@ -145,7 +145,7 @@ const ProductPerformance = () => {
             </div>
             <span className="text-purple-600 font-semibold">Total Revenue</span>
           </div>
-          <div className="admin-stats-number">$5.2M</div>
+          <div className="admin-stats-number">₦5.2M</div>
           <div className="admin-stats-label">Product revenue</div>
         </div>
         

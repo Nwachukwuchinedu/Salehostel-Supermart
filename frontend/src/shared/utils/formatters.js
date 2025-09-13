@@ -4,8 +4,8 @@
 export const formatProduct = (product) => {
   return {
     ...product,
-    formattedPrice: product.price ? `$${product.price.toFixed(2)}` : '$0.00',
-    formattedDiscountPrice: product.discountPrice ? `$${product.discountPrice.toFixed(2)}` : null,
+    formattedPrice: product.price ? `₦${product.price.toFixed(2)}` : '₦0.00',
+    formattedDiscountPrice: product.discountPrice ? `₦${product.discountPrice.toFixed(2)}` : null,
     discountPercentage: product.price && product.discountPrice 
       ? Math.round(((product.price - product.discountPrice) / product.price) * 100) 
       : 0,
@@ -18,7 +18,7 @@ export const formatProduct = (product) => {
 export const formatOrder = (order) => {
   return {
     ...order,
-    formattedTotal: order.total ? `$${order.total.toFixed(2)}` : '$0.00',
+    formattedTotal: order.total ? `₦${order.total.toFixed(2)}` : '₦0.00',
     formattedDate: new Date(order.createdAt).toLocaleDateString(),
     statusText: formatOrderStatus(order.status),
     paymentStatusText: formatPaymentStatus(order.paymentStatus),
@@ -98,10 +98,10 @@ export const formatAddress = (address) => {
 export const formatCartItem = (item) => {
   return {
     ...item,
-    formattedPrice: item.price ? `$${item.price.toFixed(2)}` : '$0.00',
+    formattedPrice: item.price ? `₦${item.price.toFixed(2)}` : '₦0.00',
     formattedTotal: item.price && item.quantity 
-      ? `$${(item.price * item.quantity).toFixed(2)}` 
-      : '$0.00',
+      ? `₦${(item.price * item.quantity).toFixed(2)}` 
+      : '₦0.00',
   };
 };
 
@@ -109,8 +109,8 @@ export const formatCartItem = (item) => {
 export const formatReportData = (data) => {
   return {
     ...data,
-    formattedRevenue: data.revenue ? `$${data.revenue.toFixed(2)}` : '$0.00',
-    formattedProfit: data.profit ? `$${data.profit.toFixed(2)}` : '$0.00',
+    formattedRevenue: data.revenue ? `₦${data.revenue.toFixed(2)}` : '₦0.00',
+    formattedProfit: data.profit ? `₦${data.profit.toFixed(2)}` : '₦0.00',
     formattedDate: data.date ? new Date(data.date).toLocaleDateString() : '',
   };
 };
