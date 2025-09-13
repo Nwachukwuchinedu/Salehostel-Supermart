@@ -37,6 +37,13 @@ import CustomerLogin from './customer/pages/auth/CustomerLogin';
 import CustomerRegister from './customer/pages/auth/CustomerRegister';
 import ForgotPassword from './customer/pages/auth/ForgotPassword';
 import ResetPassword from './customer/pages/auth/ResetPassword';
+import CustomerProfile from './customer/pages/account/CustomerProfile';
+import EditProfile from './customer/pages/account/EditProfile';
+import OrderHistory from './customer/pages/account/OrderHistory';
+import AddressBook from './customer/pages/account/AddressBook';
+import ChangePassword from './customer/pages/account/ChangePassword';
+import OrderDetailsCustomer from './customer/pages/orders/OrderDetails';
+import TrackOrder from './customer/pages/orders/TrackOrder';
 
 const AppRouter = () => {
   return (
@@ -109,6 +116,19 @@ const AppRouter = () => {
           <Route path="cart" element={<Cart />} />
           <Route path="checkout" element={<Checkout />} />
           <Route path="order-confirmation" element={<OrderConfirmation />} />
+          
+          {/* Customer Account Routes */}
+          <Route path="account">
+            <Route path="profile" element={<CustomerProfile />} />
+            <Route path="profile/edit" element={<EditProfile />} />
+            <Route path="orders" element={<OrderHistory />} />
+            <Route path="orders/:id" element={<OrderDetailsCustomer />} />
+            <Route path="addresses" element={<AddressBook />} />
+            <Route path="change-password" element={<ChangePassword />} />
+          </Route>
+          
+          {/* Customer Order Tracking Routes */}
+          <Route path="track-order" element={<TrackOrder />} />
         </Route>
       </Routes>
     </Router>
