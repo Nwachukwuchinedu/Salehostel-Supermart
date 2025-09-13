@@ -44,6 +44,7 @@ import AddressBook from './customer/pages/account/AddressBook';
 import ChangePassword from './customer/pages/account/ChangePassword';
 import OrderDetailsCustomer from './customer/pages/orders/OrderDetails';
 import TrackOrder from './customer/pages/orders/TrackOrder';
+import NotFound from './customer/pages/errors/NotFound';
 
 const AppRouter = () => {
   return (
@@ -130,6 +131,9 @@ const AppRouter = () => {
           {/* Customer Order Tracking Routes */}
           <Route path="track-order" element={<TrackOrder />} />
         </Route>
+        
+        {/* 404 Page */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );
