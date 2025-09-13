@@ -78,7 +78,7 @@ const CartSidebar = ({ isOpen, onClose }) => {
                 
                 <div className="flex-1 min-w-0">
                   <h4 className="font-medium text-gray-900 truncate">{item.name}</h4>
-                  <p className="text-sm text-gray-600">${item.price}</p>
+                  <p className="text-sm text-gray-600">₦{item.price}</p>
                   
                   {/* Quantity Controls */}
                   <div className="flex items-center gap-3 mt-2">
@@ -99,7 +99,7 @@ const CartSidebar = ({ isOpen, onClose }) => {
                 </div>
                 
                 <div className="text-right">
-                  <p className="font-semibold text-gray-900">${(item.price * item.quantity).toFixed(2)}</p>
+                  <p className="font-semibold text-gray-900">₦{(item.price * item.quantity).toFixed(2)}</p>
                   <button 
                     onClick={() => removeItem(item.id)}
                     className="text-red-500 hover:text-red-700 mt-2"
@@ -118,15 +118,15 @@ const CartSidebar = ({ isOpen, onClose }) => {
         <div className="border-t border-gray-200/50 p-6 space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-gray-600">Subtotal</span>
-            <span className="font-semibold text-gray-900">${subtotal.toFixed(2)}</span>
+            <span className="font-semibold text-gray-900">₦{subtotal.toFixed(2)}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-gray-600">Shipping</span>
-            <span className="font-semibold text-gray-900">{shipping === 0 ? 'Free' : `$${shipping.toFixed(2)}`}</span>
+            <span className="font-semibold text-gray-900">{shipping === 0 ? 'Free' : `₦${shipping.toFixed(2)}`}</span>
           </div>
           <div className="flex items-center justify-between text-lg font-bold">
             <span>Total</span>
-            <span className="text-customer-primary">${total.toFixed(2)}</span>
+            <span className="text-customer-primary">₦{total.toFixed(2)}</span>
           </div>
           
           <div className="space-y-3">
