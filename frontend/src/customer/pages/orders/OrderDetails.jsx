@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { 
   Package, 
   Truck, 
@@ -15,69 +15,35 @@ import {
   Download, 
   Printer 
 } from 'lucide-react';
+import customerApi from '../../../shared/services/customerApi';
 
 const OrderDetails = () => {
-  // Sample order data
-  const order = {
-    id: '#ORD-001',
-    date: '2023-06-15',
-    status: 'delivered',
-    total: 245.99,
-    subtotal: 220.00,
-    shipping: 15.99,
-    tax: 10.00,
-    tracking: 'TRK123456789',
-    estimatedDelivery: '2023-06-20',
-    items: [
-      {
-        id: 1,
-        name: 'Wireless Headphones',
-        image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80',
-        price: 199.99,
-        quantity: 1,
-        variant: 'Black'
-      },
-      {
-        id: 2,
-        name: 'Phone Case',
-        image: 'https://images.unsplash.com/photo-1595941069915-4ebc5197c14a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80',
-        price: 24.99,
-        quantity: 1,
-        variant: 'Silicone, Black'
-      },
-      {
-        id: 3,
-        name: 'USB Cable',
-        image: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80',
-        price: 12.99,
-        quantity: 2,
-        variant: '3m, White'
-      }
-    ],
-    shippingAddress: {
-      name: 'John Doe',
-      street: '123 Main Street',
-      city: 'New York',
-      state: 'NY',
-      zipCode: '10001',
-      country: 'United States',
-      phone: '+1 (555) 123-4567'
-    },
-    billingAddress: {
-      name: 'John Doe',
-      street: '123 Main Street',
-      city: 'New York',
-      state: 'NY',
-      zipCode: '10001',
-      country: 'United States',
-      phone: '+1 (555) 123-4567'
-    },
-    paymentMethod: 'Visa ending in 1234',
-    paymentStatus: 'paid'
+  const { id } = useParams();
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchOrderDetails();
+  }, [id]);
+
+  const fetchOrderDetails = async () => {
+    try {
+      setLoading(true);
+      const response = await customerApi.getOrder(id);
+      const orderData = response.data || response;
+      setOrder(orderData);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch order details:', err);
+      setError('Failed to load order details. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getStatusIcon = (status) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case 'delivered':
         return <CheckCircle className="w-5 h-5 text-green-500" />;
       case 'shipped':
@@ -92,7 +58,7 @@ const OrderDetails = () => {
   };
 
   const getStatusText = (status) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case 'delivered':
         return 'Delivered';
       case 'shipped':
@@ -105,6 +71,53 @@ const OrderDetails = () => {
         return 'Unknown';
     }
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-customer-primary"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="customer-glass-card p-8 text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button 
+            onClick={fetchOrderDetails}
+            className="customer-btn-primary"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="customer-glass-card p-8 text-center">
+          <h2 className="text-2xl font-bold text-customer-gray-900 mb-4">Order Not Found</h2>
+          <p className="text-customer-gray-600 mb-6">The order you're looking for doesn't exist or is no longer available.</p>
+          <Link to="/account/orders" className="customer-btn-primary">
+            Back to Orders
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Calculate order totals
+  const subtotal = (order.items || []).reduce((sum, item) => 
+    sum + ((item.price || item.sellingPrice || 0) * (item.quantity || 1)), 0);
+  const shipping = order.shippingCost || order.shipping || 0;
+  const tax = order.tax || 0;
+  const total = order.totalAmount || order.total || (subtotal + shipping + tax);
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -119,7 +132,7 @@ const OrderDetails = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-customer-gray-900">Order Details</h1>
-            <p className="text-customer-gray-600">Order {order.id} • Placed on {order.date}</p>
+            <p className="text-customer-gray-600">Order #{order._id || order.id} • Placed on {new Date(order.createdAt || order.date).toLocaleDateString()}</p>
           </div>
           <div className="flex gap-3 mt-4 md:mt-0">
             <button className="customer-btn-secondary flex items-center">
@@ -141,13 +154,15 @@ const OrderDetails = () => {
             {getStatusIcon(order.status)}
             <div className="ml-3">
               <h2 className="text-xl font-semibold text-customer-gray-900">{getStatusText(order.status)}</h2>
-              <p className="text-customer-gray-600">Order #{order.id}</p>
+              <p className="text-customer-gray-600">Order #{order._id || order.id}</p>
             </div>
           </div>
-          <div className="flex items-center text-customer-gray-600">
-            <Calendar className="w-5 h-5 mr-2" />
-            <span>Estimated delivery: {order.estimatedDelivery}</span>
-          </div>
+          {order.estimatedDelivery && (
+            <div className="flex items-center text-customer-gray-600">
+              <Calendar className="w-5 h-5 mr-2" />
+              <span>Estimated delivery: {new Date(order.estimatedDelivery).toLocaleDateString()}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -157,24 +172,24 @@ const OrderDetails = () => {
           <div className="customer-glass-card rounded-2xl p-6 mb-8">
             <h3 className="text-xl font-semibold text-customer-gray-900 mb-6">Items</h3>
             <div className="space-y-6">
-              {order.items.map((item) => (
-                <div key={item.id} className="flex border-b border-customer-gray-100 pb-6 last:border-0 last:pb-0">
+              {(order.items || []).map((item, index) => (
+                <div key={item._id || item.id || index} className="flex border-b border-customer-gray-100 pb-6 last:border-0 last:pb-0">
                   <div className="w-20 h-20 flex-shrink-0">
                     <img 
-                      src={item.image} 
-                      alt={item.name}
+                      src={item.image || item.images?.[0] || item.product?.image || item.product?.images?.[0] || "https://placehold.co/200x200"} 
+                      alt={item.name || item.product?.name}
                       className="w-full h-full object-cover rounded-lg"
                     />
                   </div>
                   <div className="ml-4 flex-1">
-                    <h4 className="font-medium text-customer-gray-900">{item.name}</h4>
-                    <p className="text-sm text-customer-gray-600">{item.variant}</p>
+                    <h4 className="font-medium text-customer-gray-900">{item.name || item.product?.name}</h4>
+                    {item.variant && <p className="text-sm text-customer-gray-600">{item.variant}</p>}
                     <div className="flex items-center justify-between mt-2">
                       <div className="text-customer-gray-900">
-                        ${item.price} × {item.quantity}
+                        ₦{(item.price || item.sellingPrice || item.product?.price || item.product?.sellingPrice || 0).toFixed(2)} × {item.quantity || 1}
                       </div>
                       <div className="font-medium text-customer-gray-900">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        ₦{((item.price || item.sellingPrice || item.product?.price || item.product?.sellingPrice || 0) * (item.quantity || 1)).toFixed(2)}
                       </div>
                     </div>
                   </div>
@@ -189,19 +204,19 @@ const OrderDetails = () => {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-customer-gray-600">Subtotal</span>
-                <span className="text-customer-gray-900">${order.subtotal.toFixed(2)}</span>
+                <span className="text-customer-gray-900">₦{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-customer-gray-600">Shipping</span>
-                <span className="text-customer-gray-900">${order.shipping.toFixed(2)}</span>
+                <span className="text-customer-gray-900">₦{shipping.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-customer-gray-600">Tax</span>
-                <span className="text-customer-gray-900">${order.tax.toFixed(2)}</span>
+                <span className="text-customer-gray-900">₦{tax.toFixed(2)}</span>
               </div>
               <div className="border-t border-customer-gray-200 pt-3 flex justify-between font-semibold">
                 <span className="text-customer-gray-900">Total</span>
-                <span className="text-customer-gray-900">${order.total.toFixed(2)}</span>
+                <span className="text-customer-gray-900">₦{total.toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -214,14 +229,16 @@ const OrderDetails = () => {
             <div className="flex items-start">
               <MapPin className="w-5 h-5 text-customer-gray-400 mt-0.5 mr-3 flex-shrink-0" />
               <div className="text-customer-gray-700">
-                <div className="font-medium">{order.shippingAddress.name}</div>
-                <div>{order.shippingAddress.street}</div>
-                <div>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zipCode}</div>
-                <div>{order.shippingAddress.country}</div>
-                <div className="mt-2 flex items-center">
-                  <Phone className="w-4 h-4 text-customer-gray-400 mr-2" />
-                  <span>{order.shippingAddress.phone}</span>
-                </div>
+                <div className="font-medium">{order.shippingAddress?.firstName} {order.shippingAddress?.lastName}</div>
+                <div>{order.shippingAddress?.street || order.shippingAddress?.address}</div>
+                <div>{order.shippingAddress?.city}, {order.shippingAddress?.state} {order.shippingAddress?.postalCode || order.shippingAddress?.zipCode}</div>
+                <div>{order.shippingAddress?.country}</div>
+                {order.shippingAddress?.phone && (
+                  <div className="mt-2 flex items-center">
+                    <Phone className="w-4 h-4 text-customer-gray-400 mr-2" />
+                    <span>{order.shippingAddress.phone}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -231,14 +248,16 @@ const OrderDetails = () => {
             <div className="flex items-start">
               <Mail className="w-5 h-5 text-customer-gray-400 mt-0.5 mr-3 flex-shrink-0" />
               <div className="text-customer-gray-700">
-                <div className="font-medium">{order.billingAddress.name}</div>
-                <div>{order.billingAddress.street}</div>
-                <div>{order.billingAddress.city}, {order.billingAddress.state} {order.billingAddress.zipCode}</div>
-                <div>{order.billingAddress.country}</div>
-                <div className="mt-2 flex items-center">
-                  <Phone className="w-4 h-4 text-customer-gray-400 mr-2" />
-                  <span>{order.billingAddress.phone}</span>
-                </div>
+                <div className="font-medium">{order.billingAddress?.firstName} {order.billingAddress?.lastName}</div>
+                <div>{order.billingAddress?.street || order.billingAddress?.address}</div>
+                <div>{order.billingAddress?.city}, {order.billingAddress?.state} {order.billingAddress?.postalCode || order.billingAddress?.zipCode}</div>
+                <div>{order.billingAddress?.country}</div>
+                {order.billingAddress?.phone && (
+                  <div className="mt-2 flex items-center">
+                    <Phone className="w-4 h-4 text-customer-gray-400 mr-2" />
+                    <span>{order.billingAddress.phone}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -248,8 +267,12 @@ const OrderDetails = () => {
             <div className="flex items-center">
               <DollarSign className="w-5 h-5 text-customer-gray-400 mr-3" />
               <div>
-                <div className="font-medium text-customer-gray-900">{order.paymentMethod}</div>
-                <div className="text-sm text-green-600">Paid</div>
+                <div className="font-medium text-customer-gray-900">
+                  {order.paymentMethod ? order.paymentMethod.charAt(0).toUpperCase() + order.paymentMethod.slice(1) : 'Payment Method'}
+                </div>
+                <div className={`text-sm ${order.paymentStatus === 'paid' ? 'text-green-600' : 'text-amber-600'}`}>
+                  {order.paymentStatus ? order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1) : 'Pending'}
+                </div>
               </div>
             </div>
           </div>

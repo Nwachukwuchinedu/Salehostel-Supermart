@@ -1,49 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Package, Search, Filter, Truck, Calendar, DollarSign, CheckCircle, XCircle, Clock } from 'lucide-react';
+import customerApi from '../../../shared/services/customerApi';
 
 const OrderHistory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Sample order data
-  const orders = [
-    {
-      id: '#ORD-001',
-      date: '2023-06-15',
-      total: 245.99,
-      status: 'delivered',
-      items: 3,
-      tracking: 'TRK123456789'
-    },
-    {
-      id: '#ORD-002',
-      date: '2023-06-10',
-      total: 189.50,
-      status: 'shipped',
-      items: 2,
-      tracking: 'TRK987654321'
-    },
-    {
-      id: '#ORD-003',
-      date: '2023-06-05',
-      total: 89.99,
-      status: 'processing',
-      items: 1,
-      tracking: 'TRK456789123'
-    },
-    {
-      id: '#ORD-004',
-      date: '2023-05-28',
-      total: 356.75,
-      status: 'cancelled',
-      items: 4,
-      tracking: 'TRK321654987'
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const response = await customerApi.getOrders();
+      const ordersData = response.data || response;
+      setOrders(Array.isArray(ordersData) ? ordersData : []);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch orders:', err);
+      setError('Failed to load orders. Please try again.');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const getStatusIcon = (status) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case 'delivered':
         return <CheckCircle className="w-5 h-5 text-green-500" />;
       case 'shipped':
@@ -58,7 +45,7 @@ const OrderHistory = () => {
   };
 
   const getStatusText = (status) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case 'delivered':
         return 'Delivered';
       case 'shipped':
@@ -73,11 +60,39 @@ const OrderHistory = () => {
   };
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          order.tracking.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+    const orderId = order._id || order.id || order.orderId;
+    const tracking = order.trackingNumber || '';
+    const matchesSearch = orderId.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          tracking.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || (order.status?.toLowerCase() === statusFilter);
     return matchesSearch && matchesStatus;
   });
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-customer-primary"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="customer-glass-card p-8 text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button 
+            onClick={fetchOrders}
+            className="customer-btn-primary"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -143,21 +158,21 @@ const OrderHistory = () => {
               </thead>
               <tbody>
                 {filteredOrders.map((order) => (
-                  <tr key={order.id} className="border-b border-customer-gray-100 hover:bg-customer-gray-50">
+                  <tr key={order._id || order.id} className="border-b border-customer-gray-100 hover:bg-customer-gray-50">
                     <td className="py-4 px-4">
                       <div>
-                        <div className="font-medium text-customer-gray-900">{order.id}</div>
-                        <div className="text-sm text-customer-gray-500">{order.tracking}</div>
+                        <div className="font-medium text-customer-gray-900">#{order._id || order.id}</div>
+                        <div className="text-sm text-customer-gray-500">{order.trackingNumber || 'N/A'}</div>
                       </div>
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center text-customer-gray-600">
                         <Calendar className="w-4 h-4 mr-2" />
-                        {order.date}
+                        {new Date(order.createdAt || order.date).toLocaleDateString()}
                       </div>
                     </td>
-                    <td className="py-4 px-4 text-customer-gray-600">{order.items} items</td>
-                    <td className="py-4 px-4 font-medium text-customer-gray-900">${order.total}</td>
+                    <td className="py-4 px-4 text-customer-gray-600">{(order.items || []).length} items</td>
+                    <td className="py-4 px-4 font-medium text-customer-gray-900">₦{(order.totalAmount || order.total || 0).toFixed(2)}</td>
                     <td className="py-4 px-4">
                       <div className="flex items-center">
                         {getStatusIcon(order.status)}
@@ -166,7 +181,7 @@ const OrderHistory = () => {
                     </td>
                     <td className="py-4 px-4">
                       <Link 
-                        to={`/account/orders/${order.id}`} 
+                        to={`/account/orders/${order._id || order.id}`} 
                         className="text-customer-primary hover:text-customer-secondary font-medium"
                       >
                         View Details

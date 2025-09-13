@@ -1,30 +1,101 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, Plus, Minus, ShoppingCart, ArrowLeft, CreditCard } from 'lucide-react';
+import customerApi from '../../../shared/services/customerApi';
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([
-    { id: 1, name: 'Wireless Headphones', price: 199.99, quantity: 1, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', sku: 'WH-001' },
-    { id: 2, name: 'Smartphone', price: 699.99, quantity: 1, image: 'https://images.unsplash.com/photo-1595941069915-4ebc5197c14a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', sku: 'SP-002' },
-    { id: 3, name: 'Laptop', price: 1299.99, quantity: 1, image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', sku: 'LP-003' },
-  ]);
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  useEffect(() => {
+    fetchCartData();
+  }, []);
+
+  const fetchCartData = async () => {
+    try {
+      setLoading(true);
+      const response = await customerApi.getCart();
+      const cartData = response.data || response;
+      setCartItems(Array.isArray(cartData) ? cartData : (cartData.items || []));
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch cart data:', err);
+      setError('Failed to load cart data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateQuantity = async (itemId, newQuantity) => {
+    if (newQuantity < 1) return;
+    
+    try {
+      // Update quantity in UI immediately for better UX
+      setCartItems(cartItems.map(item => 
+        item._id === itemId || item.id === itemId ? { ...item, quantity: newQuantity } : item
+      ));
+      
+      // Update on backend
+      await customerApi.updateCartItem({ 
+        productId: itemId, 
+        quantity: newQuantity 
+      });
+    } catch (err) {
+      console.error('Failed to update cart item:', err);
+      // Revert UI change on error
+      fetchCartData();
+      alert('Failed to update item quantity. Please try again.');
+    }
+  };
+
+  const removeItem = async (itemId) => {
+    try {
+      // Remove from UI immediately for better UX
+      setCartItems(cartItems.filter(item => item._id !== itemId && item.id !== itemId));
+      
+      // Remove from backend
+      await customerApi.removeFromCart({ 
+        productId: itemId 
+      });
+    } catch (err) {
+      console.error('Failed to remove cart item:', err);
+      // Revert UI change on error
+      fetchCartData();
+      alert('Failed to remove item from cart. Please try again.');
+    }
+  };
+
+  const subtotal = cartItems.reduce((sum, item) => sum + ((item.price || item.sellingPrice || 0) * item.quantity), 0);
   const shipping = subtotal > 100 ? 0 : 15.99;
   const tax = subtotal * 0.08;
   const total = subtotal + shipping + tax;
 
-  const updateQuantity = (id, newQuantity) => {
-    if (newQuantity < 1) return;
-    
-    setCartItems(cartItems.map(item => 
-      item.id === id ? { ...item, quantity: newQuantity } : item
-    ));
-  };
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-customer-primary"></div>
+        </div>
+      </div>
+    );
+  }
 
-  const removeItem = (id) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
-  };
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="customer-glass-card p-8 text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <button 
+            onClick={fetchCartData}
+            className="customer-btn-primary"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -52,12 +123,12 @@ const Cart = () => {
           ) : (
             <div className="space-y-6">
               {cartItems.map((item) => (
-                <div key={item.id} className="customer-glass-card rounded-2xl p-6">
+                <div key={item._id || item.id} className="customer-glass-card rounded-2xl p-6">
                   <div className="flex flex-col sm:flex-row">
                     <div className="w-32 h-32 flex-shrink-0">
                       <img 
-                        src={item.image} 
-                        alt={item.name}
+                        src={item.image || item.images?.[0] || item.product?.image || item.product?.images?.[0] || "https://placehold.co/300x300"} 
+                        alt={item.name || item.product?.name}
                         className="w-full h-full object-cover rounded-xl"
                       />
                     </div>
@@ -65,19 +136,19 @@ const Cart = () => {
                     <div className="mt-4 sm:mt-0 sm:ml-6 flex-1">
                       <div className="flex flex-col sm:flex-row sm:justify-between">
                         <div>
-                          <h3 className="text-lg font-semibold text-customer-gray-900">{item.name}</h3>
-                          <p className="text-customer-gray-600">SKU: {item.sku}</p>
+                          <h3 className="text-lg font-semibold text-customer-gray-900">{item.name || item.product?.name}</h3>
+                          <p className="text-customer-gray-600">SKU: {item.sku || item.product?.sku || 'N/A'}</p>
                         </div>
                         
                         <div className="mt-2 sm:mt-0">
-                          <p className="text-xl font-bold text-customer-gray-900">${item.price.toFixed(2)}</p>
+                          <p className="text-xl font-bold text-customer-gray-900">₦{(item.price || item.sellingPrice || item.product?.price || item.product?.sellingPrice || 0).toFixed(2)}</p>
                         </div>
                       </div>
                       
                       <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center">
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            onClick={() => updateQuantity(item._id || item.id, item.quantity - 1)}
                             className="p-2 border border-customer-gray-300 rounded-l-lg hover:bg-customer-gray-100"
                           >
                             <Minus className="w-4 h-4" />
@@ -86,11 +157,11 @@ const Cart = () => {
                             type="number"
                             min="1"
                             value={item.quantity}
-                            onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 1)}
+                            onChange={(e) => updateQuantity(item._id || item.id, parseInt(e.target.value) || 1)}
                             className="w-16 text-center border-y border-customer-gray-300 py-2"
                           />
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() => updateQuantity(item._id || item.id, item.quantity + 1)}
                             className="p-2 border border-customer-gray-300 rounded-r-lg hover:bg-customer-gray-100"
                           >
                             <Plus className="w-4 h-4" />
@@ -99,10 +170,10 @@ const Cart = () => {
                         
                         <div className="mt-4 sm:mt-0 flex items-center">
                           <p className="text-lg font-semibold text-customer-gray-900 mr-4">
-                            ${(item.price * item.quantity).toFixed(2)}
+                            ₦{((item.price || item.sellingPrice || item.product?.price || item.product?.sellingPrice || 0) * item.quantity).toFixed(2)}
                           </p>
                           <button
-                            onClick={() => removeItem(item.id)}
+                            onClick={() => removeItem(item._id || item.id)}
                             className="p-2 text-customer-gray-400 hover:text-red-600"
                           >
                             <Trash2 className="w-5 h-5" />
@@ -125,19 +196,19 @@ const Cart = () => {
             <div className="space-y-4 mb-6">
               <div className="flex justify-between">
                 <span className="text-customer-gray-600">Subtotal</span>
-                <span className="font-medium">${subtotal.toFixed(2)}</span>
+                <span className="font-medium">₦{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-customer-gray-600">Shipping</span>
-                <span className="font-medium">{shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}</span>
+                <span className="font-medium">{shipping === 0 ? 'FREE' : `₦${shipping.toFixed(2)}`}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-customer-gray-600">Tax</span>
-                <span className="font-medium">${tax.toFixed(2)}</span>
+                <span className="font-medium">₦{tax.toFixed(2)}</span>
               </div>
               <div className="border-t border-customer-gray-200 pt-4 flex justify-between">
                 <span className="text-customer-gray-900 font-bold">Total</span>
-                <span className="text-customer-gray-900 font-bold text-lg">${total.toFixed(2)}</span>
+                <span className="text-customer-gray-900 font-bold text-lg">₦{total.toFixed(2)}</span>
               </div>
             </div>
             
