@@ -5,7 +5,7 @@
 /* Custom base styles */
 @layer base {
   * {
-    @apply border-border;
+    @apply border-gray-200;
   }
   
   html {
@@ -88,11 +88,11 @@
   
   /* Admin Buttons */
   .admin-btn-primary {
-    @apply bg-admin-primary hover:bg-admin-primary-dark text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95;
+    @apply bg-admin-primary hover:bg-admin-primary/90 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95;
   }
   
   .admin-btn-secondary {
-    @apply bg-admin-secondary hover:bg-admin-gray-600 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200;
+    @apply bg-admin-gray-600 hover:bg-admin-gray-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200;
   }
   
   .admin-btn-glass {
@@ -176,7 +176,7 @@
   
   /* Customer Buttons */
   .customer-btn-primary {
-    @apply bg-gradient-to-r from-customer-primary to-customer-secondary hover:from-customer-primary-dark hover:to-pink-600 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-customer-glow active:scale-95;
+    @apply bg-gradient-to-r from-customer-primary to-customer-secondary hover:from-customer-primary/90 hover:to-customer-secondary/90 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-customer-glow active:scale-95;
   }
   
   .customer-btn-secondary {
