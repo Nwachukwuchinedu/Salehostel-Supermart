@@ -1,26 +1,27 @@
 const express = require('express');
 const router = express.Router();
+const { 
+  getOrders,
+  getOrder,
+  updateOrderStatus,
+  processRefund,
+  getOrderAnalytics
+} = require('../../controllers/admin/adminOrderController');
 const { protect, admin } = require('../../middleware/adminAuth');
 
-// Placeholder routes - will implement controller functions later
-router.get('/', protect, admin, (req, res) => {
-  res.json({ message: 'Get all customer orders' });
-});
+router.route('/')
+  .get(protect, admin, getOrders);
 
-router.get('/:id', protect, admin, (req, res) => {
-  res.json({ message: 'Get single order details' });
-});
+router.route('/analytics')
+  .get(protect, admin, getOrderAnalytics);
 
-router.put('/:id/status', protect, admin, (req, res) => {
-  res.json({ message: 'Update order status' });
-});
+router.route('/:id')
+  .get(protect, admin, getOrder);
 
-router.post('/:id/refund', protect, admin, (req, res) => {
-  res.json({ message: 'Process refund' });
-});
+router.route('/:id/status')
+  .put(protect, admin, updateOrderStatus);
 
-router.get('/analytics', protect, admin, (req, res) => {
-  res.json({ message: 'Order analytics' });
-});
+router.route('/:id/refund')
+  .post(protect, admin, processRefund);
 
 module.exports = router;
