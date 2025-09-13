@@ -1,25 +1,26 @@
 const express = require('express');
 const router = express.Router();
+const { 
+  getProducts,
+  getProduct,
+  searchProducts,
+  getCategories,
+  getFeaturedProducts
+} = require('../../controllers/customer/customerProductController');
 
-// Placeholder routes - will implement controller functions later
-router.get('/', (req, res) => {
-  res.json({ message: 'Get products for shop (public)' });
-});
+router.route('/')
+  .get(getProducts);
 
-router.get('/:id', (req, res) => {
-  res.json({ message: 'Get single product (public)' });
-});
+router.route('/search')
+  .get(searchProducts);
 
-router.get('/search', (req, res) => {
-  res.json({ message: 'Search products (public)' });
-});
+router.route('/categories')
+  .get(getCategories);
 
-router.get('/categories', (req, res) => {
-  res.json({ message: 'Get categories (public)' });
-});
+router.route('/featured')
+  .get(getFeaturedProducts);
 
-router.get('/featured', (req, res) => {
-  res.json({ message: 'Get featured products' });
-});
+router.route('/:id')
+  .get(getProduct);
 
 module.exports = router;

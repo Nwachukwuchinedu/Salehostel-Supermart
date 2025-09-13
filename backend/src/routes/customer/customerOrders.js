@@ -1,22 +1,21 @@
 const express = require('express');
 const router = express.Router();
+const { 
+  getOrders,
+  createOrder,
+  getOrder,
+  trackOrder
+} = require('../../controllers/customer/customerOrderController');
 const { protect, customer } = require('../../middleware/customerAuth');
 
-// Placeholder routes - will implement controller functions later
-router.get('/', protect, customer, (req, res) => {
-  res.json({ message: 'Get customer orders' });
-});
+router.route('/')
+  .get(protect, customer, getOrders)
+  .post(protect, customer, createOrder);
 
-router.post('/', protect, customer, (req, res) => {
-  res.json({ message: 'Create new order' });
-});
+router.route('/:id')
+  .get(protect, customer, getOrder);
 
-router.get('/:id', protect, customer, (req, res) => {
-  res.json({ message: 'Get single order' });
-});
-
-router.get('/:id/track', protect, customer, (req, res) => {
-  res.json({ message: 'Track order status' });
-});
+router.route('/:id/track')
+  .get(protect, customer, trackOrder);
 
 module.exports = router;
