@@ -1,30 +1,25 @@
 const express = require('express');
 const router = express.Router();
+const { 
+  getProfile,
+  updateProfile,
+  getAddresses,
+  addAddress,
+  updateAddress,
+  deleteAddress
+} = require('../../controllers/customer/customerProfileController');
 const { protect, customer } = require('../../middleware/customerAuth');
 
-// Placeholder routes - will implement controller functions later
-router.get('/', protect, customer, (req, res) => {
-  res.json({ message: 'Get customer profile' });
-});
+router.route('/')
+  .get(protect, customer, getProfile)
+  .put(protect, customer, updateProfile);
 
-router.put('/', protect, customer, (req, res) => {
-  res.json({ message: 'Update customer profile' });
-});
+router.route('/addresses')
+  .get(protect, customer, getAddresses)
+  .post(protect, customer, addAddress)
+  .put(protect, customer, updateAddress);
 
-router.get('/addresses', protect, customer, (req, res) => {
-  res.json({ message: 'Get customer addresses' });
-});
-
-router.post('/addresses', protect, customer, (req, res) => {
-  res.json({ message: 'Add customer address' });
-});
-
-router.put('/addresses/:id', protect, customer, (req, res) => {
-  res.json({ message: 'Update customer address' });
-});
-
-router.delete('/addresses/:id', protect, customer, (req, res) => {
-  res.json({ message: 'Delete customer address' });
-});
+router.route('/addresses/:id')
+  .delete(protect, customer, deleteAddress);
 
 module.exports = router;
