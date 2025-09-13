@@ -122,7 +122,7 @@
   }
   
   .admin-sidebar-item {
-    @apply flex items-center px-6 py-3 text-admin-gray-700 hover:bg-admin-primary/10 hover:text-admin-primary transition-all duration-200 group;
+    @apply flex items-center px-6 py-3 text-admin-gray-700 hover:bg-admin-primary/10 hover:text-admin-primary transition-all duration-200;
   }
   
   .admin-sidebar-item.active {
@@ -184,7 +184,7 @@
   }
   
   .customer-btn-glass {
-    @apply bg-customer-glass hover:bg-white/20 backdrop-blur-xl border border-customer-glass-border text-gray-900 font-semibold px-8 py-4 rounded-xl transition-all duration-300 hover:shadow-customer-glow;
+    @apply bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 text-gray-900 font-semibold px-8 py-4 rounded-xl transition-all duration-300 hover:shadow-customer-glow;
   }
   
   .customer-btn-icon {
@@ -193,7 +193,7 @@
   
   /* Customer Product Cards */
   .customer-product-card {
-    @apply bg-white backdrop-blur-sm border border-gray-200/50 rounded-2xl overflow-hidden shadow-glass-md hover:shadow-glass-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-2 group;
+    @apply bg-white backdrop-blur-sm border border-gray-200/50 rounded-2xl overflow-hidden shadow-glass-md hover:shadow-glass-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-2;
   }
   
   .customer-product-image {
