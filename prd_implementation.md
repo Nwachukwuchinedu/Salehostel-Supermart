@@ -1,76 +1,236 @@
-# Inventory Management System - PRD & Implementation Guide
+# SalesHostel Inventory Management System - PRD & Implementation Guide
 
 ## 🎯 Product Overview
 
 ### Vision Statement
-Build a comprehensive Inventory Management System integrated with an e-commerce shopping website to automate stock tracking, prevent overselling, and provide real-time inventory insights for business decision-making.
+Build a comprehensive Inventory Management System for SalesHostel - a hostel-based retail business specializing in staple foods, groceries, convenience foods, and personal care products. The system will automate stock tracking, manage supplier relationships, facilitate staff operations, and provide seamless customer ordering with real-time inventory management.
+
+### Business Context
+**SalesHostel** operates from NDDC Hostel (Shop 12), selling essential items to hostel residents and local customers. The business focuses on:
+- Staple foods (Rice, Garri, Beans, etc.)
+- Convenience foods (Noodles, Spaghetti, etc.)
+- Groceries (Milk, Cereals, Oils, etc.)
+- Personal care products and cleaning agents
+- Various packaging sizes (cups, bags, cartons, etc.)
 
 ### Target Users
-- **Admin/Manager**: Full system access - manages inventory, products, purchases, orders, and business operations
-- **Customer**: Shopping interface - browses products, makes purchases, tracks orders
-- **System**: Automated inventory tracking and stock management
+- **Admin**: Full system control, role assignment, financial oversight, reporting
+- **Supplier**: Product supply management, inventory restocking, delivery tracking
+- **Staff**: Daily operations, customer service, order processing, stock updates
+- **Customer**: Product browsing, ordering, account management, order tracking
 
 ---
 
 ## 📋 Core Features & Requirements
 
 ### 1. Role-Based Access Control
-- **Admin/Manager Role**
-  - Complete inventory management
-  - Product CRUD operations
-  - Purchase order management
-  - Order fulfillment and tracking
-  - Analytics and reporting
-  - User management
-  - System configuration
 
-- **Customer Role**
-  - Browse product catalog
-  - Add items to cart
-  - Place orders
-  - View order history
-  - Update profile information
-  - Track order status
+#### Admin Role
+- **User Management**: Assign roles to suppliers and staff
+- **Product Management**: Complete CRUD operations for products
+- **Supplier Management**: Add, edit, delete suppliers
+- **Purchase Orders**: Create and manage orders to suppliers
+- **Financial Reports**: Revenue, profit/loss, inventory valuation
+- **System Configuration**: Categories, pricing, discounts
+- **Stock Tracking**: Monitor all inventory movements
+- **Order Management**: View and manage all customer orders
 
-### 2. Admin Features
-- **Product Management**
-  - Create/Edit/Delete Products
-  - Bulk product operations
-  - Category management
-  - Inventory tracking
-  - Price management
+#### Supplier Role
+- **Product Supply**: Add new products to inventory
+- **Stock Replenishment**: Update quantities for existing products
+- **Supply History**: Track all supplies made
+- **Price Updates**: Update wholesale/supply prices
+- **Delivery Scheduling**: Manage delivery dates and times
+- **Payment Tracking**: View payment status for supplies
 
-- **Inventory Control**
-  - Real-time stock monitoring
-  - Stock movement history
-  - Purchase order creation
-  - Low stock alerts
-  - Automatic stock updates
+#### Staff Role
+- **Customer Service**: Process customer orders
+- **Inventory Updates**: Update stock levels during sales
+- **Daily Operations**: Handle cash sales, customer inquiries
+- **Order Fulfillment**: Pack and prepare customer orders
+- **Stock Alerts**: Monitor low stock situations
+- **Basic Reporting**: Daily sales, stock movements
 
-- **Order Management**
-  - View all customer orders
-  - Update order status
-  - Process refunds/returns
-  - Order analytics
+#### Customer Role
+- **Product Browsing**: View available products by category
+- **Shopping Cart**: Add items with specific quantities/packages
+- **Order Placement**: Place orders for pickup/delivery
+- **Order Tracking**: Monitor order status
+- **Account Management**: Profile, order history, preferences
+- **Favorites**: Save frequently purchased items
 
-- **Reporting & Analytics**
-  - Sales performance
-  - Inventory reports
-  - Profit/loss analysis
-  - Customer analytics
+### 2. Product Management System
 
-### 3. Customer Features
-- **Shopping Experience**
-  - Product browsing and search
-  - Shopping cart management
-  - Secure checkout process
-  - Order placement
+#### Product Structure
+```javascript
+Product Schema:
+{
+  name: String,                    // e.g., "Rice"
+  productGroup: String,            // e.g., "Staple Foods"
+  category: ObjectId,              // Reference to category
+  description: String,
+  tags: [String],                  // e.g., ["best quality", "white"]
+  
+  // Pricing & Packaging
+  variants: [{
+    packageType: String,           // e.g., "Black Rubber", "Cup", "Carton"
+    price: Number,                 // Selling price
+    costPrice: Number,             // Purchase/supply price
+    quantity: Number,              // Current stock
+    minStockLevel: Number,         // Reorder point
+    unit: String,                  // e.g., "piece", "kg", "liter"
+    isAvailable: Boolean
+  }],
+  
+  // Business Info
+  supplier: ObjectId,              // Primary supplier
+  image: String,                   // Product image URL
+  featured: Boolean,               // Featured on homepage
+  isActive: Boolean,
+  
+  // Tracking
+  createdBy: ObjectId,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
 
-- **Account Management**
-  - User registration/login
-  - Profile management
-  - Order history
-  - Order tracking
+#### Product Categories
+Based on the provided product list:
+1. **Staple Foods** - Rice, Garri, Beans, Semovita, Melon
+2. **Frozen Foods** - Chicken wings, Chicken lap
+3. **Convenience Foods** - Noodles, Spaghetti, Pasta
+4. **Sauces/Spices** - Tomato paste, Maggi, Curry, Thyme
+5. **Cooking Oils** - Palm oil, Groundnut oil, Power oil
+6. **Groceries** - Milk, Cereals, Butter, Sugar
+7. **Biscuits** - Various biscuit brands and sizes
+8. **Cleaning Agents** - Detergents, Soaps, Disinfectants
+9. **Personal Care** - Toothpaste, Sanitary pads, Body care
+10. **Stationery** - Notebooks, Pens, School supplies
+
+### 3. Supply Management System
+
+#### New Supply Process
+```javascript
+Supply Schema:
+{
+  supplierName: String,
+  supplyItems: [{
+    productName: String,           // e.g., "Rice"
+    packageType: String,           // e.g., "Black Rubber"
+    quantitySupplied: Number,      // Number of packages
+    unitCostPrice: Number,         // Cost per package
+    totalCost: Number,             // Calculated total
+    expiryDate: Date               // If applicable
+  }],
+  totalAmount: Number,
+  supplyDate: Date,                // Auto-recorded
+  supplyTime: Date,                // Auto-recorded
+  receivedBy: ObjectId,            // Staff/Admin who received
+  status: String,                  // "Pending", "Received", "Verified"
+  notes: String,
+  paymentStatus: String,           // "Pending", "Partial", "Paid"
+  createdAt: Date
+}
+```
+
+### 4. Purchase Order System
+
+#### Admin Purchase Orders
+```javascript
+PurchaseOrder Schema:
+{
+  orderNumber: String,             // Auto-generated
+  supplier: ObjectId,
+  orderItems: [{
+    productName: String,
+    packageType: String,
+    quantityRequested: Number,
+    unitPrice: Number,
+    totalPrice: Number
+  }],
+  totalAmount: Number,
+  orderDate: Date,
+  expectedDelivery: Date,
+  status: String,                  // "Draft", "Sent", "Confirmed", "Delivered"
+  notes: String,
+  createdBy: ObjectId,
+  approvedBy: ObjectId,
+  createdAt: Date
+}
+```
+
+### 5. Customer Order Management
+
+#### Customer Order Structure
+```javascript
+CustomerOrder Schema:
+{
+  orderNumber: String,
+  customer: {
+    name: String,
+    whatsappNumber: String,
+    callNumber: String,
+    email: String
+  },
+  orderItems: [{
+    product: ObjectId,
+    productName: String,
+    packageType: String,
+    quantity: Number,
+    unitPrice: Number,
+    totalPrice: Number
+  }],
+  subtotal: Number,
+  deliveryFee: Number,
+  totalAmount: Number,
+  orderType: String,               // "Pickup", "Delivery"
+  deliveryAddress: String,
+  status: String,                  // "Pending", "Confirmed", "Preparing", "Ready", "Delivered"
+  paymentMethod: String,           // "Cash", "Transfer", "POS"
+  paymentStatus: String,           // "Pending", "Paid"
+  orderDate: Date,
+  estimatedReady: Date,
+  actualReady: Date,
+  notes: String,
+  handledBy: ObjectId              // Staff member
+}
+```
+
+### 6. Stock Tracking System
+
+#### Stock Movement Recording
+```javascript
+StockMovement Schema:
+{
+  product: ObjectId,
+  packageType: String,
+  movementType: String,            // "Supply", "Sale", "Adjustment", "Return"
+  quantityBefore: Number,
+  quantityChanged: Number,         // Positive for increase, negative for decrease
+  quantityAfter: Number,
+  reference: String,               // Order ID, Supply ID, etc.
+  reason: String,
+  performedBy: ObjectId,
+  date: Date,
+  notes: String
+}
+```
+
+### 7. Reporting System
+
+#### Admin Reports
+- **Sales Report**: Daily, weekly, monthly sales analysis
+- **Inventory Report**: Current stock levels, low stock alerts
+- **Supplier Report**: Supply history, payment status
+- **Profit/Loss Report**: Revenue vs costs analysis
+- **Product Performance**: Best/worst selling items
+- **Customer Analysis**: Order patterns, frequent customers
+
+#### Staff Reports
+- **Daily Sales Summary**: Sales handled by staff member
+- **Stock Alerts**: Items requiring attention
+- **Order Status**: Current orders being processed
 
 ---
 
@@ -78,22 +238,22 @@ Build a comprehensive Inventory Management System integrated with an e-commerce 
 
 ### Tech Stack
 - **Frontend**: React.js with TypeScript
-- **Styling**: Tailwind CSS
+- **Styling**: Tailwind CSS with custom components
 - **State Management**: Zustand
 - **Backend**: Node.js with Express.js
 - **Database**: MongoDB with Mongoose ODM
 - **Authentication**: JWT + bcrypt
 - **File Upload**: Multer + Cloudinary
 - **Real-time**: Socket.io (for live updates)
-- **UI Components**: Headless UI (for accessibility)
+- **Payment**: Flutterwave/Paystack integration
 
 ---
 
-## 📁 Restructured Folder Structure
+## 📁 Updated Folder Structure
 
-### Backend Structure (Role-Separated Routes & Controllers)
+### Backend Structure
 ```
-backend/
+saleshotel-backend/
 ├── src/
 │   ├── config/
 │   │   ├── database.js
@@ -103,465 +263,350 @@ backend/
 │   │   ├── admin/
 │   │   │   ├── adminAuthController.js
 │   │   │   ├── adminProductController.js
-│   │   │   ├── adminInventoryController.js
+│   │   │   ├── adminSupplierController.js
 │   │   │   ├── adminPurchaseController.js
 │   │   │   ├── adminOrderController.js
 │   │   │   ├── adminReportController.js
 │   │   │   └── adminUserController.js
+│   │   ├── supplier/
+│   │   │   ├── supplierAuthController.js
+│   │   │   ├── supplierProductController.js
+│   │   │   ├── supplierSupplyController.js
+│   │   │   └── supplierReportController.js
+│   │   ├── staff/
+│   │   │   ├── staffAuthController.js
+│   │   │   ├── staffOrderController.js
+│   │   │   ├── staffInventoryController.js
+│   │   │   └── staffReportController.js
 │   │   └── customer/
 │   │       ├── customerAuthController.js
 │   │       ├── customerProductController.js
 │   │       ├── customerOrderController.js
-│   │       ├── customerCartController.js
-│   │       └── customerProfileController.js
+│   │       └── customerCartController.js
 │   ├── middleware/
 │   │   ├── auth.js
 │   │   ├── adminAuth.js
+│   │   ├── supplierAuth.js
+│   │   ├── staffAuth.js
 │   │   ├── customerAuth.js
 │   │   ├── upload.js
-│   │   ├── validation.js
-│   │   └── errorHandler.js
+│   │   └── validation.js
 │   ├── models/
 │   │   ├── User.js
 │   │   ├── Product.js
 │   │   ├── Category.js
-│   │   ├── Purchase.js
-│   │   ├── Order.js
-│   │   ├── OrderItem.js
+│   │   ├── Supply.js
+│   │   ├── PurchaseOrder.js
+│   │   ├── CustomerOrder.js
 │   │   ├── Cart.js
+│   │   ├── Supplier.js
 │   │   └── StockMovement.js
 │   ├── routes/
 │   │   ├── admin/
-│   │   │   ├── adminAuth.js
-│   │   │   ├── adminProducts.js
-│   │   │   ├── adminInventory.js
-│   │   │   ├── adminPurchases.js
-│   │   │   ├── adminOrders.js
-│   │   │   ├── adminReports.js
-│   │   │   └── adminUsers.js
+│   │   ├── supplier/
+│   │   ├── staff/
 │   │   └── customer/
-│   │       ├── customerAuth.js
-│   │       ├── customerProducts.js
-│   │       ├── customerOrders.js
-│   │       ├── customerCart.js
-│   │       └── customerProfile.js
 │   ├── services/
 │   │   ├── inventoryService.js
-│   │   ├── emailService.js
 │   │   ├── notificationService.js
-│   │   └── orderService.js
+│   │   ├── reportService.js
+│   │   └── paymentService.js
 │   ├── utils/
 │   │   ├── helpers.js
 │   │   ├── constants.js
 │   │   └── validators.js
 │   └── app.js
-├── uploads/
-├── package.json
-└── server.js
 ```
 
-### Frontend Structure (Separated Admin & Customer Interfaces)
+### Frontend Structure
 ```
-frontend/
-├── public/
+saleshotel-frontend/
 ├── src/
 │   ├── admin/
-│   │   ├── components/
-│   │   │   ├── layout/
-│   │   │   │   ├── AdminLayout.jsx
-│   │   │   │   ├── AdminHeader.jsx
-│   │   │   │   ├── AdminSidebar.jsx
-│   │   │   │   └── AdminBreadcrumb.jsx
-│   │   │   ├── forms/
-│   │   │   │   ├── ProductForm.jsx
-│   │   │   │   ├── PurchaseForm.jsx
-│   │   │   │   ├── CategoryForm.jsx
-│   │   │   │   └── UserForm.jsx
-│   │   │   ├── tables/
-│   │   │   │   ├── ProductTable.jsx
-│   │   │   │   ├── InventoryTable.jsx
-│   │   │   │   ├── OrderTable.jsx
-│   │   │   │   ├── PurchaseTable.jsx
-│   │   │   │   └── UserTable.jsx
-│   │   │   ├── charts/
-│   │   │   │   ├── StockChart.jsx
-│   │   │   │   ├── SalesChart.jsx
-│   │   │   │   ├── RevenueChart.jsx
-│   │   │   │   └── InventoryChart.jsx
-│   │   │   ├── modals/
-│   │   │   │   ├── ProductModal.jsx
-│   │   │   │   ├── StockAdjustmentModal.jsx
-│   │   │   │   └── OrderStatusModal.jsx
-│   │   │   └── alerts/
-│   │   │       ├── LowStockAlert.jsx
-│   │   │       └── SystemAlert.jsx
 │   │   ├── pages/
-│   │   │   ├── auth/
-│   │   │   │   ├── AdminLogin.jsx
-│   │   │   │   └── AdminProfile.jsx
 │   │   │   ├── dashboard/
-│   │   │   │   ├── AdminDashboard.jsx
-│   │   │   │   └── DashboardStats.jsx
 │   │   │   ├── products/
-│   │   │   │   ├── ProductList.jsx
-│   │   │   │   ├── ProductDetails.jsx
-│   │   │   │   ├── AddProduct.jsx
-│   │   │   │   ├── EditProduct.jsx
-│   │   │   │   └── CategoryManagement.jsx
-│   │   │   ├── inventory/
-│   │   │   │   ├── InventoryOverview.jsx
-│   │   │   │   ├── StockMovements.jsx
-│   │   │   │   ├── StockAdjustments.jsx
-│   │   │   │   └── LowStockAlerts.jsx
+│   │   │   ├── suppliers/
 │   │   │   ├── purchases/
-│   │   │   │   ├── PurchaseList.jsx
-│   │   │   │   ├── CreatePurchase.jsx
-│   │   │   │   ├── PurchaseDetails.jsx
-│   │   │   │   └── SupplierManagement.jsx
 │   │   │   ├── orders/
-│   │   │   │   ├── OrderList.jsx
-│   │   │   │   ├── OrderDetails.jsx
-│   │   │   │   ├── OrderFulfillment.jsx
-│   │   │   │   └── RefundManagement.jsx
 │   │   │   ├── reports/
-│   │   │   │   ├── SalesReport.jsx
-│   │   │   │   ├── InventoryReport.jsx
-│   │   │   │   ├── ProfitLossReport.jsx
-│   │   │   │   ├── CustomerReport.jsx
-│   │   │   │   └── ProductPerformance.jsx
 │   │   │   └── users/
-│   │   │       ├── UserManagement.jsx
-│   │   │       ├── CustomerList.jsx
-│   │   │       └── AdminList.jsx
-│   │   ├── hooks/
-│   │   │   ├── useAdminAuth.js
-│   │   │   ├── useAdminProducts.js
-│   │   │   ├── useAdminInventory.js
-│   │   │   ├── useAdminOrders.js
-│   │   │   └── useAdminReports.js
-│   │   └── stores/
-│   │       ├── adminAuthStore.js
-│   │       ├── adminProductStore.js
-│   │       ├── adminInventoryStore.js
-│   │       ├── adminOrderStore.js
-│   │       ├── adminUserStore.js
-│   │       └── adminReportStore.js
-│   ├── customer/
-│   │   ├── components/
-│   │   │   ├── layout/
-│   │   │   │   ├── CustomerLayout.jsx
-│   │   │   │   ├── CustomerHeader.jsx
-│   │   │   │   ├── CustomerNavbar.jsx
-│   │   │   │   ├── CustomerFooter.jsx
-│   │   │   │   └── MobileMenu.jsx
-│   │   │   ├── shop/
-│   │   │   │   ├── ProductCard.jsx
-│   │   │   │   ├── ProductGrid.jsx
-│   │   │   │   ├── ProductFilter.jsx
-│   │   │   │   ├── ProductSearch.jsx
-│   │   │   │   ├── ProductSort.jsx
-│   │   │   │   └── CategoryFilter.jsx
-│   │   │   ├── cart/
-│   │   │   │   ├── CartItem.jsx
-│   │   │   │   ├── CartSummary.jsx
-│   │   │   │   ├── CartDropdown.jsx
-│   │   │   │   └── MiniCart.jsx
-│   │   │   ├── checkout/
-│   │   │   │   ├── CheckoutForm.jsx
-│   │   │   │   ├── BillingForm.jsx
-│   │   │   │   ├── ShippingForm.jsx
-│   │   │   │   ├── PaymentForm.jsx
-│   │   │   │   └── OrderSummary.jsx
-│   │   │   ├── orders/
-│   │   │   │   ├── OrderCard.jsx
-│   │   │   │   ├── OrderStatus.jsx
-│   │   │   │   ├── OrderTracking.jsx
-│   │   │   │   └── OrderActions.jsx
-│   │   │   └── common/
-│   │   │       ├── LoadingSpinner.jsx
-│   │   │       ├── ErrorMessage.jsx
-│   │   │       ├── SuccessMessage.jsx
-│   │   │       ├── Pagination.jsx
-│   │   │       └── Rating.jsx
+│   ├── supplier/
 │   │   ├── pages/
-│   │   │   ├── auth/
-│   │   │   │   ├── CustomerLogin.jsx
-│   │   │   │   ├── CustomerRegister.jsx
-│   │   │   │   ├── ForgotPassword.jsx
-│   │   │   │   └── ResetPassword.jsx
+│   │   │   ├── dashboard/
+│   │   │   ├── products/
+│   │   │   ├── supplies/
+│   │   │   ├── orders/
+│   │   │   └── reports/
+│   ├── staff/
+│   │   ├── pages/
+│   │   │   ├── dashboard/
+│   │   │   ├── orders/
+│   │   │   ├── inventory/
+│   │   │   └── reports/
+│   ├── customer/
+│   │   ├── pages/
 │   │   │   ├── shop/
-│   │   │   │   ├── ProductCatalog.jsx
-│   │   │   │   ├── ProductPage.jsx
-│   │   │   │   ├── CategoryPage.jsx
-│   │   │   │   └── SearchResults.jsx
 │   │   │   ├── cart/
-│   │   │   │   ├── Cart.jsx
-│   │   │   │   ├── Checkout.jsx
-│   │   │   │   └── OrderConfirmation.jsx
-│   │   │   ├── account/
-│   │   │   │   ├── CustomerProfile.jsx
-│   │   │   │   ├── EditProfile.jsx
-│   │   │   │   ├── OrderHistory.jsx
-│   │   │   │   ├── AddressBook.jsx
-│   │   │   │   └── ChangePassword.jsx
-│   │   │   └── orders/
-│   │   │       ├── OrderDetails.jsx
-│   │   │       └── TrackOrder.jsx
-│   │   ├── hooks/
-│   │   │   ├── useCustomerAuth.js
-│   │   │   ├── useProducts.js
-│   │   │   ├── useCart.js
-│   │   │   ├── useOrders.js
-│   │   │   └── useProfile.js
-│   │   └── stores/
-│   │       ├── customerAuthStore.js
-│   │       ├── productStore.js
-│   │       ├── cartStore.js
-│   │       ├── orderStore.js
-│   │       └── profileStore.js
-│   ├── shared/
-│   │   ├── components/
-│   │   │   ├── ui/
-│   │   │   │   ├── Button.jsx
-│   │   │   │   ├── Input.jsx
-│   │   │   │   ├── Modal.jsx
-│   │   │   │   ├── Dropdown.jsx
-│   │   │   │   ├── Alert.jsx
-│   │   │   │   ├── Badge.jsx
-│   │   │   │   ├── Card.jsx
-│   │   │   │   └── Table.jsx
-│   │   │   └── forms/
-│   │   │       ├── FormField.jsx
-│   │   │       ├── Select.jsx
-│   │   │       ├── TextArea.jsx
-│   │   │       ├── FileUpload.jsx
-│   │   │       └── DatePicker.jsx
-│   │   ├── hooks/
-│   │   │   ├── useApi.js
-│   │   │   ├── useLocalStorage.js
-│   │   │   ├── useDebounce.js
-│   │   │   └── useSocket.js
-│   │   ├── services/
-│   │   │   ├── api.js
-│   │   │   ├── adminApi.js
-│   │   │   ├── customerApi.js
-│   │   │   └── socketService.js
-│   │   └── utils/
-│   │       ├── constants.js
-│   │       ├── helpers.js
-│   │       ├── formatters.js
-│   │       ├── validators.js
-│   │       └── auth.js
-│   ├── styles/
-│   │   ├── globals.css
-│   │   ├── admin.css
-│   │   └── customer.css
-│   ├── App.jsx
-│   ├── AppRouter.jsx
-│   └── main.jsx
-├── tailwind.config.js
-├── postcss.config.js
-├── package.json
-└── README.md
+│   │   │   ├── orders/
+│   │   │   └── account/
+│   └── shared/
+│       ├── components/
+│       ├── services/
+│       └── utils/
 ```
 
 ---
 
-## 🔗 Role-Based API Endpoints
+## 🔗 API Endpoints
 
-### Admin/Manager Endpoints (Protected Routes)
+### Admin Endpoints
 ```
-# Authentication
-POST   /api/admin/auth/login           # Admin login
-POST   /api/admin/auth/logout          # Admin logout
-GET    /api/admin/auth/profile         # Get admin profile
-PUT    /api/admin/auth/profile         # Update admin profile
+# User Management
+POST   /api/admin/users                    # Create user (supplier/staff)
+GET    /api/admin/users                    # Get all users
+PUT    /api/admin/users/:id/role           # Assign role
+DELETE /api/admin/users/:id               # Delete user
 
 # Product Management
-GET    /api/admin/products             # Get all products with admin data
-POST   /api/admin/products             # Create new product
-PUT    /api/admin/products/:id         # Update product
-DELETE /api/admin/products/:id         # Delete product
-POST   /api/admin/products/bulk        # Bulk product operations
-GET    /api/admin/categories           # Get all categories
-POST   /api/admin/categories           # Create category
-PUT    /api/admin/categories/:id       # Update category
-DELETE /api/admin/categories/:id       # Delete category
+GET    /api/admin/products                 # Get all products
+POST   /api/admin/products                 # Create product
+PUT    /api/admin/products/:id             # Update product
+DELETE /api/admin/products/:id             # Delete product
 
-# Inventory Management
-GET    /api/admin/inventory            # Get full inventory overview
-PUT    /api/admin/inventory/:id        # Manual stock adjustment
-GET    /api/admin/inventory/movements  # Get stock movement history
-GET    /api/admin/inventory/alerts     # Get low stock alerts
-POST   /api/admin/inventory/adjust     # Bulk stock adjustments
+# Supplier Management
+GET    /api/admin/suppliers                # Get all suppliers
+POST   /api/admin/suppliers                # Create supplier
+PUT    /api/admin/suppliers/:id            # Update supplier
 
-# Purchase Management
-GET    /api/admin/purchases            # Get all purchases
-POST   /api/admin/purchases            # Create new purchase
-PUT    /api/admin/purchases/:id        # Update purchase
-DELETE /api/admin/purchases/:id        # Delete purchase
-POST   /api/admin/purchases/bulk       # Bulk import purchases
+# Purchase Orders
+GET    /api/admin/purchase-orders          # Get purchase orders
+POST   /api/admin/purchase-orders          # Create purchase order
+PUT    /api/admin/purchase-orders/:id      # Update purchase order
+DELETE /api/admin/purchase-orders/:id      # Delete purchase order
 
-# Order Management
-GET    /api/admin/orders               # Get all customer orders
-GET    /api/admin/orders/:id           # Get single order details
-PUT    /api/admin/orders/:id/status    # Update order status
-POST   /api/admin/orders/:id/refund    # Process refund
-GET    /api/admin/orders/analytics     # Order analytics
-
-# User Management
-GET    /api/admin/users                # Get all users
-POST   /api/admin/users                # Create new user
-PUT    /api/admin/users/:id            # Update user
-DELETE /api/admin/users/:id            # Delete user
-PUT    /api/admin/users/:id/status     # Activate/deactivate user
-
-# Reports & Analytics
-GET    /api/admin/reports/sales        # Sales reports
-GET    /api/admin/reports/inventory    # Inventory reports
-GET    /api/admin/reports/profit-loss  # Profit & loss reports
-GET    /api/admin/reports/customers    # Customer analytics
-GET    /api/admin/reports/products     # Product performance
+# Reports
+GET    /api/admin/reports/sales            # Sales reports
+GET    /api/admin/reports/inventory        # Inventory reports
+GET    /api/admin/reports/suppliers        # Supplier reports
 ```
 
-### Customer Endpoints (Public & Protected Routes)
+### Supplier Endpoints
+```
+# Product Supply
+POST   /api/supplier/supplies              # Create new supply
+GET    /api/supplier/supplies              # Get supply history
+PUT    /api/supplier/supplies/:id          # Update supply
+
+# Products
+GET    /api/supplier/products              # Get products I supply
+PUT    /api/supplier/products/:id/price    # Update product price
+
+# Orders from Admin
+GET    /api/supplier/orders                # Get purchase orders from admin
+PUT    /api/supplier/orders/:id/confirm    # Confirm order
+```
+
+### Staff Endpoints
+```
+# Customer Orders
+GET    /api/staff/orders                   # Get customer orders
+PUT    /api/staff/orders/:id/status        # Update order status
+POST   /api/staff/orders                   # Create walk-in order
+
+# Inventory
+GET    /api/staff/inventory                # View inventory
+PUT    /api/staff/inventory/:id            # Update stock levels
+GET    /api/staff/inventory/alerts         # Low stock alerts
+
+# Reports
+GET    /api/staff/reports/daily            # Daily sales report
+```
+
+### Customer Endpoints
 ```
 # Authentication
-POST   /api/customer/auth/register     # Customer registration
-POST   /api/customer/auth/login        # Customer login
-POST   /api/customer/auth/logout       # Customer logout
-GET    /api/customer/auth/profile      # Get customer profile
-PUT    /api/customer/auth/profile      # Update customer profile
-POST   /api/customer/auth/forgot       # Forgot password
-POST   /api/customer/auth/reset        # Reset password
+POST   /api/customer/auth/register         # Customer registration
+POST   /api/customer/auth/login            # Customer login
 
-# Product Browsing (Public)
-GET    /api/customer/products          # Get products for shop (public)
-GET    /api/customer/products/:id      # Get single product (public)
-GET    /api/customer/products/search   # Search products (public)
-GET    /api/customer/categories        # Get categories (public)
-GET    /api/customer/products/featured # Get featured products
+# Products
+GET    /api/customer/products              # Browse products
+GET    /api/customer/products/:id          # Get product details
+GET    /api/customer/categories            # Get categories
 
-# Shopping Cart (Protected)
-GET    /api/customer/cart              # Get user cart
-POST   /api/customer/cart/add          # Add item to cart
-PUT    /api/customer/cart/update       # Update cart item
-DELETE /api/customer/cart/remove       # Remove item from cart
-DELETE /api/customer/cart/clear        # Clear cart
+# Shopping
+GET    /api/customer/cart                  # Get cart
+POST   /api/customer/cart/add              # Add to cart
+PUT    /api/customer/cart/update           # Update cart
+DELETE /api/customer/cart/remove           # Remove from cart
 
-# Orders (Protected)
-GET    /api/customer/orders            # Get customer orders
-POST   /api/customer/orders            # Create new order
-GET    /api/customer/orders/:id        # Get single order
-GET    /api/customer/orders/:id/track  # Track order status
+# Orders
+POST   /api/customer/orders                # Place order
+GET    /api/customer/orders                # Get order history
+GET    /api/customer/orders/:id            # Get order details
 ```
 
 ---
 
-## 💾 Updated Database Schema
+## 💾 Database Schema
 
-### User Schema (Role-Based)
+### User Schema (4 Roles)
 ```javascript
 {
-  name: String,
+  firstName: String,
+  lastName: String,
+  whatsappNumber: String,
+  callNumber: String,
   email: String (unique),
   password: String (hashed),
   role: {
     type: String,
-    enum: ['admin', 'customer'],
-    default: 'customer'
+    enum: ['admin', 'supplier', 'staff', 'customer'],
+    required: true
   },
-  isActive: {
-    type: Boolean,
-    default: true
+  
+  // Role-specific fields
+  supplierInfo: {
+    companyName: String,
+    suppliedCategories: [String],
+    paymentTerms: String,
+    isActive: Boolean
   },
-  // Customer-specific fields
-  phone: String,
-  address: {
-    street: String,
-    city: String,
-    state: String,
-    zipCode: String,
-    country: String
+  
+  staffInfo: {
+    employeeId: String,
+    shiftTimes: String,
+    permissions: [String],
+    isActive: Boolean
   },
-  // Admin-specific fields
-  permissions: [{
-    type: String,
-    enum: ['products', 'inventory', 'orders', 'users', 'reports']
-  }],
+  
+  // Customer-specific
+  deliveryAddresses: [String],
+  favoriteProducts: [ObjectId],
+  
+  isActive: { type: Boolean, default: true },
   createdAt: Date,
   updatedAt: Date
 }
 ```
 
-### Product Schema (Enhanced for E-commerce)
+### Product Schema (Multi-variant)
 ```javascript
 {
-  name: String,
+  name: String,                    // "Rice"
+  productGroup: String,            // "Staple Foods"
+  category: ObjectId,
   description: String,
-  shortDescription: String,
-  category: ObjectId (ref: Category),
-  brand: String,
-  sku: String (unique),
-  barcode: String,
-  
-  // Pricing
-  sellingPrice: Number,
-  costPrice: Number,
-  salePrice: Number,
-  onSale: {
-    type: Boolean,
-    default: false
-  },
-  
-  // Inventory
-  currentStock: Number,
-  minStockLevel: Number,
-  maxStockLevel: Number,
-  unit: String (kg, bag, piece, carton),
-  
-  // E-commerce specific
-  images: [String],
-  featured: {
-    type: Boolean,
-    default: false
-  },
   tags: [String],
-  metaTitle: String,
-  metaDescription: String,
   
-  // Status
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  isPublished: {
-    type: Boolean,
-    default: false
-  },
+  variants: [{
+    packageType: String,           // "Black Rubber", "Cup", etc.
+    price: Number,
+    costPrice: Number,
+    currentStock: Number,
+    minStockLevel: Number,
+    maxStockLevel: Number,
+    unit: String,
+    isAvailable: { type: Boolean, default: true }
+  }],
   
-  // Tracking
-  createdBy: ObjectId (ref: User),
+  supplier: ObjectId,
+  images: [String],
+  featured: { type: Boolean, default: false },
+  isActive: { type: Boolean, default: true },
+  
+  createdBy: ObjectId,
   createdAt: Date,
   updatedAt: Date
 }
 ```
 
-### Cart Schema (Customer Shopping)
+### Supply Schema
 ```javascript
 {
-  customer: ObjectId (ref: User),
-  items: [{
-    product: ObjectId (ref: Product),
-    quantity: {
-      type: Number,
-      min: 1
-    },
-    price: Number, // Price at time of adding to cart
-    total: Number
+  supplierName: String,
+  supplier: ObjectId,
+  supplyItems: [{
+    product: ObjectId,
+    productName: String,
+    packageType: String,
+    quantitySupplied: Number,
+    unitCostPrice: Number,
+    totalCost: Number,
+    expiryDate: Date
+  }],
+  totalAmount: Number,
+  supplyDate: { type: Date, default: Date.now },
+  supplyTime: { type: Date, default: Date.now },
+  receivedBy: ObjectId,
+  status: {
+    type: String,
+    enum: ['Pending', 'Received', 'Verified'],
+    default: 'Pending'
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['Pending', 'Partial', 'Paid'],
+    default: 'Pending'
+  },
+  notes: String,
+  createdAt: Date
+}
+```
+
+### Customer Order Schema
+```javascript
+{
+  orderNumber: String (auto-generated),
+  customer: ObjectId,
+  customerInfo: {
+    name: String,
+    whatsappNumber: String,
+    callNumber: String,
+    email: String
+  },
+  orderItems: [{
+    product: ObjectId,
+    productName: String,
+    packageType: String,
+    quantity: Number,
+    unitPrice: Number,
+    totalPrice: Number
   }],
   subtotal: Number,
-  lastModified: Date,
+  deliveryFee: { type: Number, default: 0 },
+  totalAmount: Number,
+  
+  orderType: {
+    type: String,
+    enum: ['Pickup', 'Delivery'],
+    default: 'Pickup'
+  },
+  deliveryAddress: String,
+  
+  status: {
+    type: String,
+    enum: ['Pending', 'Confirmed', 'Preparing', 'Ready', 'Delivered', 'Cancelled'],
+    default: 'Pending'
+  },
+  
+  paymentMethod: {
+    type: String,
+    enum: ['Cash', 'Transfer', 'POS'],
+    default: 'Cash'
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['Pending', 'Paid'],
+    default: 'Pending'
+  },
+  
+  orderDate: { type: Date, default: Date.now },
+  estimatedReady: Date,
+  actualReady: Date,
+  notes: String,
+  handledBy: ObjectId,
+  
   createdAt: Date,
   updatedAt: Date
 }
@@ -569,965 +614,107 @@ GET    /api/customer/orders/:id/track  # Track order status
 
 ---
 
-## 🎨 Tailwind CSS Configuration
+## 🎨 Role-Specific UI Components
 
-### Tailwind Config (tailwind.config.js)
-```javascript
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
-  theme: {
-    extend: {
-      colors: {
-        // Admin Theme
-        admin: {
-          primary: '#1e40af', // Blue-700
-          secondary: '#64748b', // Slate-500
-          success: '#059669', // Emerald-600
-          warning: '#d97706', // Amber-600
-          danger: '#dc2626', // Red-600
-          dark: '#1e293b', // Slate-800
-          light: '#f8fafc', // Slate-50
-        },
-        // Customer Theme
-        customer: {
-          primary: '#7c3aed', // Violet-600
-          secondary: '#4b5563', // Gray-600
-          accent: '#f59e0b', // Amber-500
-          success: '#10b981', // Emerald-500
-          warning: '#f59e0b', // Amber-500
-          danger: '#ef4444', // Red-500
-        }
-      },
-      fontFamily: {
-        'sans': ['Inter', 'ui-sans-serif', 'system-ui'],
-        'display': ['Poppins', 'ui-sans-serif', 'system-ui'],
-      },
-      spacing: {
-        '18': '4.5rem',
-        '88': '22rem',
-      },
-      animation: {
-        'fade-in': 'fadeIn 0.5s ease-in-out',
-        'slide-up': 'slideUp 0.3s ease-out',
-        'bounce-in': 'bounceIn 0.6s ease-out',
-      },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        slideUp: {
-          '0%': { transform: 'translateY(10px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
-        },
-        bounceIn: {
-          '0%': { transform: 'scale(0.3)', opacity: '0' },
-          '50%': { transform: 'scale(1.05)' },
-          '70%': { transform: 'scale(0.9)' },
-          '100%': { transform: 'scale(1)', opacity: '1' },
-        }
-      }
-    },
-  },
-  plugins: [
-    require('@tailwindcss/forms'),
-    require('@tailwindcss/typography'),
-    require('@tailwindcss/aspect-ratio'),
-  ],
-}
-```
+### Admin Dashboard
+- **Revenue Overview**: Daily, weekly, monthly earnings
+- **Inventory Status**: Stock levels, low stock alerts
+- **Order Management**: All customer orders across staff
+- **Supplier Performance**: Supply history, payment status
+- **User Management**: Role assignment interface
+- **Product Management**: CRUD operations with variants
 
-### Global Styles (globals.css)
-```css
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+### Supplier Dashboard
+- **Supply History**: All supplies made with status
+- **Product Catalog**: Products they supply with current prices
+- **Order Requests**: Purchase orders from admin
+- **Payment Tracking**: Outstanding payments, payment history
+- **Performance Metrics**: Supply frequency, reliability scores
 
-/* Custom base styles */
-@layer base {
-  body {
-    @apply font-sans text-gray-900 bg-gray-50;
-  }
-  
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-display font-semibold;
-  }
-}
+### Staff Dashboard
+- **Active Orders**: Current customer orders to process
+- **Inventory Quick View**: Stock levels for common items
+- **Daily Sales**: Running total of sales made
+- **Customer Service**: Order modification, customer support
+- **Stock Alerts**: Items requiring immediate attention
 
-/* Custom components */
-@layer components {
-  /* Admin Components */
-  .admin-btn-primary {
-    @apply bg-admin-primary hover:bg-blue-800 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
-  }
-  
-  .admin-btn-secondary {
-    @apply bg-admin-secondary hover:bg-slate-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
-  }
-  
-  .admin-card {
-    @apply bg-white border border-gray-200 rounded-lg shadow-sm p-6;
-  }
-  
-  .admin-input {
-    @apply border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-admin-primary focus:border-transparent;
-  }
-  
-  /* Customer Components */
-  .customer-btn-primary {
-    @apply bg-customer-primary hover:bg-violet-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200;
-  }
-  
-  .customer-btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-3 px-6 rounded-lg transition-colors duration-200;
-  }
-  
-  .customer-card {
-    @apply bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden;
-  }
-  
-  .customer-input {
-    @apply border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-customer-primary focus:border-transparent;
-  }
-  
-  /* Common Components */
-  .form-group {
-    @apply space-y-2;
-  }
-  
-  .form-label {
-    @apply block text-sm font-medium text-gray-700;
-  }
-  
-  .form-error {
-    @apply text-sm text-red-600 mt-1;
-  }
-  
-  .loading-spinner {
-    @apply animate-spin rounded-full h-8 w-8 border-b-2 border-current;
-  }
-  
-  .fade-in {
-    @apply animate-fade-in;
-  }
-  
-  .slide-up {
-    @apply animate-slide-up;
-  }
-}
-```
+### Customer Interface
+- **Product Catalog**: Browse by category with package options
+- **Shopping Cart**: Multi-variant products with package selection
+- **Order Tracking**: Real-time order status updates
+- **Favorites**: Quick reorder of frequently purchased items
+- **Account Management**: Profile, order history, delivery addresses
 
 ---
 
-## 🎨 Updated UI/UX Design Integration
+## 🚀 Implementation Roadmap
 
-### Design Philosophy Alignment with Role-Based Architecture
+### Phase 1: Foundation (Week 1-2)
+- [ ] Database setup with 4-role user system
+- [ ] Authentication system for all roles
+- [ ] Basic product management with variants
+- [ ] Category system setup
 
-#### Vision Statement
-Create a cutting-edge inventory management and e-commerce platform that combines modern design trends with exceptional user experience. The design should feel premium, intuitive, and emotionally engaging while maintaining distinct visual languages for admin and customer interfaces.
+### Phase 2: Core Inventory (Week 3-4)
+- [ ] Supply management system
+- [ ] Stock movement tracking
+- [ ] Purchase order system
+- [ ] Basic reporting
 
-#### Role-Specific Design Principles
-- **Admin Interface**: Professional, data-focused, efficient workflows
-- **Customer Interface**: Engaging, conversion-optimized, brand-centric
-- **Shared Components**: Consistent design tokens with contextual variations
+### Phase 3: Customer Interface (Week 5-6)
+- [ ] Customer registration/login
+- [ ] Product browsing with package selection
+- [ ] Shopping cart functionality
+- [ ] Order placement system
 
----
+### Phase 4: Operations (Week 7-8)
+- [ ] Staff order processing interface
+- [ ] Real-time stock updates
+- [ ] Order status tracking
+- [ ] Payment integration
 
-## 🌈 Updated Design System
-
-### Color Palette (Role-Separated)
-
-#### Admin Theme Colors
-```css
-/* Admin Primary */
---admin-primary: #1E40AF;     /* Blue-700 - Professional */
---admin-primary-dark: #1E3A8A; /* Blue-800 */
---admin-primary-light: #DBEAFE; /* Blue-100 */
-
-/* Admin Secondary */
---admin-secondary: #64748B;    /* Slate-500 */
---admin-success: #059669;      /* Emerald-600 */
---admin-warning: #D97706;      /* Amber-600 */
---admin-danger: #DC2626;       /* Red-600 */
-
-/* Admin Neutrals */
---admin-bg: #F8FAFC;          /* Slate-50 */
---admin-surface: #FFFFFF;      /* White */
---admin-border: #E2E8F0;       /* Slate-200 */
---admin-text: #1E293B;         /* Slate-800 */
---admin-text-muted: #64748B;   /* Slate-500 */
-
-/* Admin Glass Effects */
---admin-glass: rgba(30, 64, 175, 0.05);
---admin-glass-border: rgba(30, 64, 175, 0.1);
-```
-
-#### Customer Theme Colors
-```css
-/* Customer Primary */
---customer-primary: #7C3AED;    /* Violet-600 - Modern */
---customer-primary-dark: #6D28D9; /* Violet-700 */
---customer-primary-light: #EDE9FE; /* Violet-100 */
-
-/* Customer Accent */
---customer-accent: #F59E0B;      /* Amber-500 - Conversion */
---customer-secondary: #EC4899;    /* Pink-500 - Engaging */
---customer-success: #10B981;      /* Emerald-500 */
-
-/* Customer Neutrals */
---customer-bg: #FAFAFA;          /* Gray-50 */
---customer-surface: #FFFFFF;      /* White */
---customer-border: #E5E7EB;       /* Gray-200 */
---customer-text: #111827;         /* Gray-900 */
---customer-text-muted: #6B7280;   /* Gray-500 */
-
-/* Customer Glass Effects */
---customer-glass: rgba(124, 58, 237, 0.05);
---customer-glass-border: rgba(124, 58, 237, 0.1);
-```
-
-### Typography System (Role-Optimized)
-```css
-/* Font Families */
---font-admin: 'Inter', system-ui, sans-serif;        /* Clean, readable */
---font-customer: 'Poppins', system-ui, sans-serif;   /* Friendly, modern */
---font-display: 'Montserrat', system-ui, sans-serif; /* Headlines, branding */
-
-/* Admin Typography Scale */
---admin-text-xs: 0.75rem;    /* 12px - Table data */
---admin-text-sm: 0.875rem;   /* 14px - Secondary text */
---admin-text-base: 1rem;     /* 16px - Body text */
---admin-text-lg: 1.125rem;   /* 18px - Emphasis */
---admin-text-xl: 1.25rem;    /* 20px - Small headings */
---admin-text-2xl: 1.5rem;    /* 24px - Section headers */
---admin-text-3xl: 1.875rem;  /* 30px - Page titles */
-
-/* Customer Typography Scale */
---customer-text-sm: 0.875rem;   /* 14px - Labels */
---customer-text-base: 1rem;     /* 16px - Body */
---customer-text-lg: 1.125rem;   /* 18px - Product descriptions */
---customer-text-xl: 1.25rem;    /* 20px - Product names */
---customer-text-2xl: 1.5rem;    /* 24px - Section headers */
---customer-text-3xl: 1.875rem;  /* 30px - Category titles */
---customer-text-4xl: 2.25rem;   /* 36px - Hero text */
---customer-text-5xl: 3rem;      /* 48px - Major headlines */
-```
+### Phase 5: Advanced Features (Week 9-10)
+- [ ] Advanced reporting for all roles
+- [ ] WhatsApp integration for notifications
+- [ ] Location services for delivery
+- [ ] Performance analytics
 
 ---
 
-## 🎨 Component Design Specifications (Role-Based)
+## 📱 Mobile Optimization
 
-### Admin Interface Components
+Given the hostel environment, mobile optimization is crucial:
 
-#### Admin Navigation
-```css
-.admin-sidebar {
-  width: 280px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-right: 1px solid var(--admin-border);
-  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
-}
+### Customer Mobile App Features
+- **Quick Reorder**: One-tap reorder of favorite items
+- **WhatsApp Integration**: Order confirmations via WhatsApp
+- **Location Services**: Auto-detect hostel location
+- **Offline Viewing**: Cache product catalog for offline browsing
+- **Push Notifications**: Order status updates
 
-.admin-nav-item {
-  display: flex;
-  align-items: center;
-  padding: 0.75rem 1.5rem;
-  color: var(--admin-text-muted);
-  transition: all 0.2s ease;
-  border-radius: 0.5rem;
-  margin: 0 0.5rem;
-}
-
-.admin-nav-item:hover {
-  background: var(--admin-glass);
-  color: var(--admin-primary);
-  transform: translateX(4px);
-}
-
-.admin-nav-item.active {
-  background: var(--admin-primary);
-  color: white;
-  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
-}
-```
-
-#### Admin Cards
-```css
-.admin-card {
-  background: var(--admin-surface);
-  border: 1px solid var(--admin-border);
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
-}
-
-.admin-card:hover {
-  border-color: var(--admin-primary-light);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.admin-stat-card {
-  background: linear-gradient(135deg, var(--admin-primary), var(--admin-primary-dark));
-  color: white;
-  border: none;
-}
-
-.admin-chart-card {
-  background: var(--admin-glass);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--admin-glass-border);
-}
-```
-
-#### Admin Tables
-```css
-.admin-table {
-  width: 100%;
-  background: var(--admin-surface);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.admin-table th {
-  background: var(--admin-bg);
-  padding: 1rem;
-  text-align: left;
-  font-family: var(--font-admin);
-  font-weight: 600;
-  color: var(--admin-text);
-  border-bottom: 1px solid var(--admin-border);
-}
-
-.admin-table td {
-  padding: 1rem;
-  border-bottom: 1px solid var(--admin-border);
-  font-family: var(--font-admin);
-}
-
-.admin-table tr:hover {
-  background: var(--admin-glass);
-}
-```
-
-### Customer Interface Components
-
-#### Customer Header
-```css
-.customer-header {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--customer-border);
-  position: sticky;
-  top: 0;
-  z-index: 50;
-}
-
-.customer-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.customer-logo {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--customer-primary), var(--customer-accent));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-```
-
-#### Product Cards
-```css
-.product-card {
-  background: var(--customer-surface);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-}
-
-.product-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  border: 1px solid var(--customer-primary-light);
-}
-
-.product-image {
-  aspect-ratio: 1;
-  overflow: hidden;
-  position: relative;
-}
-
-.product-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s ease;
-}
-
-.product-card:hover .product-image img {
-  transform: scale(1.1);
-}
-
-.product-info {
-  padding: 1.5rem;
-}
-
-.product-name {
-  font-family: var(--font-customer);
-  font-size: var(--customer-text-xl);
-  font-weight: 600;
-  color: var(--customer-text);
-  margin-bottom: 0.5rem;
-}
-
-.product-price {
-  font-size: var(--customer-text-lg);
-  font-weight: 700;
-  color: var(--customer-primary);
-}
-```
-
-#### Shopping Cart
-```css
-.cart-sidebar {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 400px;
-  height: 100vh;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-left: 1px solid var(--customer-border);
-  transform: translateX(100%);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 100;
-}
-
-.cart-sidebar.open {
-  transform: translateX(0);
-}
-
-.cart-item {
-  display: flex;
-  align-items: center;
-  padding: 1rem;
-  border-bottom: 1px solid var(--customer-border);
-  transition: background 0.2s ease;
-}
-
-.cart-item:hover {
-  background: var(--customer-glass);
-}
-```
+### Staff Mobile Interface
+- **Order Processing**: Mobile-friendly order management
+- **Inventory Updates**: Quick stock level adjustments
+- **Customer Communication**: Direct WhatsApp integration
+- **Barcode Scanning**: For quick product identification
 
 ---
 
-## 🎭 Role-Specific Animations
+## 📊 Key Success Metrics
 
-### Admin Animations (Subtle & Professional)
-```css
-/* Data Loading Animation */
-.admin-skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--admin-border) 25%,
-    var(--admin-bg) 50%,
-    var(--admin-border) 75%
-  );
-  background-size: 200% 100%;
-  animation: admin-shimmer 1.5s infinite;
-}
+### Business Metrics
+- **Order Volume**: Daily/weekly order counts
+- **Revenue Growth**: Month-over-month revenue increase
+- **Inventory Turnover**: How quickly products sell
+- **Customer Retention**: Repeat customer percentage
+- **Staff Efficiency**: Orders processed per hour
 
-@keyframes admin-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-/* Chart Entrance */
-.admin-chart-enter {
-  opacity: 0;
-  transform: translateY(20px);
-  animation: admin-slide-up 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes admin-slide-up {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Status Updates */
-.admin-status-update {
-  animation: admin-pulse 2s infinite;
-}
-
-@keyframes admin-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
-```
-
-### Customer Animations (Engaging & Dynamic)
-```css
-/* Hero Text Animation */
-.customer-hero-text {
-  opacity: 0;
-  transform: translateY(30px);
-  animation: customer-hero-enter 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes customer-hero-enter {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Product Hover Effects */
-.product-card-hover {
-  position: relative;
-  overflow: hidden;
-}
-
-.product-card-hover::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(124, 58, 237, 0.1),
-    transparent
-  );
-  transition: left 0.5s ease;
-}
-
-.product-card-hover:hover::before {
-  left: 100%;
-}
-
-/* Add to Cart Animation */
-.add-to-cart-btn {
-  position: relative;
-  overflow: hidden;
-}
-
-.add-to-cart-btn.success {
-  background: var(--customer-success);
-  animation: customer-success-pulse 0.6s ease;
-}
-
-@keyframes customer-success-pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-```
+### Technical Metrics
+- **Response Time**: < 2s for product loading
+- **Uptime**: 99.5% system availability
+- **Mobile Performance**: < 3s mobile page load
+- **Error Rate**: < 1% transaction failures
 
 ---
 
-## 📱 Role-Specific Page Layouts
-
-### Admin Dashboard Layout
-```jsx
-// Admin Dashboard Structure
-<div className="admin-layout">
-  <AdminSidebar />
-  <div className="admin-main">
-    <AdminHeader />
-    <div className="admin-content">
-      <div className="admin-stats-grid">
-        <StatsCard title="Total Products" value="2,547" change="+12%" />
-        <StatsCard title="Low Stock Items" value="23" change="-5%" />
-        <StatsCard title="Orders Today" value="156" change="+18%" />
-        <StatsCard title="Revenue" value="₦45,230" change="+22%" />
-      </div>
-      
-      <div className="admin-charts-grid">
-        <ChartCard title="Sales Overview" />
-        <ChartCard title="Inventory Levels" />
-      </div>
-      
-      <div className="admin-tables-section">
-        <RecentOrdersTable />
-        <LowStockTable />
-      </div>
-    </div>
-  </div>
-</div>
-```
-
-### Customer Shop Layout
-```jsx
-// Customer Shop Structure
-<div className="customer-layout">
-  <CustomerHeader />
-  <main className="customer-main">
-    {/* Hero Section */}
-    <section className="hero-section">
-      <div className="hero-content">
-        <h1 className="hero-title">Discover Amazing Products</h1>
-        <p className="hero-subtitle">Shop the latest collection</p>
-        <button className="hero-cta">Shop Now</button>
-      </div>
-    </section>
-    
-    {/* Featured Products */}
-    <section className="featured-section">
-      <h2 className="section-title">Featured Products</h2>
-      <div className="products-grid">
-        {products.map(product => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
-    </section>
-    
-    {/* Categories */}
-    <section className="categories-section">
-      <CategoryGrid />
-    </section>
-  </main>
-  <CustomerFooter />
-  <CartSidebar />
-</div>
-```
-
----
-
-## 🎨 Zustand Store Examples (Role-Separated)
-
-### Admin Product Store
-```javascript
-import { create } from 'zustand';
-import { adminApi } from '../../shared/services/adminApi';
-
-const useAdminProductStore = create((set, get) => ({
-  // State
-  products: [],
-  categories: [],
-  selectedProduct: null,
-  loading: false,
-  error: null,
-  filters: {
-    category: '',
-    status: 'all',
-    search: '',
-    sortBy: 'createdAt',
-    sortOrder: 'desc'
-  },
-  pagination: {
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPages: 0
-  },
-
-  // Actions
-  fetchProducts: async (filters = {}) => {
-    set({ loading: true, error: null });
-    try {
-      const response = await adminApi.get('/products', { 
-        params: { ...get().filters, ...filters } 
-      });
-      set({ 
-        products: response.data.products,
-        pagination: response.data.pagination,
-        loading: false 
-      });
-    } catch (error) {
-      set({ error: error.message, loading: false });
-    }
-  },
-
-  addProduct: async (productData) => {
-    set({ loading: true });
-    try {
-      const response = await adminApi.post('/products', productData);
-      set(state => ({ 
-        products: [response.data, ...state.products],
-        loading: false 
-      }));
-      return response.data;
-    } catch (error) {
-      set({ error: error.message, loading: false });
-      throw error;
-    }
-  },
-
-  updateProduct: async (id, productData) => {
-    try {
-      const response = await adminApi.put(`/products/${id}`, productData);
-      set(state => ({
-        products: state.products.map(p => 
-          p._id === id ? response.data : p
-        ),
-        selectedProduct: response.data
-      }));
-      return response.data;
-    } catch (error) {
-      set({ error: error.message });
-      throw error;
-    }
-  },
-
-  deleteProduct: async (id) => {
-    try {
-      await adminApi.delete(`/products/${id}`);
-      set(state => ({
-        products: state.products.filter(p => p._id !== id)
-      }));
-    } catch (error) {
-      set({ error: error.message });
-      throw error;
-    }
-  },
-
-  setFilters: (newFilters) => {
-    set(state => ({
-      filters: { ...state.filters, ...newFilters }
-    }));
-    get().fetchProducts();
-  },
-
-  clearFilters: () => {
-    set({
-      filters: {
-        category: '',
-        status: 'all',
-        search: '',
-        sortBy: 'createdAt',
-        sortOrder: 'desc'
-      }
-    });
-    get().fetchProducts();
-  }
-}));
-```
-
-### Customer Shopping Store
-```javascript
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { customerApi } from '../../shared/services/customerApi';
-
-const useCustomerStore = create(
-  persist(
-    (set, get) => ({
-      // Products State
-      products: [],
-      categories: [],
-      featuredProducts: [],
-      searchResults: [],
-      loading: false,
-      searchLoading: false,
-
-      // Cart State
-      cartItems: [],
-      cartTotal: 0,
-      cartCount: 0,
-      isCartOpen: false,
-
-      // Filters & Search
-      filters: {
-        category: '',
-        priceRange: [0, 1000],
-        sortBy: 'featured',
-        search: ''
-      },
-
-      // Product Actions
-      fetchProducts: async (filters = {}) => {
-        set({ loading: true });
-        try {
-          const response = await customerApi.get('/products', { 
-            params: filters 
-          });
-          set({ 
-            products: response.data,
-            loading: false 
-          });
-        } catch (error) {
-          set({ loading: false });
-        }
-      },
-
-      fetchFeaturedProducts: async () => {
-        try {
-          const response = await customerApi.get('/products/featured');
-          set({ featuredProducts: response.data });
-        } catch (error) {
-          console.error('Error fetching featured products:', error);
-        }
-      },
-
-      searchProducts: async (query) => {
-        if (!query.trim()) {
-          set({ searchResults: [], searchLoading: false });
-          return;
-        }
-
-        set({ searchLoading: true });
-        try {
-          const response = await customerApi.get('/products/search', {
-            params: { q: query }
-          });
-          set({ 
-            searchResults: response.data,
-            searchLoading: false 
-          });
-        } catch (error) {
-          set({ searchLoading: false });
-        }
-      },
-
-      // Cart Actions
-      addToCart: (product, quantity = 1) => {
-        set(state => {
-          const existingItem = state.cartItems.find(
-            item => item.product._id === product._id
-          );
-
-          let updatedItems;
-          if (existingItem) {
-            updatedItems = state.cartItems.map(item =>
-              item.product._id === product._id
-                ? { ...item, quantity: item.quantity + quantity }
-                : item
-            );
-          } else {
-            updatedItems = [
-              ...state.cartItems,
-              { product, quantity, id: Date.now() }
-            ];
-          }
-
-          const total = updatedItems.reduce(
-            (sum, item) => sum + (item.product.sellingPrice * item.quantity),
-            0
-          );
-
-          const count = updatedItems.reduce(
-            (sum, item) => sum + item.quantity,
-            0
-          );
-
-          return {
-            cartItems: updatedItems,
-            cartTotal: total,
-            cartCount: count
-          };
-        });
-      },
-
-      removeFromCart: (itemId) => {
-        set(state => {
-          const updatedItems = state.cartItems.filter(item => item.id !== itemId);
-          const total = updatedItems.reduce(
-            (sum, item) => sum + (item.product.sellingPrice * item.quantity),
-            0
-          );
-          const count = updatedItems.reduce(
-            (sum, item) => sum + item.quantity,
-            0
-          );
-
-          return {
-            cartItems: updatedItems,
-            cartTotal: total,
-            cartCount: count
-          };
-        });
-      },
-
-      updateCartQuantity: (itemId, quantity) => {
-        if (quantity <= 0) {
-          get().removeFromCart(itemId);
-          return;
-        }
-
-        set(state => {
-          const updatedItems = state.cartItems.map(item =>
-            item.id === itemId
-              ? { ...item, quantity }
-              : item
-          );
-
-          const total = updatedItems.reduce(
-            (sum, item) => sum + (item.product.sellingPrice * item.quantity),
-            0
-          );
-
-          const count = updatedItems.reduce(
-            (sum, item) => sum + item.quantity,
-            0
-          );
-
-          return {
-            cartItems: updatedItems,
-            cartTotal: total,
-            cartCount: count
-          };
-        });
-      },
-
-      clearCart: () => {
-        set({
-          cartItems: [],
-          cartTotal: 0,
-          cartCount: 0
-        });
-      },
-
-      toggleCart: () => {
-        set(state => ({ isCartOpen: !state.isCartOpen }));
-      },
-
-      // Filter Actions
-      setFilters: (newFilters) => {
-        set(state => ({
-          filters: { ...state.filters, ...newFilters }
-        }));
-        get().fetchProducts(get().filters);
-      },
-
-      clearFilters: () => {
-        set({
-          filters: {
-            category: '',
-            priceRange: [0, 1000],
-            sortBy: 'featured',
-            search: ''
-          }
-        });
-        get().fetchProducts();
-      }
-    }),
-    {
-      name: 'customer-store',
-      partialize: (state) => ({
-        cartItems: state.cartItems,
-        cartTotal: state.cartTotal,
-        cartCount: state.cartCount
-      })
-    }
-  )
-);
+This updated PRD reflects the actual SalesHostel business model with the correct product categories, 4-role system, and hostel-based retail operations. The system is designed to handle the specific requirements of package variants, supplier relationships, and the unique operational needs of a hostel-based business.
