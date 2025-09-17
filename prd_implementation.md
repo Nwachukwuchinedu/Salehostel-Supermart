@@ -253,7 +253,7 @@ StockMovement Schema:
 
 ### Backend Structure
 ```
-saleshotel-backend/
+backend/
 ├── src/
 │   ├── config/
 │   │   ├── database.js
@@ -320,7 +320,7 @@ saleshotel-backend/
 
 ### Frontend Structure (Complete File Breakdown)
 ```
-saleshotel-frontend/
+frontend/
 ├── public/
 │   ├── index.html
 │   ├── favicon.ico
@@ -1112,33 +1112,31 @@ GET    /api/customer/orders/:id            # Get order details
 
 ## 🚀 Implementation Roadmap
 
-### Phase 1: Foundation (Week 1-2)
+### Phase 1: Foundation 
 - [ ] Database setup with 4-role user system
 - [ ] Authentication system for all roles
 - [ ] Basic product management with variants
 - [ ] Category system setup
 
-### Phase 2: Core Inventory (Week 3-4)
+### Phase 2: Core Inventory 
 - [ ] Supply management system
 - [ ] Stock movement tracking
 - [ ] Purchase order system
 - [ ] Basic reporting
 
-### Phase 3: Customer Interface (Week 5-6)
+### Phase 3: Customer Interface
 - [ ] Customer registration/login
 - [ ] Product browsing with package selection
 - [ ] Shopping cart functionality
 - [ ] Order placement system
 
-### Phase 4: Operations (Week 7-8)
+### Phase 4: Operations
 - [ ] Staff order processing interface
 - [ ] Real-time stock updates
 - [ ] Order status tracking
-- [ ] Payment integration
 
-### Phase 5: Advanced Features (Week 9-10)
+### Phase 5: Advanced Features
 - [ ] Advanced reporting for all roles
-- [ ] WhatsApp integration for notifications
 - [ ] Location services for delivery
 - [ ] Performance analytics
 
