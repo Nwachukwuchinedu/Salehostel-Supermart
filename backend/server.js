@@ -1,101 +1,195 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const helmet = require('helmet');
+const compression = require('compression');
 const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+require('dotenv').config();
 
-// Load environment variables
-dotenv.config();
+// Import configurations
+const connectDB = require('./src/config/database');
+const { errorHandler } = require('./src/middleware/errorHandler');
 
-// Create Express app
+// Import routes
+const authRoutes = require('./src/routes/auth');
+const adminRoutes = require('./src/routes/admin');
+const supplierRoutes = require('./src/routes/supplier');
+const staffRoutes = require('./src/routes/staff');
+const customerRoutes = require('./src/routes/customer');
+
 const app = express();
-
-// Create HTTP server
 const server = createServer(app);
 
-// Initialize Socket.io
+// Initialize Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-    methods: ['GET', 'POST']
+    origin: process.env.NODE_ENV === 'production' 
+      ? ['https://saleshostel.com', 'https://www.saleshostel.com']
+      : ['http://localhost:3000', 'http://localhost:5173'],
+    methods: ['GET', 'POST'],
+    credentials: true
   }
 });
 
-// Middleware
-app.use(helmet());
-app.use(cors());
-app.use(morgan('combined'));
+// Connect to MongoDB
+connectDB();
+
+// Security middleware
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
+  message: {
+    error: 'Too many requests from this IP, please try again later.',
+    retryAfter: Math.ceil((parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000) / 1000)
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(limiter);
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://saleshostel.com', 'https://www.saleshostel.com']
+    : ['http://localhost:3000', 'http://localhost:5173'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// Compression middleware
+app.use(compression());
+
+// Logging middleware
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+} else {
+  app.use(morgan('combined'));
+}
+
+// Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Socket.io connection
-io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
-  
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+// Make io accessible to routes
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'SalesHostel API is running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+    version: process.env.API_VERSION || 'v1'
   });
 });
 
-// Database connection
-const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/salehostel-supermart', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error(`Error: ${error.message}`);
-    process.exit(1);
-  }
-};
-
-// Routes
-app.get('/', (req, res) => {
-  res.json({ message: 'Salehostel Supermart API is running' });
-});
-
-// Admin routes
-app.use('/api/admin/auth', require('./src/routes/admin/adminAuth'));
-app.use('/api/admin/products', require('./src/routes/admin/adminProducts'));
-app.use('/api/admin/inventory', require('./src/routes/admin/adminInventory'));
-app.use('/api/admin/purchases', require('./src/routes/admin/adminPurchases'));
-app.use('/api/admin/orders', require('./src/routes/admin/adminOrders'));
-app.use('/api/admin/reports', require('./src/routes/admin/adminReports'));
-app.use('/api/admin/users', require('./src/routes/admin/adminUsers'));
-
-// Customer routes
-app.use('/api/customer/auth', require('./src/routes/customer/customerAuth'));
-app.use('/api/customer/products', require('./src/routes/customer/customerProducts'));
-app.use('/api/customer/orders', require('./src/routes/customer/customerOrders'));
-app.use('/api/customer/cart', require('./src/routes/customer/customerCart'));
-app.use('/api/customer/profile', require('./src/routes/customer/customerProfile'));
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ 
-    message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : {}
-  });
-});
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/supplier', supplierRoutes);
+app.use('/api/staff', staffRoutes);
+app.use('/api/customer', customerRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
-  res.status(404).json({ message: 'Route not found' });
+  res.status(404).json({
+    status: 'error',
+    message: `Route ${req.originalUrl} not found`
+  });
 });
 
-// Connect to database
-connectDB();
+// Global error handler
+app.use(errorHandler);
 
-// Start server
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log(`User connected: ${socket.id}`);
+
+  // Join role-based rooms
+  socket.on('join-role-room', (role) => {
+    socket.join(`${role}-room`);
+    console.log(`User ${socket.id} joined ${role} room`);
+  });
+
+  // Join user-specific room
+  socket.on('join-user-room', (userId) => {
+    socket.join(`user-${userId}`);
+    console.log(`User ${socket.id} joined user room: user-${userId}`);
+  });
+
+  // Handle order updates
+  socket.on('order-update', (data) => {
+    // Broadcast to staff and admin
+    socket.to('staff-room').to('admin-room').emit('order-updated', data);
+    
+    // Notify specific customer
+    if (data.customerId) {
+      socket.to(`user-${data.customerId}`).emit('order-status-changed', data);
+    }
+  });
+
+  // Handle inventory updates
+  socket.on('inventory-update', (data) => {
+    // Broadcast to all connected users
+    io.emit('inventory-updated', data);
+  });
+
+  // Handle low stock alerts
+  socket.on('low-stock-alert', (data) => {
+    // Notify admin and staff
+    socket.to('admin-room').to('staff-room').emit('low-stock-alert', data);
+  });
+
+  // Handle new supply notifications
+  socket.on('new-supply', (data) => {
+    // Notify admin
+    socket.to('admin-room').emit('new-supply-received', data);
+  });
+
+  socket.on('disconnect', () => {
+    console.log(`User disconnected: ${socket.id}`);
+  });
+});
+
 const PORT = process.env.PORT || 5000;
+
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`
+🚀 SalesHostel Server is running!
+📍 Environment: ${process.env.NODE_ENV}
+🌐 Port: ${PORT}
+📊 API Version: ${process.env.API_VERSION || 'v1'}
+🏪 Business: ${process.env.BUSINESS_NAME}
+📍 Location: ${process.env.BUSINESS_ADDRESS}
+  `);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Shutting down gracefully...');
+  server.close(() => {
+    console.log('Process terminated');
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received. Shutting down gracefully...');
+  server.close(() => {
+    console.log('Process terminated');
+  });
 });
 
 module.exports = { app, server, io };

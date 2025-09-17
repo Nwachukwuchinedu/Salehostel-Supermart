@@ -1,27 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Trash2, Plus, Minus, ShoppingCart, ArrowLeft, CreditCard } from 'lucide-react';
-import customerApi from '../../../shared/services/customerApi';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  ShoppingBag,
+  ArrowLeft,
+  Trash2,
+  Plus,
+  Minus,
+  ShoppingCart,
+  CreditCard,
+} from "lucide-react";
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [cartItems, setCartItems] = useState([
+    {
+      id: 1,
+      name: "Rice",
+      image: "/images/products/rice.jpg",
+      price: 3650,
+      quantity: 2,
+      packageType: "Black Rubber",
+      sku: "RICE-BR-001",
+    },
+    {
+      id: 2,
+      name: "Indomie Noodles",
+      image: "/images/products/indomie.jpg",
+      price: 350,
+      quantity: 5,
+      packageType: "Pack",
+      sku: "NOODLE-PK-001",
+    },
+  ]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  useEffect(() => {
-    fetchCartData();
-  }, []);
+  const navigate = useNavigate();
 
   const fetchCartData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await customerApi.getCart();
-      const cartData = response.data || response;
-      setCartItems(Array.isArray(cartData) ? cartData : (cartData.items || []));
+      // Simulate API call - replace with actual API
+      // const response = await customerApi.getCart();
+      // const cartData = response.data || response;
+      // setCartItems(Array.isArray(cartData) ? cartData : (cartData.items || []));
       setError(null);
     } catch (err) {
-      console.error('Failed to fetch cart data:', err);
-      setError('Failed to load cart data. Please try again.');
+      console.error("Failed to fetch cart data:", err);
+      setError("Failed to load cart data. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -29,47 +53,55 @@ const Cart = () => {
 
   const updateQuantity = async (itemId, newQuantity) => {
     if (newQuantity < 1) return;
-    
+
     try {
       // Update quantity in UI immediately for better UX
-      setCartItems(cartItems.map(item => 
-        item._id === itemId || item.id === itemId ? { ...item, quantity: newQuantity } : item
-      ));
-      
-      // Update on backend
-      await customerApi.updateCartItem({ 
-        productId: itemId, 
-        quantity: newQuantity 
-      });
+      setCartItems(
+        cartItems.map((item) =>
+          item.id === itemId ? { ...item, quantity: newQuantity } : item
+        )
+      );
+
+      // Update on backend - replace with actual API call
+      // await customerApi.updateCartItem({
+      //   productId: itemId,
+      //   quantity: newQuantity
+      // });
     } catch (err) {
-      console.error('Failed to update cart item:', err);
+      console.error("Failed to update cart item:", err);
       // Revert UI change on error
       fetchCartData();
-      alert('Failed to update item quantity. Please try again.');
+      alert("Failed to update item quantity. Please try again.");
     }
   };
 
   const removeItem = async (itemId) => {
     try {
       // Remove from UI immediately for better UX
-      setCartItems(cartItems.filter(item => item._id !== itemId && item.id !== itemId));
-      
-      // Remove from backend
-      await customerApi.removeFromCart({ 
-        productId: itemId 
-      });
+      setCartItems(cartItems.filter((item) => item.id !== itemId));
+
+      // Remove from backend - replace with actual API call
+      // await customerApi.removeFromCart({
+      //   productId: itemId
+      // });
     } catch (err) {
-      console.error('Failed to remove cart item:', err);
+      console.error("Failed to remove cart item:", err);
       // Revert UI change on error
       fetchCartData();
-      alert('Failed to remove item from cart. Please try again.');
+      alert("Failed to remove item from cart. Please try again.");
     }
   };
 
-  const subtotal = cartItems.reduce((sum, item) => sum + ((item.price || item.sellingPrice || 0) * item.quantity), 0);
-  const shipping = subtotal > 100 ? 0 : 15.99;
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+  const deliveryFee = subtotal > 10000 ? 0 : 500; // Free delivery over ₦10,000
+  const total = subtotal + deliveryFee;
+
+  useEffect(() => {
+    fetchCartData();
+  }, []);
 
   if (loading) {
     return (
@@ -84,11 +116,11 @@ const Cart = () => {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="customer-glass-card p-8 text-center">
+        <div className="bg-white rounded-xl p-8 text-center shadow-sm border border-gray-200">
           <p className="text-red-500 mb-4">{error}</p>
-          <button 
+          <button
             onClick={fetchCartData}
-            className="customer-btn-primary"
+            className="bg-customer-primary hover:bg-customer-primary/90 text-white px-6 py-3 rounded-lg"
           >
             Retry
           </button>
@@ -98,131 +130,209 @@ const Cart = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center mb-8">
-        <Link to="/" className="flex items-center text-customer-gray-600 hover:text-customer-primary">
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Continue Shopping
-        </Link>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="flex items-center mb-8">
+          <Link
+            to="/customer/products"
+            className="flex items-center text-gray-600 hover:text-customer-primary transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Continue Shopping
+          </Link>
+        </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Cart Items */}
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold text-customer-gray-900 mb-8">Shopping Cart</h1>
-          
-          {cartItems.length === 0 ? (
-            <div className="text-center py-16">
-              <ShoppingCart className="w-16 h-16 text-customer-gray-300 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-customer-gray-900 mb-2">Your cart is empty</h2>
-              <p className="text-customer-gray-600 mb-6">Looks like you haven't added anything to your cart yet</p>
-              <Link to="/" className="customer-btn-primary">
-                Continue Shopping
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {cartItems.map((item) => (
-                <div key={item._id || item.id} className="customer-glass-card rounded-2xl p-6">
-                  <div className="flex flex-col sm:flex-row">
-                    <div className="w-32 h-32 flex-shrink-0">
-                      <img 
-                        src={item.image || item.images?.[0] || item.product?.image || item.product?.images?.[0] || "https://placehold.co/300x300"} 
-                        alt={item.name || item.product?.name}
-                        className="w-full h-full object-cover rounded-xl"
-                      />
-                    </div>
-                    
-                    <div className="mt-4 sm:mt-0 sm:ml-6 flex-1">
-                      <div className="flex flex-col sm:flex-row sm:justify-between">
-                        <div>
-                          <h3 className="text-lg font-semibold text-customer-gray-900">{item.name || item.product?.name}</h3>
-                          <p className="text-customer-gray-600">SKU: {item.sku || item.product?.sku || 'N/A'}</p>
-                        </div>
-                        
-                        <div className="mt-2 sm:mt-0">
-                          <p className="text-xl font-bold text-customer-gray-900">₦{(item.price || item.sellingPrice || item.product?.price || item.product?.sellingPrice || 0).toFixed(2)}</p>
-                        </div>
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Cart Items */}
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-gray-900 mb-8">
+              Shopping Cart
+            </h1>
+
+            {cartItems.length === 0 ? (
+              <div className="bg-white rounded-xl p-12 text-center shadow-sm border border-gray-200">
+                <ShoppingCart className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  Your cart is empty
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  Looks like you haven't added anything to your cart yet
+                </p>
+                <Link
+                  to="/customer/products"
+                  className="bg-customer-primary hover:bg-customer-primary/90 text-white px-8 py-3 rounded-lg font-medium transition-colors inline-flex items-center gap-2"
+                >
+                  <ShoppingBag className="w-5 h-5" />
+                  Start Shopping
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {cartItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-white rounded-xl p-6 shadow-sm border border-gray-200"
+                  >
+                    <div className="flex flex-col sm:flex-row gap-6">
+                      {/* Product Image */}
+                      <div className="w-32 h-32 flex-shrink-0">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-full object-cover rounded-xl"
+                          onError={(e) => {
+                            e.target.src = "/images/placeholder-product.jpg";
+                          }}
+                        />
                       </div>
-                      
-                      <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex items-center">
-                          <button
-                            onClick={() => updateQuantity(item._id || item.id, item.quantity - 1)}
-                            className="p-2 border border-customer-gray-300 rounded-l-lg hover:bg-customer-gray-100"
-                          >
-                            <Minus className="w-4 h-4" />
-                          </button>
-                          <input
-                            type="number"
-                            min="1"
-                            value={item.quantity}
-                            onChange={(e) => updateQuantity(item._id || item.id, parseInt(e.target.value) || 1)}
-                            className="w-16 text-center border-y border-customer-gray-300 py-2"
-                          />
-                          <button
-                            onClick={() => updateQuantity(item._id || item.id, item.quantity + 1)}
-                            className="p-2 border border-customer-gray-300 rounded-r-lg hover:bg-customer-gray-100"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
+
+                      {/* Product Details */}
+                      <div className="flex-1">
+                        <div className="flex flex-col sm:flex-row sm:justify-between mb-4">
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              {item.name}
+                            </h3>
+                            <p className="text-gray-600">{item.packageType}</p>
+                            <p className="text-sm text-gray-500">
+                              SKU: {item.sku}
+                            </p>
+                          </div>
+
+                          <div className="mt-2 sm:mt-0">
+                            <p className="text-xl font-bold text-customer-primary">
+                              ₦{item.price.toLocaleString()}
+                            </p>
+                          </div>
                         </div>
-                        
-                        <div className="mt-4 sm:mt-0 flex items-center">
-                          <p className="text-lg font-semibold text-customer-gray-900 mr-4">
-                            ₦{((item.price || item.sellingPrice || item.product?.price || item.product?.sellingPrice || 0) * item.quantity).toFixed(2)}
-                          </p>
-                          <button
-                            onClick={() => removeItem(item._id || item.id)}
-                            className="p-2 text-customer-gray-400 hover:text-red-600"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
+
+                        {/* Quantity Controls and Actions */}
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex items-center mb-4 sm:mb-0">
+                            <button
+                              onClick={() =>
+                                updateQuantity(item.id, item.quantity - 1)
+                              }
+                              className="p-2 border border-gray-300 rounded-l-lg hover:bg-gray-100 transition-colors"
+                              disabled={item.quantity <= 1}
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                            <input
+                              type="number"
+                              min="1"
+                              value={item.quantity}
+                              onChange={(e) =>
+                                updateQuantity(
+                                  item.id,
+                                  parseInt(e.target.value) || 1
+                                )
+                              }
+                              className="w-16 text-center border-y border-gray-300 py-2 focus:outline-none focus:ring-2 focus:ring-customer-primary"
+                            />
+                            <button
+                              onClick={() =>
+                                updateQuantity(item.id, item.quantity + 1)
+                              }
+                              className="p-2 border border-gray-300 rounded-r-lg hover:bg-gray-100 transition-colors"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          <div className="flex items-center justify-between sm:justify-end gap-4">
+                            <p className="text-lg font-semibold text-gray-900">
+                              ₦{(item.price * item.quantity).toLocaleString()}
+                            </p>
+                            <button
+                              onClick={() => removeItem(item.id)}
+                              className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                              title="Remove item"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Order Summary */}
+          {cartItems.length > 0 && (
+            <div className="w-full lg:w-96 flex-shrink-0">
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 sticky top-8">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">
+                  Order Summary
+                </h2>
+
+                <div className="space-y-4 mb-6">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">
+                      Subtotal ({cartItems.length} items)
+                    </span>
+                    <span className="font-medium">
+                      ₦{subtotal.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Delivery Fee</span>
+                    <span className="font-medium">
+                      {deliveryFee === 0 ? (
+                        <span className="text-green-600">FREE</span>
+                      ) : (
+                        `₦${deliveryFee.toLocaleString()}`
+                      )}
+                    </span>
+                  </div>
+                  {deliveryFee > 0 && (
+                    <p className="text-xs text-gray-500">
+                      Free delivery on orders over ₦10,000
+                    </p>
+                  )}
+                  <div className="border-t border-gray-200 pt-4 flex justify-between">
+                    <span className="text-gray-900 font-bold text-lg">
+                      Total
+                    </span>
+                    <span className="text-gray-900 font-bold text-xl">
+                      ₦{total.toLocaleString()}
+                    </span>
+                  </div>
                 </div>
-              ))}
+
+                <Link
+                  to="/customer/checkout"
+                  className="w-full bg-customer-primary hover:bg-customer-primary/90 text-white px-6 py-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                >
+                  <CreditCard className="w-5 h-5" />
+                  Proceed to Checkout
+                </Link>
+
+                <div className="mt-6 text-center">
+                  <Link
+                    to="/customer/products"
+                    className="text-customer-primary hover:text-customer-primary/80 transition-colors"
+                  >
+                    Continue Shopping
+                  </Link>
+                </div>
+
+                {/* Security Badge */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+                    <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                    </div>
+                    <span>Secure checkout guaranteed</span>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
-        </div>
-        
-        {/* Order Summary */}
-        <div className="w-full lg:w-96 flex-shrink-0">
-          <div className="customer-glass-card rounded-2xl p-6 sticky top-8">
-            <h2 className="text-xl font-bold text-customer-gray-900 mb-6">Order Summary</h2>
-            
-            <div className="space-y-4 mb-6">
-              <div className="flex justify-between">
-                <span className="text-customer-gray-600">Subtotal</span>
-                <span className="font-medium">₦{subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-customer-gray-600">Shipping</span>
-                <span className="font-medium">{shipping === 0 ? 'FREE' : `₦${shipping.toFixed(2)}`}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-customer-gray-600">Tax</span>
-                <span className="font-medium">₦{tax.toFixed(2)}</span>
-              </div>
-              <div className="border-t border-customer-gray-200 pt-4 flex justify-between">
-                <span className="text-customer-gray-900 font-bold">Total</span>
-                <span className="text-customer-gray-900 font-bold text-lg">₦{total.toFixed(2)}</span>
-              </div>
-            </div>
-            
-            <Link to="/checkout" className="customer-btn-primary w-full flex items-center justify-center">
-              <CreditCard className="w-5 h-5 mr-2" />
-              Proceed to Checkout
-            </Link>
-            
-            <div className="mt-6 text-center">
-              <Link to="/" className="text-customer-primary hover:text-customer-secondary">
-                Continue Shopping
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </div>

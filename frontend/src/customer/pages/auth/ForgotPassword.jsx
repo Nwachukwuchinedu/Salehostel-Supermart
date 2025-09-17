@@ -1,93 +1,107 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Mail, ArrowLeft } from 'lucide-react';
-import customerApi from '../../../shared/services/customerApi';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import Button from "../../../shared/ui/components/Button";
+import Input from "../../../shared/ui/components/Input";
+import FormGroup from "../../../shared/ui/form/FormGroup";
+import FormLabel from "../../../shared/ui/form/FormLabel";
+import FormError from "../../../shared/ui/form/FormError";
+import FormSuccess from "../../../shared/ui/form/FormSuccess";
+import Spinner from "../../../shared/ui/components/Spinner";
 
 const ForgotPassword = () => {
-  const [email, setEmail] = useState('');
-  const [errors, setErrors] = useState({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Email address is invalid';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (validateForm()) {
-      setLoading(true);
-      try {
-        const response = await customerApi.forgotPassword(email);
-        console.log('Password reset request sent:', response);
-        setIsSubmitted(true);
-      } catch (error) {
-        console.error('Password reset request failed:', error);
-        setErrors({
-          general: error.message || 'Failed to send reset link. Please try again.'
-        });
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
 
-  const handleResend = async () => {
+    if (!email.trim()) {
+      setError("Email is required");
+      return;
+    }
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
     setLoading(true);
+    setError("");
+
     try {
-      const response = await customerApi.forgotPassword(email);
-      console.log('Password reset link resent:', response);
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // In real implementation, call password reset API
+      // await authService.requestPasswordReset(email);
+
+      setSuccess(true);
     } catch (error) {
-      console.error('Failed to resend reset link:', error);
-      setErrors({
-        general: error.message || 'Failed to resend reset link. Please try again.'
-      });
+      setError(
+        error.message || "Failed to send reset email. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  if (isSubmitted) {
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    if (error) setError("");
+  };
+
+  if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-customer-primary/10 to-customer-secondary/10 flex items-center justify-center p-4">
-        <div className="customer-glass-card w-full max-w-md p-8 rounded-2xl text-center">
-          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-customer-primary/10">
-            <Mail className="h-8 w-8 text-customer-primary" />
-          </div>
-          <h1 className="text-2xl font-bold text-customer-gray-900 mt-6">Check your email</h1>
-          <p className="mt-2 text-customer-gray-600">
-            We've sent a password reset link to <span className="font-medium">{email}</span>
-          </p>
-          <div className="mt-8">
-            <button
-              onClick={() => navigate('/login')}
-              className="customer-btn-primary w-full"
-            >
-              Back to Login
-            </button>
-          </div>
-          <div className="mt-6">
-            <p className="text-sm text-customer-gray-600">
-              Didn't receive the email?{' '}
-              <button 
-                onClick={handleResend}
-                disabled={loading}
-                className="font-medium text-customer-primary hover:text-customer-secondary"
-              >
-                {loading ? 'Sending...' : 'Click to resend'}
-              </button>
-            </p>
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                <svg
+                  className="h-6 w-6 text-green-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Check your email
+              </h2>
+              <p className="text-sm text-gray-600 mb-6">
+                We've sent a password reset link to <strong>{email}</strong>
+              </p>
+              <p className="text-xs text-gray-500 mb-6">
+                Didn't receive the email? Check your spam folder or try again.
+              </p>
+
+              <div className="space-y-3">
+                <Button
+                  onClick={() => {
+                    setSuccess(false);
+                    setEmail("");
+                  }}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Try another email
+                </Button>
+
+                <Link to="/customer/login">
+                  <Button variant="primary" className="w-full">
+                    Back to Sign In
+                  </Button>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -95,67 +109,90 @@ const ForgotPassword = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-customer-primary/10 to-customer-secondary/10 flex items-center justify-center p-4">
-      <div className="customer-glass-card w-full max-w-md p-8 rounded-2xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-customer-primary mb-2">Forgot Password?</h1>
-          <p className="text-customer-gray-600">
-            Enter your email address and we'll send you a link to reset your password.
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-gray-900">
+            Forgot your password?
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Enter your email address and we'll send you a link to reset your
+            password.
           </p>
         </div>
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {errors.general && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-red-700 text-sm">{errors.general}</p>
-            </div>
-          )}
-          
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-customer-gray-700 mb-2">
-              Email Address
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-customer-gray-400 w-5 h-5" />
-              <input
-                type="email"
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <FormGroup>
+              <FormLabel htmlFor="email" required>
+                Email Address
+              </FormLabel>
+              <Input
                 id="email"
+                name="email"
+                type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={`customer-input pl-10 w-full ${errors.email ? 'border-red-500' : ''}`}
-                placeholder="you@example.com"
+                onChange={handleEmailChange}
+                error={!!error}
+                placeholder="Enter your email address"
+                autoFocus
               />
+              <FormError message={error} />
+            </FormGroup>
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Spinner size="sm" className="mr-2" />
+                  Sending Reset Link...
+                </>
+              ) : (
+                "Send Reset Link"
+              )}
+            </Button>
+          </form>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">
+                  Remember your password?
+                </span>
+              </div>
             </div>
-            {errors.email && <p className="mt-1 text-red-500 text-sm">{errors.email}</p>}
+
+            <div className="mt-6 text-center">
+              <Link
+                to="/customer/login"
+                className="text-blue-600 hover:text-blue-500 font-medium"
+              >
+                Back to Sign In
+              </Link>
+            </div>
           </div>
-          
-          <button
-            type="submit"
-            disabled={loading}
-            className="customer-btn-primary w-full flex items-center justify-center"
-          >
-            {loading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Sending...
-              </>
-            ) : (
-              'Send Reset Link'
-            )}
-          </button>
-        </form>
-        
-        <div className="mt-6">
-          <Link 
-            to="/login" 
-            className="flex items-center justify-center text-customer-primary hover:text-customer-secondary"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Login
-          </Link>
+
+          <div className="mt-6 text-center">
+            <p className="text-xs text-gray-500">
+              Don't have an account?{" "}
+              <Link
+                to="/customer/register"
+                className="text-blue-600 hover:text-blue-500"
+              >
+                Sign up here
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

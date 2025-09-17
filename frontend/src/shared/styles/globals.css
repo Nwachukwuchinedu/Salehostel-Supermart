@@ -1,0 +1,378 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* Custom CSS Variables */
+:root {
+  /* Admin Theme Variables */
+  --admin-primary: #1e40af;
+  --admin-primary-light: #3b82f6;
+  --admin-primary-dark: #1e3a8a;
+  --admin-glass: rgba(30, 64, 175, 0.1);
+  --admin-glass-border: rgba(30, 64, 175, 0.2);
+
+  /* Supplier Theme Variables */
+  --supplier-primary: #059669;
+  --supplier-primary-light: #10b981;
+  --supplier-primary-dark: #047857;
+  --supplier-glass: rgba(5, 150, 105, 0.1);
+  --supplier-glass-border: rgba(5, 150, 105, 0.2);
+
+  /* Staff Theme Variables */
+  --staff-primary: #7c3aed;
+  --staff-primary-light: #8b5cf6;
+  --staff-primary-dark: #6d28d9;
+  --staff-glass: rgba(124, 58, 237, 0.1);
+  --staff-glass-border: rgba(124, 58, 237, 0.2);
+
+  /* Customer Theme Variables */
+  --customer-primary: #ec4899;
+  --customer-primary-light: #f472b6;
+  --customer-primary-dark: #db2777;
+  --customer-glass: rgba(236, 72, 153, 0.1);
+  --customer-glass-border: rgba(236, 72, 153, 0.2);
+}
+
+/* Base Styles */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  color: #1f2937;
+  background-color: #f9fafb;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Firefox Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+/* Focus Styles */
+*:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+*:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Custom Component Classes */
+@layer components {
+  /* ===== ADMIN COMPONENTS ===== */
+
+  .admin-dashboard-card {
+    @apply bg-white/90 backdrop-blur-md border border-admin-primary/20 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+
+  .admin-revenue-card {
+    @apply admin-dashboard-card relative overflow-hidden;
+  }
+
+  .admin-revenue-card::before {
+    @apply absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-admin-primary to-admin-success;
+    content: "";
+  }
+
+  .admin-supplier-card {
+    @apply bg-supplier-primary/5 border border-supplier-primary/20 rounded-xl p-6 hover:bg-supplier-primary/10 transition-colors duration-300;
+  }
+
+  .admin-order-table {
+    @apply bg-white/95 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg;
+  }
+
+  .admin-sidebar-item {
+    @apply flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-admin-primary/10 hover:text-admin-primary rounded-lg transition-all duration-200;
+  }
+
+  .admin-sidebar-item.active {
+    @apply bg-admin-primary text-white;
+  }
+
+  /* ===== SUPPLIER COMPONENTS ===== */
+
+  .supplier-dashboard-card {
+    @apply bg-white/90 backdrop-blur-md border border-supplier-primary/20 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+
+  .supplier-supply-form {
+    @apply bg-white/95 backdrop-blur-xl border border-supplier-primary/20 rounded-2xl p-8 shadow-lg;
+  }
+
+  .supplier-product-card {
+    @apply bg-white border border-supplier-primary/20 rounded-xl p-4 hover:border-supplier-primary/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+  }
+
+  .supplier-payment-status {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .supplier-payment-pending {
+    @apply supplier-payment-status bg-amber-100 text-amber-800;
+  }
+
+  .supplier-payment-paid {
+    @apply supplier-payment-status bg-supplier-primary/10 text-supplier-primary-dark;
+  }
+
+  /* ===== STAFF COMPONENTS ===== */
+
+  .staff-dashboard-card {
+    @apply bg-white/90 backdrop-blur-md border border-staff-primary/20 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300;
+  }
+
+  .staff-order-card {
+    @apply bg-white border border-staff-primary/20 rounded-xl p-4 hover:shadow-lg transition-all duration-300;
+  }
+
+  .staff-order-urgent {
+    @apply staff-order-card border-staff-warning bg-staff-warning/5 ring-2 ring-staff-warning/20;
+  }
+
+  .staff-quick-action {
+    @apply bg-staff-primary hover:bg-staff-primary-dark text-white px-4 py-2 rounded-lg transition-colors duration-200 active:scale-95 font-medium;
+  }
+
+  .staff-inventory-alert {
+    @apply bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3;
+  }
+
+  /* ===== CUSTOMER COMPONENTS ===== */
+
+  .customer-product-card {
+    @apply bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105;
+  }
+
+  .customer-package-option {
+    @apply border-2 border-gray-200 rounded-lg p-3 cursor-pointer transition-all duration-200 hover:border-customer-primary/50;
+  }
+
+  .customer-package-selected {
+    @apply border-customer-primary bg-customer-primary/10 text-customer-primary-dark ring-2 ring-customer-primary/20;
+  }
+
+  .customer-cart-item {
+    @apply flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:shadow-md transition-shadow duration-200;
+  }
+
+  .customer-order-status {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .customer-order-pending {
+    @apply customer-order-status bg-amber-100 text-amber-800;
+  }
+
+  .customer-order-confirmed {
+    @apply customer-order-status bg-blue-100 text-blue-800;
+  }
+
+  .customer-order-ready {
+    @apply customer-order-status bg-customer-primary/10 text-customer-primary-dark;
+  }
+
+  .customer-order-delivered {
+    @apply customer-order-status bg-green-100 text-green-800;
+  }
+
+  /* ===== SHARED COMPONENTS ===== */
+
+  .category-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800;
+  }
+
+  .category-staple-foods {
+    @apply bg-green-100 text-green-800;
+  }
+
+  .category-frozen-foods {
+    @apply bg-blue-100 text-blue-800;
+  }
+
+  .category-convenience-foods {
+    @apply bg-purple-100 text-purple-800;
+  }
+
+  .category-cleaning-agents {
+    @apply bg-indigo-100 text-indigo-800;
+  }
+
+  .category-personal-care {
+    @apply bg-pink-100 text-pink-800;
+  }
+
+  .mobile-nav-item {
+    @apply flex items-center gap-3 p-4 text-gray-700 hover:bg-gray-100 transition-colors duration-200;
+  }
+
+  .whatsapp-button {
+    @apply bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full flex items-center gap-2 transition-all duration-200 hover:scale-105 font-medium;
+  }
+
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 rounded-xl shadow-glass;
+  }
+
+  .btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-medium transition-colors duration-200 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+  }
+
+  .btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 focus:ring-2 focus:ring-red-500 focus:ring-offset-2;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200;
+  }
+
+  .input-error {
+    @apply border-red-300 focus:ring-red-500;
+  }
+
+  .loading-spinner {
+    @apply animate-spin rounded-full border-4 border-gray-200 border-t-blue-600;
+  }
+
+  .fade-in {
+    @apply animate-fade-in;
+  }
+
+  .slide-up {
+    @apply animate-slide-up;
+  }
+
+  .scale-in {
+    @apply animate-scale-in;
+  }
+}
+
+/* Utility Classes */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+
+  .border-gradient {
+    border-image: linear-gradient(45deg, #3b82f6, #8b5cf6) 1;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .print-break {
+    page-break-after: always;
+  }
+
+  .print-avoid-break {
+    page-break-inside: avoid;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .glass-card {
+    @apply bg-white border-gray-300;
+  }
+
+  .btn-primary {
+    @apply bg-blue-800 border-2 border-blue-900;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+
+  [data-theme="dark"] {
+    @apply bg-gray-900 text-gray-100;
+  }
+
+  [data-theme="dark"] .glass-card {
+    @apply bg-gray-800/80 border-gray-700/20;
+  }
+
+  [data-theme="dark"] .admin-dashboard-card {
+    @apply bg-gray-800/90 border-admin-primary/30;
+  }
+
+  [data-theme="dark"] .supplier-dashboard-card {
+    @apply bg-gray-800/90 border-supplier-primary/30;
+  }
+
+  [data-theme="dark"] .staff-dashboard-card {
+    @apply bg-gray-800/90 border-staff-primary/30;
+  }
+
+  [data-theme="dark"] .customer-product-card {
+    @apply bg-gray-800 border-gray-700;
+  }
+}

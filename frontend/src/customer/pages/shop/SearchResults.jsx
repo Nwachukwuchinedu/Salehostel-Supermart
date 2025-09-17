@@ -1,408 +1,249 @@
-import React, { useState } from 'react';
-import { Search, Filter, Grid, List, ChevronDown, Star, ShoppingCart } from 'lucide-react';
-import ProductCard from '../../components/shop/ProductCard';
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import ProductCard from "../../components/shop/ProductCard";
+import Spinner from "../../../shared/ui/components/Spinner";
+import Breadcrumb from "../../../shared/ui/components/Breadcrumb";
+import Pagination from "../../../shared/ui/components/Pagination";
+import Button from "../../../shared/ui/components/Button";
 
 const SearchResults = () => {
-  const [viewMode, setViewMode] = useState('grid');
-  const [sortBy, setSortBy] = useState('featured');
-  const [showFilters, setShowFilters] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('wireless headphones');
-  
-  // Sample search results data
-  const searchResults = {
-    query: 'wireless headphones',
-    totalResults: 1247,
-    products: [
-      { id: 1, name: 'Premium Wireless Headphones', price: 199.99, originalPrice: 249.99, discount: 20, rating: 4.5, reviewCount: 128, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
-      { id: 2, name: 'Noise Cancelling Headphones', price: 299.99, originalPrice: 349.99, discount: 14, rating: 4.7, reviewCount: 89, image: 'https://images.unsplash.com/photo-1546435770-a3e426bf472b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
-      { id: 3, name: 'Wireless Earbuds', price: 89.99, originalPrice: 99.99, discount: 10, rating: 4.3, reviewCount: 215, image: 'https://images.unsplash.com/photo-1572536147248-ac59a8abfa4b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
-      { id: 4, name: 'Sports Wireless Headphones', price: 149.99, originalPrice: 179.99, discount: 17, rating: 4.6, reviewCount: 94, image: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
-      { id: 5, name: 'Over-Ear Wireless Headphones', price: 179.99, originalPrice: 199.99, discount: 10, rating: 4.4, reviewCount: 76, image: 'https://images.unsplash.com/photo-1504274066651-8d31a536b11a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
-      { id: 6, name: 'Bluetooth Headphones', price: 79.99, originalPrice: 89.99, discount: 11, rating: 4.2, reviewCount: 142, image: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
-      { id: 7, name: 'Gaming Wireless Headset', price: 129.99, originalPrice: 149.99, discount: 13, rating: 4.8, reviewCount: 67, image: 'https://images.unsplash.com/photo-1590658268037-6bf12165ee67?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: true },
-      { id: 8, name: 'Studio Monitor Headphones', price: 249.99, originalPrice: 299.99, discount: 17, rating: 4.9, reviewCount: 43, image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80', inStock: false },
-    ]
+  const [searchParams] = useSearchParams();
+  const query = searchParams.get("q") || "";
+
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const [suggestions, setSuggestions] = useState([]);
+  const [sortBy, setSortBy] = useState("relevance");
+
+  const sortOptions = [
+    { value: "relevance", label: "Most Relevant" },
+    { value: "price-low", label: "Price: Low to High" },
+    { value: "price-high", label: "Price: High to Low" },
+    { value: "rating", label: "Customer Rating" },
+    { value: "newest", label: "Newest First" },
+  ];
+
+  useEffect(() => {
+    if (query) {
+      searchProducts();
+    }
+  }, [query, currentPage, sortBy]);
+
+  const searchProducts = async () => {
+    try {
+      setLoading(true);
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Mock search results
+      const mockResults =
+        query.toLowerCase().includes("headphone") ||
+        query.toLowerCase().includes("audio")
+          ? Array.from({ length: 8 }, (_, i) => ({
+              id: i + 1,
+              name: `${query} Product ${i + 1}`,
+              price: Math.floor(Math.random() * 500) + 50,
+              originalPrice: Math.floor(Math.random() * 200) + 300,
+              image: "/api/placeholder/300/300",
+              rating: (Math.random() * 2 + 3).toFixed(1),
+              reviewCount: Math.floor(Math.random() * 200) + 10,
+              brand: ["AudioTech", "TechPro", "SoundMax"][
+                Math.floor(Math.random() * 3)
+              ],
+              inStock: Math.random() > 0.2,
+              isNew: Math.random() > 0.7,
+              relevanceScore: Math.random(),
+            }))
+          : [];
+
+      setProducts(mockResults);
+      setTotalResults(mockResults.length);
+      setTotalPages(Math.ceil(mockResults.length / 12));
+
+      // Mock search suggestions
+      if (mockResults.length === 0) {
+        setSuggestions([
+          "wireless headphones",
+          "bluetooth speakers",
+          "gaming headset",
+          "earbuds",
+          "audio equipment",
+        ]);
+      } else {
+        setSuggestions([]);
+      }
+    } catch (error) {
+      console.error("Search failed:", error);
+    } finally {
+      setLoading(false);
+    }
   };
-  
-  // Sample filter options
-  const filters = {
-    categories: ['Electronics', 'Audio', 'Headphones', 'Accessories'],
-    brands: ['Sony', 'Apple', 'Samsung', 'Bose', 'JBL', 'Sennheiser'],
-    priceRanges: [
-      { label: 'Under ₦50', min: 0, max: 50 },
-      { label: '₦50 - ₦100', min: 50, max: 100 },
-      { label: '₦100 - ₦200', min: 100, max: 200 },
-      { label: 'Over ₦200', min: 200, max: Infinity }
-    ],
-    ratings: [4, 3, 2, 1]
-  };
+
+  const breadcrumbItems = [
+    { label: "Home", href: "/customer" },
+    { label: "Shop", href: "/customer/shop" },
+    { label: `Search: "${query}"` },
+  ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="container mx-auto px-4 py-8">
+      <Breadcrumb items={breadcrumbItems} className="mb-8" />
+
       {/* Search Header */}
       <div className="mb-8">
-        <div className="relative max-w-2xl mx-auto">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-customer-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="customer-input pl-12 w-full py-4 text-lg"
-            placeholder="Search products..."
-          />
-        </div>
-      </div>
-
-      {/* Search Results Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-customer-gray-900">
-          Search Results for "{searchResults.query}"
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          Search Results for "{query}"
         </h1>
-        <p className="text-customer-gray-600">
-          {searchResults.totalResults} products found
+        <p className="text-gray-600">
+          {loading ? "Searching..." : `${totalResults} results found`}
         </p>
       </div>
 
-      {/* Filters and Sorting */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-        <div className="flex items-center">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="customer-btn-secondary flex items-center md:hidden"
-          >
-            <Filter className="w-5 h-5 mr-2" />
-            Filters
-          </button>
-          <div className="hidden md:flex items-center gap-2">
-            <span className="text-customer-gray-700">Filters:</span>
-            <button className="customer-btn-filter">Category</button>
-            <button className="customer-btn-filter">Brand</button>
-            <button className="customer-btn-filter">Price</button>
-            <button className="customer-btn-filter">Rating</button>
-          </div>
+      {loading ? (
+        <div className="flex justify-center items-center py-12">
+          <Spinner size="lg" />
         </div>
-        
-        <div className="flex items-center gap-4">
-          <div className="flex items-center">
-            <span className="text-customer-gray-700 mr-2">Sort by:</span>
-            <select 
+      ) : products.length > 0 ? (
+        <>
+          {/* Sort Options */}
+          <div className="flex justify-between items-center mb-6">
+            <p className="text-sm text-gray-600">
+              Showing {(currentPage - 1) * 12 + 1}-
+              {Math.min(currentPage * 12, totalResults)} of {totalResults}{" "}
+              results
+            </p>
+
+            <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="customer-select"
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="featured">Featured</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="rating">Top Rated</option>
-              <option value="newest">Newest Arrivals</option>
+              {sortOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
-          
-          <div className="flex border border-customer-gray-300 rounded-lg overflow-hidden">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 ${viewMode === 'grid' ? 'bg-customer-primary text-white' : 'text-customer-gray-500 hover:bg-customer-gray-100'}`}
-            >
-              <Grid className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-2 ${viewMode === 'list' ? 'bg-customer-primary text-white' : 'text-customer-gray-500 hover:bg-customer-gray-100'}`}
-            >
-              <List className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </div>
 
-      {/* Mobile Filters */}
-      {showFilters && (
-        <div className="md:hidden mb-8 p-6 customer-glass-card rounded-2xl">
-          <div className="mb-6">
-            <h3 className="font-medium text-customer-gray-900 mb-3">Category</h3>
-            <div className="space-y-2">
-              {filters.categories.map((category) => (
-                <div key={category} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={`category-${category}`}
-                    className="customer-checkbox"
-                  />
-                  <label htmlFor={`category-${category}`} className="ml-2 text-customer-gray-700">
-                    {category}
-                  </label>
-                </div>
-              ))}
-            </div>
+          {/* Products Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
           </div>
-          
-          <div className="mb-6">
-            <h3 className="font-medium text-customer-gray-900 mb-3">Brand</h3>
-            <div className="space-y-2">
-              {filters.brands.map((brand) => (
-                <div key={brand} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={`brand-${brand}`}
-                    className="customer-checkbox"
-                  />
-                  <label htmlFor={`brand-${brand}`} className="ml-2 text-customer-gray-700">
-                    {brand}
-                  </label>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          )}
+        </>
+      ) : (
+        /* No Results */
+        <div className="text-center py-12">
+          <div className="max-w-md mx-auto">
+            <svg
+              className="mx-auto h-16 w-16 text-gray-400 mb-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <h3 className="text-xl font-medium text-gray-900 mb-2">
+              No results found for "{query}"
+            </h3>
+            <p className="text-gray-600 mb-6">
+              We couldn't find any products matching your search. Try different
+              keywords or check out our suggestions below.
+            </p>
+
+            {/* Search Suggestions */}
+            {suggestions.length > 0 && (
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-gray-900 mb-3">
+                  Popular searches:
+                </h4>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {suggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        const newSearchParams = new URLSearchParams();
+                        newSearchParams.set("q", suggestion);
+                        window.location.search = newSearchParams.toString();
+                      }}
+                      className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
                 </div>
-              ))}
+              </div>
+            )}
+
+            {/* Search Tips */}
+            <div className="text-left bg-gray-50 rounded-lg p-6 mb-6">
+              <h4 className="font-medium text-gray-900 mb-3">Search Tips:</h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Check your spelling and try again</li>
+                <li>• Use more general keywords</li>
+                <li>• Try different product names or brands</li>
+                <li>• Browse our categories instead</li>
+              </ul>
             </div>
-          </div>
-          
-          <div className="mb-6">
-            <h3 className="font-medium text-customer-gray-900 mb-3">Price Range</h3>
-            <div className="space-y-2">
-              {filters.priceRanges.map((range) => (
-                <div key={range.label} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={`price-${range.label}`}
-                    className="customer-checkbox"
-                  />
-                  <label htmlFor={`price-${range.label}`} className="ml-2 text-customer-gray-700">
-                    {range.label}
-                  </label>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <div>
-            <h3 className="font-medium text-customer-gray-900 mb-3">Rating</h3>
-            <div className="space-y-2">
-              {filters.ratings.map((rating) => (
-                <div key={rating} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={`rating-${rating}`}
-                    className="customer-checkbox"
-                  />
-                  <label htmlFor={`rating-${rating}`} className="ml-2 text-customer-gray-700 flex items-center">
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <Star 
-                          key={i}
-                          className={`w-4 h-4 ${
-                            i < rating 
-                              ? 'text-amber-400 fill-current' 
-                              : 'text-customer-gray-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="ml-2">& Up</span>
-                  </label>
-                </div>
-              ))}
+
+            <div className="space-y-3">
+              <Button onClick={() => window.history.back()} variant="primary">
+                Go Back
+              </Button>
+
+              <Button
+                onClick={() => (window.location.href = "/customer/shop")}
+                variant="outline"
+              >
+                Browse All Products
+              </Button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Desktop Filters */}
-      <div className="hidden md:flex gap-8">
-        <div className="w-64 flex-shrink-0">
-          <div className="customer-glass-card p-6 rounded-2xl">
-            <h2 className="text-lg font-semibold text-customer-gray-900 mb-4">Filters</h2>
-            
-            <div className="mb-6">
-              <button className="flex items-center justify-between w-full text-left font-medium text-customer-gray-900 mb-3">
-                Category
-                <ChevronDown className="w-5 h-5" />
-              </button>
-              <div className="space-y-2">
-                {filters.categories.map((category) => (
-                  <div key={category} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`category-${category}`}
-                      className="customer-checkbox"
-                    />
-                    <label htmlFor={`category-${category}`} className="ml-2 text-customer-gray-700">
-                      {category}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="mb-6">
-              <button className="flex items-center justify-between w-full text-left font-medium text-customer-gray-900 mb-3">
-                Brand
-                <ChevronDown className="w-5 h-5" />
-              </button>
-              <div className="space-y-2">
-                {filters.brands.map((brand) => (
-                  <div key={brand} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`brand-${brand}`}
-                      className="customer-checkbox"
-                    />
-                    <label htmlFor={`brand-${brand}`} className="ml-2 text-customer-gray-700">
-                      {brand}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="mb-6">
-              <button className="flex items-center justify-between w-full text-left font-medium text-customer-gray-900 mb-3">
-                Price Range
-                <ChevronDown className="w-5 h-5" />
-              </button>
-              <div className="space-y-2">
-                {filters.priceRanges.map((range) => (
-                  <div key={range.label} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`price-${range.label}`}
-                      className="customer-checkbox"
-                    />
-                    <label htmlFor={`price-${range.label}`} className="ml-2 text-customer-gray-700">
-                      {range.label}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div>
-              <button className="flex items-center justify-between w-full text-left font-medium text-customer-gray-900 mb-3">
-                Rating
-                <ChevronDown className="w-5 h-5" />
-              </button>
-              <div className="space-y-2">
-                {filters.ratings.map((rating) => (
-                  <div key={rating} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`rating-${rating}`}
-                      className="customer-checkbox"
-                    />
-                    <label htmlFor={`rating-${rating}`} className="ml-2 text-customer-gray-700 flex items-center">
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <Star 
-                            key={i}
-                            className={`w-4 h-4 ${
-                              i < rating 
-                                ? 'text-amber-400 fill-current' 
-                                : 'text-customer-gray-300'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="ml-2">& Up</span>
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
+      {/* Related Categories */}
+      {!loading && products.length > 0 && (
+        <div className="mt-12 pt-8 border-t border-gray-200">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            Related Categories
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {["Electronics", "Audio", "Accessories", "Gaming", "Mobile"].map(
+              (category) => (
+                <button
+                  key={category}
+                  onClick={() =>
+                    (window.location.href = `/customer/shop/category/${category.toLowerCase()}`)
+                  }
+                  className="px-4 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  {category}
+                </button>
+              )
+            )}
           </div>
         </div>
-        
-        {/* Products Grid */}
-        <div className="flex-1">
-          {viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {searchResults.products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {searchResults.products.map((product) => (
-                <div key={product.id} className="customer-glass-card rounded-2xl p-6 flex">
-                  <div className="w-32 h-32 flex-shrink-0">
-                    <img 
-                      src={product.image} 
-                      alt={product.name}
-                      className="w-full h-full object-cover rounded-xl"
-                    />
-                  </div>
-                  <div className="ml-6 flex-1">
-                    <h3 className="text-lg font-semibold text-customer-gray-900">{product.name}</h3>
-                    <div className="flex items-center mt-1">
-                      <div className="flex items-center">
-                        {[...Array(5)].map((_, i) => (
-                          <Star 
-                            key={i}
-                            className={`w-4 h-4 ${
-                              i < Math.floor(product.rating) 
-                                ? 'text-amber-400 fill-current' 
-                                : 'text-customer-gray-300'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="ml-2 text-sm text-customer-gray-600">
-                        {product.rating} ({product.reviewCount})
-                      </span>
-                    </div>
-                    <div className="mt-2 flex items-center">
-                      <span className="text-xl font-bold text-customer-gray-900">${product.price}</span>
-                      {product.originalPrice && (
-                        <>
-                          <span className="ml-2 text-lg text-customer-gray-500 line-through">${product.originalPrice}</span>
-                          <span className="ml-2 bg-customer-primary/10 text-customer-primary px-2 py-1 rounded-md text-sm">
-                            {product.discount}% OFF
-                          </span>
-                        </>
-                      )}
-                    </div>
-                    <div className="mt-4">
-                      <button className="customer-btn-primary flex items-center">
-                        <ShoppingCart className="w-5 h-5 mr-2" />
-                        Add to Cart
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          
-          {/* Pagination */}
-          <div className="flex items-center justify-between mt-12">
-            <p className="text-customer-gray-600">Showing 1 to 8 of {searchResults.totalResults} products</p>
-            <div className="flex gap-2">
-              <button className="customer-btn-secondary">Previous</button>
-              <button className="customer-btn-primary">1</button>
-              <button className="customer-btn-secondary">2</button>
-              <button className="customer-btn-secondary">3</button>
-              <button className="customer-btn-secondary">Next</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Mobile Products */}
-      <div className="md:hidden">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {searchResults.products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-        
-        {/* Pagination */}
-        <div className="flex items-center justify-between mt-12">
-          <p className="text-customer-gray-600">Showing 1 to 8 of {searchResults.totalResults} products</p>
-          <div className="flex gap-2">
-            <button className="customer-btn-secondary">Previous</button>
-            <button className="customer-btn-primary">1</button>
-            <button className="customer-btn-secondary">2</button>
-            <button className="customer-btn-secondary">3</button>
-            <button className="customer-btn-secondary">Next</button>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

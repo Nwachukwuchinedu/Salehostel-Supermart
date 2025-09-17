@@ -1,29 +1,16 @@
-import React, { useState } from 'react'
-import { Outlet } from 'react-router-dom'
-import CustomerHeader from './CustomerHeader'
-import CustomerFooter from './CustomerFooter'
-import CartSidebar from '../cart/CartDropdown'
+import React from "react";
+import { Outlet } from "react-router-dom";
+import CustomerHeader from "./CustomerHeader";
+import CustomerFooter from "./CustomerFooter";
 
-const CustomerLayout = () => {
-  console.log("CustomerLayout component rendering");
-  const [isCartOpen, setIsCartOpen] = useState(false)
-
+const CustomerLayout = ({ children }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <CustomerHeader onCartToggle={() => setIsCartOpen(true)} />
-
-      <main className="pt-20">
-        <Outlet />
-      </main>
-
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <CustomerHeader />
+      <main className="flex-1">{children || <Outlet />}</main>
       <CustomerFooter />
-
-      <CartSidebar
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-      />
     </div>
-  )
-}
+  );
+};
 
-export default CustomerLayout
+export default CustomerLayout;

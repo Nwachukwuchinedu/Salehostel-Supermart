@@ -1,85 +1,100 @@
 import React from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { 
   LayoutDashboard, 
   Package, 
-  Building2, 
-  ShoppingCart, 
-  BarChart3, 
   Users, 
-  Settings,
-  LogOut
+  Truck, 
+  ShoppingCart, 
+  FileText, 
+  BarChart3, 
+  Warehouse,
+  X
 } from 'lucide-react'
-import { Link, useLocation } from 'react-router-dom'
 
-const AdminSidebar = () => {
+const AdminSidebar = ({ isOpen, onClose }) => {
   const location = useLocation()
 
-  const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
-    { icon: Package, label: 'Products', path: '/admin/products' },
-    { icon: Building2, label: 'Inventory', path: '/admin/inventory' },
-    { icon: ShoppingCart, label: 'Orders', path: '/admin/orders' },
-    { icon: BarChart3, label: 'Reports', path: '/admin/reports' },
-    { icon: Users, label: 'Users', path: '/admin/users' },
-    { icon: Settings, label: 'Settings', path: '/admin/settings' },
+  const navigation = [
+    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+    { name: 'Products', href: '/admin/products', icon: Package },
+    { name: 'Suppliers', href: '/admin/suppliers', icon: Truck },
+    { name: 'Purchase Orders', href: '/admin/purchases', icon: FileText },
+    { name: 'Customer Orders', href: '/admin/orders', icon: ShoppingCart },
+    { name: 'Inventory', href: '/admin/inventory', icon: Warehouse },
+    { name: 'Users', href: '/admin/users', icon: Users },
+    { name: 'Reports', href: '/admin/reports', icon: BarChart3 },
   ]
+
+  const isActive = (href) => {
+    if (href === '/admin') {
+      return location.pathname === '/admin' || location.pathname === '/admin/'
+    }
+    return location.pathname.startsWith(href)
+  }
 
   return (
     <>
-      {/* Mobile Sidebar */}
-      <div className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"></div>
-      <div className="lg:hidden fixed left-0 top-0 bottom-0 w-64 bg-white/90 backdrop-blur-xl border-r border-admin-gray-200/50 shadow-glass-lg z-50">
-        <div className="p-6">
-          <h1 className="text-xl font-bold text-admin-gray-900">Admin Panel</h1>
-        </div>
-        <nav className="space-y-1 px-4">
-          {menuItems.map((item, index) => {
-            const Icon = item.icon
-            const isActive = location.pathname === item.path
-            return (
-              <Link 
-                key={index}
-                to={item.path}
-                className={`admin-sidebar-item ${isActive ? 'active' : ''}`}
-              >
-                <Icon className="w-5 h-5 mr-3" />
-                <span>{item.label}</span>
-              </Link>
-            )
-          })}
-          <button className="admin-sidebar-item w-full mt-4">
-            <LogOut className="w-5 h-5 mr-3" />
-            <span>Logout</span>
-          </button>
-        </nav>
-      </div>
+      {/* Mobile backdrop */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-gray-600 bg-opacity-75 z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
 
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:block admin-sidebar">
-        <div className="p-6">
-          <h1 className="text-xl font-bold text-admin-gray-900">Admin Panel</h1>
-        </div>
-        <nav className="space-y-1 px-4">
-          {menuItems.map((item, index) => {
-            const Icon = item.icon
-            const isActive = location.pathname === item.path
-            return (
-              <Link 
-                key={index}
-                to={item.path}
-                className={`admin-sidebar-item ${isActive ? 'active' : ''}`}
-              >
-                <Icon className="w-5 h-5 mr-3" />
-                <span>{item.label}</span>
-              </Link>
-            )
-          })}
-          <button className="admin-sidebar-item w-full mt-4">
-            <LogOut className="w-5 h-5 mr-3" />
-            <span>Logout</span>
+      {/* Sidebar */}
+      <div className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        {/* Header */}
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+          <div>
+            <h1 className="text-xl font-bold text-admin-primary">SalesHostel</h1>
+            <p className="text-xs text-gray-600">Admin Panel</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+          >
+            <X className="w-5 h-5" />
           </button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="mt-6 px-3">
+          <div className="space-y-1">
+            {navigation.map((item) => {
+              const Icon = item.icon
+              const active = isActive(item.href)
+              
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  onClick={onClose}
+                  className={`
+                    admin-sidebar-item
+                    ${active ? 'active' : ''}
+                  `}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span>{item.name}</span>
+                </Link>
+              )
+            })}
+          </div>
         </nav>
-      </aside>
+
+        {/* Footer */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+          <div className="text-center">
+            <p className="text-xs text-gray-500">SalesHostel Admin v1.0</p>
+            <p className="text-xs text-gray-500">NDDC Hostel - Shop 12</p>
+          </div>
+        </div>
+      </div>
     </>
   )
 }

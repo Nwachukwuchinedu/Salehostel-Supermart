@@ -2,12 +2,123 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/src/assets/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Salehostel Supermart - Inventory Management System</title>
+    <meta
+      name="description"
+      content="SalesHostel - Your one-stop shop for essential items at NDDC Hostel. Quality products, convenient shopping, fast delivery."
+    />
+    <meta
+      name="keywords"
+      content="hostel shop, convenience store, groceries, personal care, NDDC hostel, student shopping"
+    />
+    <meta name="author" content="SalesHostel Team" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://saleshostel.com/" />
+    <meta
+      property="og:title"
+      content="SalesHostel - Essential Items for Hostel Life"
+    />
+    <meta
+      property="og:description"
+      content="Your one-stop shop for essential items at NDDC Hostel. Quality products, convenient shopping, fast delivery."
+    />
+    <meta property="og:image" content="/images/og-image.jpg" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://saleshostel.com/" />
+    <meta
+      property="twitter:title"
+      content="SalesHostel - Essential Items for Hostel Life"
+    />
+    <meta
+      property="twitter:description"
+      content="Your one-stop shop for essential items at NDDC Hostel. Quality products, convenient shopping, fast delivery."
+    />
+    <meta property="twitter:image" content="/images/og-image.jpg" />
+
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#ec4899" />
+
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
+
+    <title>SalesHostel - Essential Items for Hostel Life</title>
   </head>
-  <body>
+  <body class="font-primary antialiased">
     <div id="root"></div>
-    <script type="module" src="./src/main.jsx"></script>
+
+    <!-- Loading Screen -->
+    <div
+      id="loading-screen"
+      class="fixed inset-0 bg-white z-50 flex items-center justify-center"
+    >
+      <div class="text-center">
+        <div
+          class="w-16 h-16 border-4 border-customer-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"
+        ></div>
+        <h2 class="text-xl font-semibold text-gray-800 mb-2">SalesHostel</h2>
+        <p class="text-gray-600">Loading your shopping experience...</p>
+      </div>
+    </div>
+
+    <!-- No Script Message -->
+    <noscript>
+      <div
+        class="fixed inset-0 bg-gray-100 flex items-center justify-center z-50"
+      >
+        <div
+          class="max-w-md mx-auto text-center p-8 bg-white rounded-lg shadow-lg"
+        >
+          <h2 class="text-2xl font-bold text-gray-800 mb-4">
+            JavaScript Required
+          </h2>
+          <p class="text-gray-600 mb-4">
+            SalesHostel requires JavaScript to function properly. Please enable
+            JavaScript in your browser settings and refresh the page.
+          </p>
+          <button
+            onclick="window.location.reload()"
+            class="bg-customer-primary text-white px-6 py-2 rounded-lg hover:bg-customer-primary-dark transition-colors"
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
+    </noscript>
+
+    <script type="module" src="/src/main.jsx"></script>
+
+    <!-- Remove loading screen after app loads -->
+    <script>
+      window.addEventListener("load", function () {
+        setTimeout(function () {
+          const loadingScreen = document.getElementById("loading-screen");
+          if (loadingScreen) {
+            loadingScreen.style.opacity = "0";
+            loadingScreen.style.transition = "opacity 0.5s ease-out";
+            setTimeout(function () {
+              loadingScreen.remove();
+            }, 500);
+          }
+        }, 1000);
+      });
+    </script>
   </body>
 </html>

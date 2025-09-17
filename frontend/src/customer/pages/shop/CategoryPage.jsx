@@ -1,417 +1,333 @@
-import React, { useState, useEffect } from 'react';
-import { Filter, Grid, List, ChevronDown, Star, ShoppingCart } from 'lucide-react';
-import { useParams } from 'react-router-dom';
-import ProductCard from '../../components/shop/ProductCard';
-import customerApi from '../../../shared/services/customerApi';
+import React, { useState, useEffect } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
+import ProductCard from "../../components/shop/ProductCard";
+import Spinner from "../../../shared/ui/components/Spinner";
+import Breadcrumb from "../../../shared/ui/components/Breadcrumb";
+import Pagination from "../../../shared/ui/components/Pagination";
+import Button from "../../../shared/ui/components/Button";
 
 const CategoryPage = () => {
-  const { id } = useParams();
-  const [viewMode, setViewMode] = useState('grid');
-  const [sortBy, setSortBy] = useState('featured');
-  const [showFilters, setShowFilters] = useState(false);
-  const [category, setCategory] = useState(null);
+  const { category } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState({
+    priceRange: [0, 1000],
     brands: [],
-    priceRanges: [],
-    ratings: []
+    rating: 0,
+    inStock: false,
   });
+  const [sortBy, setSortBy] = useState("featured");
+  const [showFilters, setShowFilters] = useState(false);
+
+  const availableBrands = ["AudioTech", "TechPro", "SoundMax", "EliteAudio"];
+  const sortOptions = [
+    { value: "featured", label: "Featured" },
+    { value: "price-low", label: "Price: Low to High" },
+    { value: "price-high", label: "Price: High to Low" },
+    { value: "rating", label: "Customer Rating" },
+    { value: "newest", label: "Newest First" },
+  ];
 
   useEffect(() => {
-    fetchCategoryData();
-  }, [id]);
+    fetchProducts();
+  }, [category, currentPage, sortBy, filters]);
 
-  const fetchCategoryData = async () => {
+  const fetchProducts = async () => {
     try {
       setLoading(true);
-      
-      // Fetch category details
-      // Note: We might need to adjust this based on the actual API response structure
-      const categoryResponse = await customerApi.getCategories();
-      const categories = categoryResponse.data || categoryResponse;
-      const foundCategory = Array.isArray(categories) 
-        ? categories.find(cat => cat._id === id || cat.id === id) 
-        : categories;
-      
-      setCategory(foundCategory || { name: 'Category', description: 'Products in this category', productCount: 0 });
-      
-      // Fetch products for this category
-      const productsResponse = await customerApi.getProducts({ category: id });
-      const productsData = productsResponse.data?.products || productsResponse.data || [];
-      setProducts(productsData);
-      
-      // Set filters based on available data
-      const uniqueBrands = [...new Set(productsData.map(p => p.brand).filter(Boolean))];
-      setFilters({
-        brands: uniqueBrands,
-        priceRanges: [
-          { label: 'Under ₦50', min: 0, max: 50 },
-          { label: '₦50 - ₦100', min: 50, max: 100 },
-          { label: '₦100 - ₦500', min: 100, max: 500 },
-          { label: 'Over ₦500', min: 500, max: Infinity }
-        ],
-        ratings: [4, 3, 2, 1]
-      });
-      
-      setError(null);
-    } catch (err) {
-      console.error('Failed to fetch category data:', err);
-      setError('Failed to load category data. Please try again.');
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Mock products data
+      const mockProducts = Array.from({ length: 12 }, (_, i) => ({
+        id: i + 1,
+        name: `Product ${i + 1}`,
+        price: Math.floor(Math.random() * 500) + 50,
+        originalPrice: Math.floor(Math.random() * 200) + 300,
+        image: "/api/placeholder/300/300",
+        rating: (Math.random() * 2 + 3).toFixed(1),
+        reviewCount: Math.floor(Math.random() * 200) + 10,
+        brand:
+          availableBrands[Math.floor(Math.random() * availableBrands.length)],
+        inStock: Math.random() > 0.2,
+        isNew: Math.random() > 0.7,
+        isFeatured: Math.random() > 0.8,
+      }));
+
+      setProducts(mockProducts);
+      setTotalPages(5); // Mock pagination
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-customer-primary"></div>
-        </div>
-      </div>
-    );
-  }
+  const handleFilterChange = (filterType, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [filterType]: value,
+    }));
+    setCurrentPage(1); // Reset to first page when filters change
+  };
 
-  if (error) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="customer-glass-card p-8 text-center">
-          <p className="text-red-500 mb-4">{error}</p>
-          <button 
-            onClick={fetchCategoryData}
-            className="customer-btn-primary"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const handleBrandToggle = (brand) => {
+    setFilters((prev) => ({
+      ...prev,
+      brands: prev.brands.includes(brand)
+        ? prev.brands.filter((b) => b !== brand)
+        : [...prev.brands, brand],
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      priceRange: [0, 1000],
+      brands: [],
+      rating: 0,
+      inStock: false,
+    });
+  };
+
+  const breadcrumbItems = [
+    { label: "Home", href: "/customer" },
+    { label: "Shop", href: "/customer/shop" },
+    {
+      label:
+        category?.charAt(0).toUpperCase() + category?.slice(1) || "Category",
+    },
+  ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Breadcrumbs */}
-      <nav className="flex mb-6" aria-label="Breadcrumb">
-        <ol className="inline-flex items-center space-x-1 md:space-x-3">
-          <li className="inline-flex items-center">
-            <a href="/" className="text-customer-gray-500 hover:text-customer-primary">Home</a>
-          </li>
-          <li aria-current="page">
-            <div className="flex items-center">
-              <span className="text-customer-gray-400 mx-2">/</span>
-              <span className="text-customer-gray-700">{category?.name || 'Category'}</span>
+    <div className="container mx-auto px-4 py-8">
+      <Breadcrumb items={breadcrumbItems} className="mb-8" />
+
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Filters Sidebar */}
+        <div className={`lg:w-64 ${showFilters ? "block" : "hidden lg:block"}`}>
+          <div className="bg-white rounded-lg shadow-sm border p-6 sticky top-4">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="text-blue-600 hover:text-blue-700"
+              >
+                Clear All
+              </Button>
             </div>
-          </li>
-        </ol>
-      </nav>
 
-      {/* Category Header */}
-      <div className="mb-12 text-center">
-        <h1 className="text-4xl font-bold text-customer-gray-900 mb-4">{category?.name || 'Category'}</h1>
-        <p className="text-customer-gray-600 max-w-2xl mx-auto">{category?.description || 'Products in this category'}</p>
-        <p className="mt-4 text-customer-gray-500">{products.length} products</p>
-      </div>
-
-      {/* Filters and Sorting */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-        <div className="flex items-center">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="customer-btn-secondary flex items-center md:hidden"
-          >
-            <Filter className="w-5 h-5 mr-2" />
-            Filters
-          </button>
-          <div className="hidden md:flex items-center gap-2">
-            <span className="text-customer-gray-700">Filters:</span>
-            <button className="customer-btn-filter">Brand</button>
-            <button className="customer-btn-filter">Price</button>
-            <button className="customer-btn-filter">Rating</button>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <div className="flex items-center">
-            <span className="text-customer-gray-700 mr-2">Sort by:</span>
-            <select 
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="customer-select"
-            >
-              <option value="featured">Featured</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="rating">Top Rated</option>
-              <option value="newest">Newest Arrivals</option>
-            </select>
-          </div>
-          
-          <div className="flex border border-customer-gray-300 rounded-lg overflow-hidden">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 ${viewMode === 'grid' ? 'bg-customer-primary text-white' : 'text-customer-gray-500 hover:bg-customer-gray-100'}`}
-            >
-              <Grid className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-2 ${viewMode === 'list' ? 'bg-customer-primary text-white' : 'text-customer-gray-500 hover:bg-customer-gray-100'}`}
-            >
-              <List className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Filters */}
-      {showFilters && (
-        <div className="md:hidden mb-8 p-6 customer-glass-card rounded-2xl">
-          <div className="mb-6">
-            <h3 className="font-medium text-customer-gray-900 mb-3">Brand</h3>
-            <div className="space-y-2">
-              {filters.brands.map((brand) => (
-                <div key={brand} className="flex items-center">
+            {/* Price Range */}
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-900 mb-3">Price Range</h4>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
                   <input
-                    type="checkbox"
-                    id={`brand-${brand}`}
-                    className="customer-checkbox"
+                    type="number"
+                    placeholder="Min"
+                    value={filters.priceRange[0]}
+                    onChange={(e) =>
+                      handleFilterChange("priceRange", [
+                        parseInt(e.target.value) || 0,
+                        filters.priceRange[1],
+                      ])
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
                   />
-                  <label htmlFor={`brand-${brand}`} className="ml-2 text-customer-gray-700">
-                    {brand}
-                  </label>
+                  <span className="text-gray-500">-</span>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    value={filters.priceRange[1]}
+                    onChange={(e) =>
+                      handleFilterChange("priceRange", [
+                        filters.priceRange[0],
+                        parseInt(e.target.value) || 1000,
+                      ])
+                    }
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  />
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-          
-          <div className="mb-6">
-            <h3 className="font-medium text-customer-gray-900 mb-3">Price Range</h3>
-            <div className="space-y-2">
-              {filters.priceRanges.map((range) => (
-                <div key={range.label} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={`price-${range.label}`}
-                    className="customer-checkbox"
-                  />
-                  <label htmlFor={`price-${range.label}`} className="ml-2 text-customer-gray-700">
-                    {range.label}
+
+            {/* Brands */}
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-900 mb-3">Brands</h4>
+              <div className="space-y-2">
+                {availableBrands.map((brand) => (
+                  <label key={brand} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={filters.brands.includes(brand)}
+                      onChange={() => handleBrandToggle(brand)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">{brand}</span>
                   </label>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-          
-          <div>
-            <h3 className="font-medium text-customer-gray-900 mb-3">Rating</h3>
-            <div className="space-y-2">
-              {filters.ratings.map((rating) => (
-                <div key={rating} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={`rating-${rating}`}
-                    className="customer-checkbox"
-                  />
-                  <label htmlFor={`rating-${rating}`} className="ml-2 text-customer-gray-700 flex items-center">
-                    <div className="flex">
+
+            {/* Rating */}
+            <div className="mb-6">
+              <h4 className="font-medium text-gray-900 mb-3">Minimum Rating</h4>
+              <div className="space-y-2">
+                {[4, 3, 2, 1].map((rating) => (
+                  <label key={rating} className="flex items-center">
+                    <input
+                      type="radio"
+                      name="rating"
+                      checked={filters.rating === rating}
+                      onChange={() => handleFilterChange("rating", rating)}
+                      className="text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="ml-2 flex items-center">
                       {[...Array(5)].map((_, i) => (
-                        <Star 
+                        <svg
                           key={i}
-                          className={`w-4 h-4 ${
-                            i < rating 
-                              ? 'text-amber-400 fill-current' 
-                              : 'text-customer-gray-300'
+                          className={`h-4 w-4 ${
+                            i < rating ? "text-yellow-400" : "text-gray-300"
                           }`}
-                        />
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
                       ))}
+                      <span className="ml-1 text-sm text-gray-600">& up</span>
                     </div>
-                    <span className="ml-2">& Up</span>
                   </label>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        </div>
-      )}
 
-      {/* Desktop Filters */}
-      <div className="hidden md:flex gap-8">
-        <div className="w-64 flex-shrink-0">
-          <div className="customer-glass-card p-6 rounded-2xl">
-            <h2 className="text-lg font-semibold text-customer-gray-900 mb-4">Filters</h2>
-            
-            <div className="mb-6">
-              <button className="flex items-center justify-between w-full text-left font-medium text-customer-gray-900 mb-3">
-                Brand
-                <ChevronDown className="w-5 h-5" />
-              </button>
-              <div className="space-y-2">
-                {filters.brands.map((brand) => (
-                  <div key={brand} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`brand-${brand}`}
-                      className="customer-checkbox"
-                    />
-                    <label htmlFor={`brand-${brand}`} className="ml-2 text-customer-gray-700">
-                      {brand}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="mb-6">
-              <button className="flex items-center justify-between w-full text-left font-medium text-customer-gray-900 mb-3">
-                Price Range
-                <ChevronDown className="w-5 h-5" />
-              </button>
-              <div className="space-y-2">
-                {filters.priceRanges.map((range) => (
-                  <div key={range.label} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`price-${range.label}`}
-                      className="customer-checkbox"
-                    />
-                    <label htmlFor={`price-${range.label}`} className="ml-2 text-customer-gray-700">
-                      {range.label}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
+            {/* Availability */}
             <div>
-              <button className="flex items-center justify-between w-full text-left font-medium text-customer-gray-900 mb-3">
-                Rating
-                <ChevronDown className="w-5 h-5" />
-              </button>
-              <div className="space-y-2">
-                {filters.ratings.map((rating) => (
-                  <div key={rating} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id={`rating-${rating}`}
-                      className="customer-checkbox"
-                    />
-                    <label htmlFor={`rating-${rating}`} className="ml-2 text-customer-gray-700 flex items-center">
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <Star 
-                            key={i}
-                            className={`w-4 h-4 ${
-                              i < rating 
-                                ? 'text-amber-400 fill-current' 
-                                : 'text-customer-gray-300'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="ml-2">& Up</span>
-                    </label>
-                  </div>
-                ))}
-              </div>
+              <h4 className="font-medium text-gray-900 mb-3">Availability</h4>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={filters.inStock}
+                  onChange={(e) =>
+                    handleFilterChange("inStock", e.target.checked)
+                  }
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="ml-2 text-sm text-gray-700">
+                  In Stock Only
+                </span>
+              </label>
             </div>
           </div>
         </div>
-        
-        {/* Products Grid */}
+
+        {/* Main Content */}
         <div className="flex-1">
-          {viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {products.map((product) => (
-                <ProductCard key={product._id || product.id} product={product} />
-              ))}
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                {category?.charAt(0).toUpperCase() + category?.slice(1) ||
+                  "All Products"}
+              </h1>
+              <p className="text-gray-600">
+                {loading ? "Loading..." : `${products.length} products found`}
+              </p>
             </div>
+
+            <div className="flex items-center space-x-4 mt-4 sm:mt-0">
+              {/* Mobile Filter Toggle */}
+              <Button
+                variant="outline"
+                onClick={() => setShowFilters(!showFilters)}
+                className="lg:hidden"
+              >
+                <svg
+                  className="h-4 w-4 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"
+                  />
+                </svg>
+                Filters
+              </Button>
+
+              {/* Sort Dropdown */}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Products Grid */}
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <Spinner size="lg" />
+            </div>
+          ) : products.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+                {products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+
+              {/* Pagination */}
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </>
           ) : (
-            <div className="space-y-6">
-              {products.map((product) => (
-                <div key={product._id || product.id} className="customer-glass-card rounded-2xl p-6 flex">
-                  <div className="w-32 h-32 flex-shrink-0">
-                    <img 
-                      src={product.image || product.images?.[0] || "https://placehold.co/300x300"} 
-                      alt={product.name}
-                      className="w-full h-full object-cover rounded-xl"
-                    />
-                  </div>
-                  <div className="ml-6 flex-1">
-                    <h3 className="text-lg font-semibold text-customer-gray-900">{product.name}</h3>
-                    <div className="flex items-center mt-1">
-                      <div className="flex items-center">
-                        {[...Array(5)].map((_, i) => (
-                          <Star 
-                            key={i}
-                            className={`w-4 h-4 ${
-                              i < Math.floor(product.rating || 4.5) 
-                                ? 'text-amber-400 fill-current' 
-                                : 'text-customer-gray-300'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="ml-2 text-sm text-customer-gray-600">
-                        {product.rating || 4.5} ({product.reviewCount || 12})
-                      </span>
-                    </div>
-                    <div className="mt-2 flex items-center">
-                      <span className="text-xl font-bold text-customer-gray-900">₦{product.price || product.sellingPrice || 99.99}</span>
-                      {product.originalPrice && product.originalPrice > (product.price || product.sellingPrice || 99.99) && (
-                        <>
-                          <span className="ml-2 text-lg text-customer-gray-500 line-through">₦{product.originalPrice}</span>
-                          <span className="ml-2 bg-customer-primary/10 text-customer-primary px-2 py-1 rounded-md text-sm">
-                            {product.discount || Math.round(((product.originalPrice - (product.price || product.sellingPrice || 99.99)) / product.originalPrice) * 100)}% OFF
-                          </span>
-                        </>
-                      )}
-                    </div>
-                    <div className="mt-4">
-                      <button className="customer-btn-primary flex items-center">
-                        <ShoppingCart className="w-5 h-5 mr-2" />
-                        Add to Cart
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            <div className="text-center py-12">
+              <div className="max-w-md mx-auto">
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400 mb-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8V4a1 1 0 00-1-1H7a1 1 0 00-1 1v1m8 0V4a1 1 0 00-1-1H9a1 1 0 00-1 1v1"
+                  />
+                </svg>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No products found
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Try adjusting your filters or search criteria to find what
+                  you're looking for.
+                </p>
+                <Button onClick={clearFilters} variant="primary">
+                  Clear Filters
+                </Button>
+              </div>
             </div>
           )}
-          
-          {/* Pagination */}
-          <div className="flex items-center justify-between mt-12">
-            <p className="text-customer-gray-600">Showing 1 to {products.length} of {products.length} products</p>
-            <div className="flex gap-2">
-              <button className="customer-btn-secondary">Previous</button>
-              <button className="customer-btn-primary">1</button>
-              <button className="customer-btn-secondary">2</button>
-              <button className="customer-btn-secondary">3</button>
-              <button className="customer-btn-secondary">Next</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Mobile Products */}
-      <div className="md:hidden">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {products.map((product) => (
-            <ProductCard key={product._id || product.id} product={product} />
-          ))}
-        </div>
-        
-        {/* Pagination */}
-        <div className="flex items-center justify-between mt-12">
-          <p className="text-customer-gray-600">Showing 1 to {products.length} of {products.length} products</p>
-          <div className="flex gap-2">
-            <button className="customer-btn-secondary">Previous</button>
-            <button className="customer-btn-primary">1</button>
-            <button className="customer-btn-secondary">2</button>
-            <button className="customer-btn-secondary">3</button>
-            <button className="customer-btn-secondary">Next</button>
-          </div>
         </div>
       </div>
     </div>

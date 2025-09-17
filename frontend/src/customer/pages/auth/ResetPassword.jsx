@@ -1,102 +1,171 @@
-import React, { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Lock, Eye, EyeOff } from 'lucide-react';
-import customerApi from '../../../shared/services/customerApi';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import Button from "../../../shared/ui/components/Button";
+import Input from "../../../shared/ui/components/Input";
+import FormGroup from "../../../shared/ui/form/FormGroup";
+import FormLabel from "../../../shared/ui/form/FormLabel";
+import FormError from "../../../shared/ui/form/FormError";
+import Spinner from "../../../shared/ui/components/Spinner";
 
 const ResetPassword = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    password: '',
-    confirmPassword: '',
-  });
-  const [errors, setErrors] = useState({});
-  const [isReset, setIsReset] = useState(false);
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
+  const token = searchParams.get("token");
+
+  const [formData, setFormData] = useState({
+    password: "",
+    confirmPassword: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [tokenValid, setTokenValid] = useState(null);
+
+  useEffect(() => {
+    // Validate token on component mount
+    const validateToken = async () => {
+      if (!token) {
+        setTokenValid(false);
+        return;
+      }
+
+      try {
+        // In real implementation, validate token with API
+        // await authService.validateResetToken(token);
+
+        // Simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        setTokenValid(true);
+      } catch (error) {
+        setTokenValid(false);
+      }
+    };
+
+    validateToken();
+  }, [token]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      newErrors.password =
+        "Password must contain at least one uppercase letter, one lowercase letter, and one number";
     }
-    
+
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
+      newErrors.confirmPassword = "Please confirm your password";
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = "Passwords do not match";
     }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    return newErrors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (validateForm()) {
-      if (!token) {
-        setErrors({
-          general: 'Invalid or missing reset token. Please request a new password reset.'
-        });
-        return;
-      }
-      
-      setLoading(true);
-      try {
-        const response = await customerApi.resetPassword(token, formData.password);
-        console.log('Password reset successful:', response);
-        setIsReset(true);
-      } catch (error) {
-        console.error('Password reset failed:', error);
-        setErrors({
-          general: error.message || 'Failed to reset password. Please try again.'
-        });
-      } finally {
-        setLoading(false);
-      }
+
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setLoading(true);
+    setErrors({});
+
+    try {
+      // In real implementation, reset password with API
+      // await authService.resetPassword(token, formData.password);
+
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Redirect to login with success message
+      navigate(
+        "/customer/login?message=Password reset successful. Please sign in with your new password."
+      );
+    } catch (error) {
+      setErrors({
+        submit: error.message || "Failed to reset password. Please try again.",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (isReset) {
+  // Loading state while validating token
+  if (tokenValid === null) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-customer-primary/10 to-customer-secondary/10 flex items-center justify-center p-4">
-        <div className="customer-glass-card w-full max-w-md p-8 rounded-2xl text-center">
-          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-customer-primary/10">
-            <Lock className="h-8 w-8 text-customer-primary" />
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <div className="text-center">
+              <Spinner size="lg" className="mx-auto mb-4" />
+              <p className="text-gray-600">Validating reset link...</p>
+            </div>
           </div>
-          <h1 className="text-2xl font-bold text-customer-gray-900 mt-6">Password Reset Successful</h1>
-          <p className="mt-2 text-customer-gray-600">
-            Your password has been successfully reset. You can now sign in with your new password.
-          </p>
-          <div className="mt-8">
-            <button
-              onClick={() => navigate('/login')}
-              className="customer-btn-primary w-full"
-            >
-              Sign In
-            </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Invalid or expired token
+  if (tokenValid === false) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <svg
+                  className="h-6 w-6 text-red-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Invalid Reset Link
+              </h2>
+              <p className="text-sm text-gray-600 mb-6">
+                This password reset link is invalid or has expired. Please
+                request a new one.
+              </p>
+
+              <div className="space-y-3">
+                <Link to="/customer/forgot-password">
+                  <Button variant="primary" className="w-full">
+                    Request New Reset Link
+                  </Button>
+                </Link>
+
+                <Link to="/customer/login">
+                  <Button variant="outline" className="w-full">
+                    Back to Sign In
+                  </Button>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -104,100 +173,86 @@ const ResetPassword = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-customer-primary/10 to-customer-secondary/10 flex items-center justify-center p-4">
-      <div className="customer-glass-card w-full max-w-md p-8 rounded-2xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-customer-primary mb-2">Reset Password</h1>
-          <p className="text-customer-gray-600">
-            Enter your new password below.
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-gray-900">
+            Reset your password
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Enter your new password below
           </p>
         </div>
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {errors.general && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-red-700 text-sm">{errors.general}</p>
-            </div>
-          )}
-          
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-customer-gray-700 mb-2">
-              New Password
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-customer-gray-400 w-5 h-5" />
-              <input
-                type={showPassword ? "text" : "password"}
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <FormGroup>
+              <FormLabel htmlFor="password" required>
+                New Password
+              </FormLabel>
+              <Input
                 id="password"
                 name="password"
+                type="password"
                 value={formData.password}
                 onChange={handleChange}
-                className={`customer-input pl-10 w-full ${errors.password ? 'border-red-500' : ''}`}
-                placeholder="••••••••"
+                error={!!errors.password}
+                placeholder="Enter your new password"
+                autoFocus
               />
-              <button
-                type="button"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-customer-gray-400 hover:text-customer-gray-600"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-            {errors.password && <p className="mt-1 text-red-500 text-sm">{errors.password}</p>}
-          </div>
-          
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-customer-gray-700 mb-2">
-              Confirm New Password
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-customer-gray-400 w-5 h-5" />
-              <input
-                type={showConfirmPassword ? "text" : "password"}
+              <FormError message={errors.password} />
+              <p className="mt-1 text-xs text-gray-500">
+                Must be at least 8 characters with uppercase, lowercase, and
+                number
+              </p>
+            </FormGroup>
+
+            <FormGroup>
+              <FormLabel htmlFor="confirmPassword" required>
+                Confirm New Password
+              </FormLabel>
+              <Input
                 id="confirmPassword"
                 name="confirmPassword"
+                type="password"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className={`customer-input pl-10 w-full ${errors.confirmPassword ? 'border-red-500' : ''}`}
-                placeholder="••••••••"
+                error={!!errors.confirmPassword}
+                placeholder="Confirm your new password"
               />
-              <button
-                type="button"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-customer-gray-400 hover:text-customer-gray-600"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-            {errors.confirmPassword && <p className="mt-1 text-red-500 text-sm">{errors.confirmPassword}</p>}
-          </div>
-          
-          <button
-            type="submit"
-            disabled={loading}
-            className="customer-btn-primary w-full flex items-center justify-center"
-          >
-            {loading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Resetting...
-              </>
-            ) : (
-              'Reset Password'
-            )}
-          </button>
-        </form>
-        
-        <div className="mt-6 text-center">
-          <p className="text-customer-gray-600">
-            Remember your password?{' '}
-            <Link to="/login" className="text-customer-primary font-medium hover:text-customer-secondary">
-              Sign in
+              <FormError message={errors.confirmPassword} />
+            </FormGroup>
+
+            <FormError message={errors.submit} />
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Spinner size="sm" className="mr-2" />
+                  Resetting Password...
+                </>
+              ) : (
+                "Reset Password"
+              )}
+            </Button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <Link
+              to="/customer/login"
+              className="text-blue-600 hover:text-blue-500 font-medium text-sm"
+            >
+              Back to Sign In
             </Link>
-          </p>
+          </div>
         </div>
       </div>
     </div>

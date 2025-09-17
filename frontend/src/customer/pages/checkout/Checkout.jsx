@@ -1,775 +1,638 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, CreditCard, Shield, Truck, Check } from 'lucide-react';
-import customerApi from '../../../shared/services/customerApi';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  CreditCard,
+  MapPin,
+  Phone,
+  User,
+  CheckCircle,
+  AlertCircle,
+  Truck,
+  Store,
+} from "lucide-react";
 
 const Checkout = () => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
-    email: '',
-    firstName: '',
-    lastName: '',
-    address: '',
-    apartment: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    country: 'Nigeria',
-    phone: '',
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
-    cardName: '',
-    sameAsShipping: true,
-    shippingMethod: 'standard'
+  const [orderData, setOrderData] = useState({
+    customerInfo: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      whatsappNumber: "",
+      callNumber: "",
+    },
+    deliveryInfo: {
+      type: "pickup", // 'pickup' or 'delivery'
+      address: "",
+      roomNumber: "",
+      hostelBlock: "",
+      specialInstructions: "",
+    },
+    paymentInfo: {
+      method: "cash", // 'cash', 'transfer', 'pos'
+      transferProof: null,
+    },
   });
-  const [cartItems, setCartItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [addresses, setAddresses] = useState([]);
+
+  const [cartItems] = useState([
+    {
+      id: 1,
+      name: "Rice",
+      packageType: "Black Rubber",
+      price: 3650,
+      quantity: 2,
+    },
+    {
+      id: 2,
+      name: "Indomie Noodles",
+      packageType: "Pack",
+      price: 350,
+      quantity: 5,
+    },
+  ]);
+
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchCheckoutData();
-  }, []);
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+  const deliveryFee = orderData.deliveryInfo.type === "delivery" ? 500 : 0;
+  const total = subtotal + deliveryFee;
 
-  const fetchCheckoutData = async () => {
-    try {
-      setLoading(true);
-      
-      // Fetch cart data
-      const cartResponse = await customerApi.getCart();
-      const cartData = cartResponse.data || cartResponse;
-      setCartItems(Array.isArray(cartData) ? cartData : (cartData.items || []));
-      
-      // Fetch user profile for pre-filling form
-      try {
-        const profileResponse = await customerApi.getProfile();
-        const profileData = profileResponse.data || profileResponse;
-        setFormData(prev => ({
-          ...prev,
-          email: profileData.email || '',
-          firstName: profileData.firstName || '',
-          lastName: profileData.lastName || '',
-          phone: profileData.phone || ''
-        }));
-        
-        // Fetch user addresses
-        try {
-          const addressResponse = await customerApi.getAddresses();
-          const addressData = addressResponse.data || addressResponse;
-          setAddresses(Array.isArray(addressData) ? addressData : []);
-          
-          // Pre-fill with default address if available
-          const defaultAddress = Array.isArray(addressData) ? addressData.find(addr => addr.isDefault) : null;
-          if (defaultAddress) {
-            setFormData(prev => ({
-              ...prev,
-              address: defaultAddress.street || '',
-              apartment: defaultAddress.apartment || '',
-              city: defaultAddress.city || '',
-              state: defaultAddress.state || '',
-              zipCode: defaultAddress.postalCode || defaultAddress.zipCode || '',
-              country: defaultAddress.country || 'Nigeria'
-            }));
-          }
-        } catch (addrErr) {
-          console.log('Could not fetch addresses:', addrErr);
-        }
-      } catch (profileErr) {
-        console.log('Could not fetch profile:', profileErr);
-      }
-      
-      setError(null);
-    } catch (err) {
-      console.error('Failed to fetch checkout data:', err);
-      setError('Failed to load checkout data. Please try again.');
-    } finally {
-      setLoading(false);
+  const handleInputChange = (section, field, value) => {
+    setOrderData((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [field]: value,
+      },
+    }));
+
+    // Clear error when user starts typing
+    if (errors[`${section}.${field}`]) {
+      setErrors((prev) => ({
+        ...prev,
+        [`${section}.${field}`]: null,
+      }));
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-  };
+  const validateForm = () => {
+    const newErrors = {};
 
-  const handleAddressSelect = (address) => {
-    setFormData(prev => ({
-      ...prev,
-      address: address.street || '',
-      apartment: address.apartment || '',
-      city: address.city || '',
-      state: address.state || '',
-      zipCode: address.postalCode || address.zipCode || '',
-      country: address.country || 'Nigeria'
-    }));
+    // Validate customer info
+    if (!orderData.customerInfo.firstName.trim()) {
+      newErrors["customerInfo.firstName"] = "First name is required";
+    }
+    if (!orderData.customerInfo.lastName.trim()) {
+      newErrors["customerInfo.lastName"] = "Last name is required";
+    }
+    if (!orderData.customerInfo.whatsappNumber.trim()) {
+      newErrors["customerInfo.whatsappNumber"] = "WhatsApp number is required";
+    }
+
+    // Validate delivery info if delivery is selected
+    if (orderData.deliveryInfo.type === "delivery") {
+      if (!orderData.deliveryInfo.roomNumber.trim()) {
+        newErrors["deliveryInfo.roomNumber"] =
+          "Room number is required for delivery";
+      }
+      if (!orderData.deliveryInfo.hostelBlock.trim()) {
+        newErrors["deliveryInfo.hostelBlock"] =
+          "Hostel block is required for delivery";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      setLoading(true);
-      
-      // Prepare order data
-      const orderData = {
-        items: cartItems.map(item => ({
-          product: item.product?._id || item.product?.id || item._id || item.id,
-          quantity: item.quantity,
-          price: item.price || item.sellingPrice || item.product?.price || item.product?.sellingPrice
-        })),
-        shippingAddress: {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          street: formData.address,
-          apartment: formData.apartment,
-          city: formData.city,
-          state: formData.state,
-          postalCode: formData.zipCode,
-          country: formData.country,
-          phone: formData.phone
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Navigate to order confirmation
+      navigate("/customer/order-confirmation", {
+        state: {
+          orderNumber: "ORD-" + Date.now(),
+          orderData,
+          cartItems,
+          total,
         },
-        billingAddress: formData.sameAsShipping ? {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          street: formData.address,
-          apartment: formData.apartment,
-          city: formData.city,
-          state: formData.state,
-          postalCode: formData.zipCode,
-          country: formData.country,
-          phone: formData.phone
-        } : {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          street: formData.address,
-          apartment: formData.apartment,
-          city: formData.city,
-          state: formData.state,
-          postalCode: formData.zipCode,
-          country: formData.country,
-          phone: formData.phone
-        },
-        paymentMethod: 'card',
-        shippingMethod: formData.shippingMethod,
-        notes: ''
-      };
-      
-      // Create order
-      const response = await customerApi.createOrder(orderData);
-      const order = response.data || response;
-      
-      // Move to confirmation step
-      setCurrentStep(4);
-    } catch (err) {
-      console.error('Checkout failed:', err);
-      setError('Checkout failed. Please try again.');
-      alert('Checkout failed. Please try again.');
+      });
+    } catch (error) {
+      console.error("Order submission failed:", error);
+      alert("Failed to place order. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const subtotal = cartItems.reduce((sum, item) => sum + ((item.price || item.sellingPrice || item.product?.price || item.product?.sellingPrice || 0) * item.quantity), 0);
-  const shipping = formData.shippingMethod === 'express' ? 29.99 : 
-                  formData.shippingMethod === 'overnight' ? 49.99 : 15.99;
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
-
-  if (loading && cartItems.length === 0) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-customer-primary"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="customer-glass-card p-8 text-center">
-          <p className="text-red-500 mb-4">{error}</p>
-          <button 
-            onClick={fetchCheckoutData}
-            className="customer-btn-primary"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center mb-8">
-        <Link to="/cart" className="flex items-center text-customer-gray-600 hover:text-customer-primary">
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to Cart
-        </Link>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Checkout Form */}
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold text-customer-gray-900 mb-8">Checkout</h1>
-          
-          {/* Progress Steps */}
-          <div className="flex items-center mb-12">
-            {[1, 2, 3].map((step) => (
-              <div key={step} className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  currentStep >= step 
-                    ? 'bg-customer-primary text-white' 
-                    : 'bg-customer-gray-200 text-customer-gray-500'
-                }`}>
-                  {step}
-                </div>
-                {step < 3 && (
-                  <div className={`w-16 h-1 mx-2 ${
-                    currentStep > step 
-                      ? 'bg-customer-primary' 
-                      : 'bg-customer-gray-200'
-                  }`}></div>
-                )}
-              </div>
-            ))}
-            <div className="ml-4 text-customer-gray-600">
-              {currentStep === 1 && 'Information'}
-              {currentStep === 2 && 'Shipping'}
-              {currentStep === 3 && 'Payment'}
-            </div>
-          </div>
-          
-          {/* Step 1: Contact Information */}
-          {currentStep === 1 && (
-            <form onSubmit={(e) => { e.preventDefault(); setCurrentStep(2); }}>
-              <div className="customer-glass-card rounded-2xl p-6 mb-6">
-                <h2 className="text-xl font-bold text-customer-gray-900 mb-6">Contact Information</h2>
-                
-                <div className="mb-4">
-                  <label htmlFor="email" className="block text-sm font-medium text-customer-gray-700 mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="customer-input w-full"
-                    placeholder="you@example.com"
-                    required
-                  />
-                </div>
-                
-                {addresses.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-medium text-customer-gray-900 mb-3">Select Saved Address</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {addresses.map((address) => (
-                        <div 
-                          key={address._id || address.id}
-                          className="border border-customer-gray-300 rounded-lg p-4 cursor-pointer hover:border-customer-primary"
-                          onClick={() => handleAddressSelect(address)}
-                        >
-                          <div className="flex items-center">
-                            <MapPin className="w-5 h-5 text-customer-gray-500 mr-2" />
-                            <div>
-                              <p className="font-medium">{address.firstName} {address.lastName}</p>
-                              <p className="text-sm text-customer-gray-600">{address.street}</p>
-                              <p className="text-sm text-customer-gray-600">{address.city}, {address.state}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div className="customer-glass-card rounded-2xl p-6">
-                <h2 className="text-xl font-bold text-customer-gray-900 mb-6">Shipping Address</h2>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label htmlFor="firstName" className="block text-sm font-medium text-customer-gray-700 mb-2">
-                      First Name
-                    </label>
-                    <input
-                      type="text"
-                      id="firstName"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      className="customer-input w-full"
-                      placeholder="John"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="lastName" className="block text-sm font-medium text-customer-gray-700 mb-2">
-                      Last Name
-                    </label>
-                    <input
-                      type="text"
-                      id="lastName"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      className="customer-input w-full"
-                      placeholder="Doe"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="mb-4">
-                  <label htmlFor="address" className="block text-sm font-medium text-customer-gray-700 mb-2">
-                    Address
-                  </label>
-                  <input
-                    type="text"
-                    id="address"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    className="customer-input w-full"
-                    placeholder="123 Main St"
-                    required
-                  />
-                </div>
-                
-                <div className="mb-4">
-                  <label htmlFor="apartment" className="block text-sm font-medium text-customer-gray-700 mb-2">
-                    Apartment, suite, etc. (optional)
-                  </label>
-                  <input
-                    type="text"
-                    id="apartment"
-                    name="apartment"
-                    value={formData.apartment}
-                    onChange={handleChange}
-                    className="customer-input w-full"
-                    placeholder="Apartment or suite number"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-                  <div>
-                    <label htmlFor="city" className="block text-sm font-medium text-customer-gray-700 mb-2">
-                      City
-                    </label>
-                    <input
-                      type="text"
-                      id="city"
-                      name="city"
-                      value={formData.city}
-                      onChange={handleChange}
-                      className="customer-input w-full"
-                      placeholder="Lagos"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="state" className="block text-sm font-medium text-customer-gray-700 mb-2">
-                      State
-                    </label>
-                    <input
-                      type="text"
-                      id="state"
-                      name="state"
-                      value={formData.state}
-                      onChange={handleChange}
-                      className="customer-input w-full"
-                      placeholder="Lagos"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="zipCode" className="block text-sm font-medium text-customer-gray-700 mb-2">
-                      ZIP Code
-                    </label>
-                    <input
-                      type="text"
-                      id="zipCode"
-                      name="zipCode"
-                      value={formData.zipCode}
-                      onChange={handleChange}
-                      className="customer-input w-full"
-                      placeholder="100001"
-                    />
-                  </div>
-                </div>
-                
-                <div className="mb-6">
-                  <label htmlFor="country" className="block text-sm font-medium text-customer-gray-700 mb-2">
-                    Country
-                  </label>
-                  <select
-                    id="country"
-                    name="country"
-                    value={formData.country}
-                    onChange={handleChange}
-                    className="customer-select w-full"
-                    required
-                  >
-                    <option value="Nigeria">Nigeria</option>
-                    <option value="Ghana">Ghana</option>
-                    <option value="Kenya">Kenya</option>
-                    <option value="South Africa">South Africa</option>
-                  </select>
-                </div>
-                
-                <div className="mb-6">
-                  <label htmlFor="phone" className="block text-sm font-medium text-customer-gray-700 mb-2">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="customer-input w-full"
-                    placeholder="+234 801 234 5678"
-                  />
-                </div>
-              </div>
-              
-              <div className="flex justify-between mt-8">
-                <Link to="/cart" className="customer-btn-secondary">
-                  Back to Cart
-                </Link>
-                <button type="submit" className="customer-btn-primary">
-                  Continue to Shipping
-                </button>
-              </div>
-            </form>
-          )}
-          
-          {/* Step 2: Shipping Method */}
-          {currentStep === 2 && (
-            <form onSubmit={(e) => { e.preventDefault(); setCurrentStep(3); }}>
-              <div className="customer-glass-card rounded-2xl p-6">
-                <h2 className="text-xl font-bold text-customer-gray-900 mb-6">Shipping Method</h2>
-                
-                <div className="space-y-4">
-                  <div 
-                    className="border border-customer-gray-300 rounded-lg p-4 cursor-pointer hover:border-customer-primary"
-                    onClick={() => setFormData(prev => ({ ...prev, shippingMethod: 'standard' }))}
-                  >
-                    <div className="flex items-center">
-                      <input
-                        type="radio"
-                        id="standard"
-                        name="shippingMethod"
-                        value="standard"
-                        checked={formData.shippingMethod === 'standard'}
-                        onChange={handleChange}
-                        className="customer-radio"
-                      />
-                      <label htmlFor="standard" className="ml-3 flex-1 cursor-pointer">
-                        <div className="flex justify-between">
-                          <span className="font-medium text-customer-gray-900">Standard Shipping</span>
-                          <span className="font-medium">₦15.99</span>
-                        </div>
-                        <p className="text-customer-gray-600">5-7 business days</p>
-                      </label>
-                    </div>
-                  </div>
-                  
-                  <div 
-                    className="border border-customer-gray-300 rounded-lg p-4 cursor-pointer hover:border-customer-primary"
-                    onClick={() => setFormData(prev => ({ ...prev, shippingMethod: 'express' }))}
-                  >
-                    <div className="flex items-center">
-                      <input
-                        type="radio"
-                        id="express"
-                        name="shippingMethod"
-                        value="express"
-                        checked={formData.shippingMethod === 'express'}
-                        onChange={handleChange}
-                        className="customer-radio"
-                      />
-                      <label htmlFor="express" className="ml-3 flex-1 cursor-pointer">
-                        <div className="flex justify-between">
-                          <span className="font-medium text-customer-gray-900">Express Shipping</span>
-                          <span className="font-medium">₦29.99</span>
-                        </div>
-                        <p className="text-customer-gray-600">2-3 business days</p>
-                      </label>
-                    </div>
-                  </div>
-                  
-                  <div 
-                    className="border border-customer-gray-300 rounded-lg p-4 cursor-pointer hover:border-customer-primary"
-                    onClick={() => setFormData(prev => ({ ...prev, shippingMethod: 'overnight' }))}
-                  >
-                    <div className="flex items-center">
-                      <input
-                        type="radio"
-                        id="overnight"
-                        name="shippingMethod"
-                        value="overnight"
-                        checked={formData.shippingMethod === 'overnight'}
-                        onChange={handleChange}
-                        className="customer-radio"
-                      />
-                      <label htmlFor="overnight" className="ml-3 flex-1 cursor-pointer">
-                        <div className="flex justify-between">
-                          <span className="font-medium text-customer-gray-900">Overnight Shipping</span>
-                          <span className="font-medium">₦49.99</span>
-                        </div>
-                        <p className="text-customer-gray-600">1 business day</p>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-between mt-8">
-                <button 
-                  type="button" 
-                  onClick={() => setCurrentStep(1)}
-                  className="customer-btn-secondary"
-                >
-                  Back to Information
-                </button>
-                <button type="submit" className="customer-btn-primary">
-                  Continue to Payment
-                </button>
-              </div>
-            </form>
-          )}
-          
-          {/* Step 3: Payment Method */}
-          {currentStep === 3 && (
-            <form onSubmit={handleSubmit}>
-              <div className="customer-glass-card rounded-2xl p-6 mb-6">
-                <h2 className="text-xl font-bold text-customer-gray-900 mb-6">Payment Method</h2>
-                
-                <div className="mb-6">
-                  <div className="flex items-center mb-4">
-                    <CreditCard className="w-5 h-5 text-customer-gray-500 mr-2" />
-                    <span className="font-medium text-customer-gray-900">Credit Card</span>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                    <div className="sm:col-span-2">
-                      <label htmlFor="cardNumber" className="block text-sm font-medium text-customer-gray-700 mb-2">
-                        Card Number
-                      </label>
-                      <input
-                        type="text"
-                        id="cardNumber"
-                        name="cardNumber"
-                        value={formData.cardNumber}
-                        onChange={handleChange}
-                        className="customer-input w-full"
-                        placeholder="1234 5678 9012 3456"
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="expiryDate" className="block text-sm font-medium text-customer-gray-700 mb-2">
-                        Expiration Date (MM/YY)
-                      </label>
-                      <input
-                        type="text"
-                        id="expiryDate"
-                        name="expiryDate"
-                        value={formData.expiryDate}
-                        onChange={handleChange}
-                        className="customer-input w-full"
-                        placeholder="MM/YY"
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <label htmlFor="cvv" className="block text-sm font-medium text-customer-gray-700 mb-2">
-                        CVV
-                      </label>
-                      <input
-                        type="text"
-                        id="cvv"
-                        name="cvv"
-                        value={formData.cvv}
-                        onChange={handleChange}
-                        className="customer-input w-full"
-                        placeholder="123"
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="cardName" className="block text-sm font-medium text-customer-gray-700 mb-2">
-                      Name on Card
-                    </label>
-                    <input
-                      type="text"
-                      id="cardName"
-                      name="cardName"
-                      value={formData.cardName}
-                      onChange={handleChange}
-                      className="customer-input w-full"
-                      placeholder="John Doe"
-                      required
-                    />
-                  </div>
-                </div>
-                
-                <div className="border-t border-customer-gray-200 pt-6">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="sameAsShipping"
-                      name="sameAsShipping"
-                      checked={formData.sameAsShipping}
-                      onChange={handleChange}
-                      className="customer-checkbox"
-                    />
-                    <label htmlFor="sameAsShipping" className="ml-2 text-customer-gray-700">
-                      Billing address same as shipping address
-                    </label>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-between mt-8">
-                <button 
-                  type="button" 
-                  onClick={() => setCurrentStep(2)}
-                  className="customer-btn-secondary"
-                >
-                  Back to Shipping
-                </button>
-                <button 
-                  type="submit" 
-                  className="customer-btn-primary"
-                  disabled={loading}
-                >
-                  {loading ? 'Processing...' : 'Complete Order'}
-                </button>
-              </div>
-            </form>
-          )}
-          
-          {/* Step 4: Order Confirmation */}
-          {currentStep === 4 && (
-            <div className="text-center py-16">
-              <div className="w-20 h-20 bg-customer-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Check className="w-10 h-10 text-customer-primary" />
-              </div>
-              <h2 className="text-3xl font-bold text-customer-gray-900 mb-4">Thank You for Your Order!</h2>
-              <p className="text-customer-gray-600 mb-2">A confirmation email has been sent to {formData.email}</p>
-              <p className="text-customer-gray-600 mb-8">Order details will be available in your account</p>
-              
-              <div className="customer-glass-card rounded-2xl p-6 max-w-md mx-auto mb-8">
-                <h3 className="text-lg font-semibold text-customer-gray-900 mb-4">Order Summary</h3>
-                <div className="space-y-2 text-left">
-                  <div className="flex justify-between">
-                    <span className="text-customer-gray-600">Subtotal</span>
-                    <span>₦{subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-customer-gray-600">Shipping</span>
-                    <span>₦{shipping.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-customer-gray-600">Tax</span>
-                    <span>₦{tax.toFixed(2)}</span>
-                  </div>
-                  <div className="border-t border-customer-gray-200 pt-2 flex justify-between font-bold">
-                    <span>Total</span>
-                    <span>₦{total.toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/" className="customer-btn-primary">
-                  Continue Shopping
-                </Link>
-                <Link to="/account/orders" className="customer-btn-secondary">
-                  View Order Details
-                </Link>
-              </div>
-            </div>
-          )}
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="flex items-center mb-8">
+          <Link
+            to="/customer/cart"
+            className="flex items-center text-gray-600 hover:text-customer-primary transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Back to Cart
+          </Link>
         </div>
-        
-        {/* Order Summary */}
-        <div className="w-full lg:w-96 flex-shrink-0">
-          <div className="customer-glass-card rounded-2xl p-6 sticky top-8">
-            <h2 className="text-xl font-bold text-customer-gray-900 mb-6">Order Summary</h2>
-            
-            <div className="space-y-4 mb-6">
-              {cartItems.map((item) => (
-                <div key={item._id || item.id} className="flex">
-                  <div className="w-16 h-16 flex-shrink-0">
-                    <img 
-                      src={item.image || item.images?.[0] || item.product?.image || item.product?.images?.[0] || "https://placehold.co/300x300"} 
-                      alt={item.name || item.product?.name}
-                      className="w-full h-full object-cover rounded-lg"
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Checkout Form */}
+          <div className="lg:col-span-2">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {/* Customer Information */}
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-customer-primary rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Customer Information
+                  </h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      First Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={orderData.customerInfo.firstName}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "customerInfo",
+                          "firstName",
+                          e.target.value
+                        )
+                      }
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-customer-primary focus:border-transparent ${
+                        errors["customerInfo.firstName"]
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                      placeholder="Enter your first name"
+                    />
+                    {errors["customerInfo.firstName"] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors["customerInfo.firstName"]}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Last Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={orderData.customerInfo.lastName}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "customerInfo",
+                          "lastName",
+                          e.target.value
+                        )
+                      }
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-customer-primary focus:border-transparent ${
+                        errors["customerInfo.lastName"]
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                      placeholder="Enter your last name"
+                    />
+                    {errors["customerInfo.lastName"] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors["customerInfo.lastName"]}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      WhatsApp Number *
+                    </label>
+                    <input
+                      type="tel"
+                      value={orderData.customerInfo.whatsappNumber}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "customerInfo",
+                          "whatsappNumber",
+                          e.target.value
+                        )
+                      }
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-customer-primary focus:border-transparent ${
+                        errors["customerInfo.whatsappNumber"]
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                      placeholder="+234-XXX-XXX-XXXX"
+                    />
+                    {errors["customerInfo.whatsappNumber"] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors["customerInfo.whatsappNumber"]}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Call Number (Optional)
+                    </label>
+                    <input
+                      type="tel"
+                      value={orderData.customerInfo.callNumber}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "customerInfo",
+                          "callNumber",
+                          e.target.value
+                        )
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-customer-primary focus:border-transparent"
+                      placeholder="+234-XXX-XXX-XXXX"
                     />
                   </div>
-                  <div className="ml-4 flex-1">
-                    <h3 className="font-medium text-customer-gray-900">{item.name || item.product?.name}</h3>
-                    <p className="text-customer-gray-600">Qty: {item.quantity}</p>
-                  </div>
-                  <div className="font-medium text-customer-gray-900">
-                    ₦{((item.price || item.sellingPrice || item.product?.price || item.product?.sellingPrice || 0) * item.quantity).toFixed(2)}
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email (Optional)
+                    </label>
+                    <input
+                      type="email"
+                      value={orderData.customerInfo.email}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "customerInfo",
+                          "email",
+                          e.target.value
+                        )
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-customer-primary focus:border-transparent"
+                      placeholder="your.email@example.com"
+                    />
                   </div>
                 </div>
-              ))}
-            </div>
-            
-            <div className="space-y-4 mb-6">
-              <div className="flex justify-between">
-                <span className="text-customer-gray-600">Subtotal</span>
-                <span className="font-medium">₦{subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-customer-gray-600">Shipping</span>
-                <span className="font-medium">₦{shipping.toFixed(2)}</span>
+
+              {/* Delivery Options */}
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-customer-primary rounded-full flex items-center justify-center">
+                    <MapPin className="w-4 h-4 text-white" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Delivery Options
+                  </h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <label
+                    className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                      orderData.deliveryInfo.type === "pickup"
+                        ? "border-customer-primary bg-customer-primary/5"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="deliveryType"
+                      value="pickup"
+                      checked={orderData.deliveryInfo.type === "pickup"}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "deliveryInfo",
+                          "type",
+                          e.target.value
+                        )
+                      }
+                      className="sr-only"
+                    />
+                    <Store className="w-6 h-6 text-customer-primary mr-3" />
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        Pickup at Shop
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Free - Ready in 15-30 minutes
+                      </p>
+                    </div>
+                  </label>
+
+                  <label
+                    className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                      orderData.deliveryInfo.type === "delivery"
+                        ? "border-customer-primary bg-customer-primary/5"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="deliveryType"
+                      value="delivery"
+                      checked={orderData.deliveryInfo.type === "delivery"}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "deliveryInfo",
+                          "type",
+                          e.target.value
+                        )
+                      }
+                      className="sr-only"
+                    />
+                    <Truck className="w-6 h-6 text-customer-primary mr-3" />
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        Delivery to Room
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        ₦500 - Delivered in 30-60 minutes
+                      </p>
+                    </div>
+                  </label>
+                </div>
+
+                {orderData.deliveryInfo.type === "delivery" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Room Number *
+                      </label>
+                      <input
+                        type="text"
+                        value={orderData.deliveryInfo.roomNumber}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "deliveryInfo",
+                            "roomNumber",
+                            e.target.value
+                          )
+                        }
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-customer-primary focus:border-transparent ${
+                          errors["deliveryInfo.roomNumber"]
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
+                        placeholder="e.g., 205"
+                      />
+                      {errors["deliveryInfo.roomNumber"] && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors["deliveryInfo.roomNumber"]}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Hostel Block *
+                      </label>
+                      <select
+                        value={orderData.deliveryInfo.hostelBlock}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "deliveryInfo",
+                            "hostelBlock",
+                            e.target.value
+                          )
+                        }
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-customer-primary focus:border-transparent ${
+                          errors["deliveryInfo.hostelBlock"]
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
+                      >
+                        <option value="">Select Block</option>
+                        <option value="Block A">Block A</option>
+                        <option value="Block B">Block B</option>
+                        <option value="Block C">Block C</option>
+                        <option value="Block D">Block D</option>
+                      </select>
+                      {errors["deliveryInfo.hostelBlock"] && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors["deliveryInfo.hostelBlock"]}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Special Instructions (Optional)
+                      </label>
+                      <textarea
+                        value={orderData.deliveryInfo.specialInstructions}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "deliveryInfo",
+                            "specialInstructions",
+                            e.target.value
+                          )
+                        }
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-customer-primary focus:border-transparent"
+                        placeholder="Any special delivery instructions..."
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="flex justify-between">
-                <span className="text-customer-gray-600">Tax</span>
-                <span className="font-medium">₦{tax.toFixed(2)}</span>
+
+              {/* Payment Method */}
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 bg-customer-primary rounded-full flex items-center justify-center">
+                    <CreditCard className="w-4 h-4 text-white" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Payment Method
+                  </h2>
+                </div>
+
+                <div className="space-y-4">
+                  <label
+                    className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                      orderData.paymentInfo.method === "cash"
+                        ? "border-customer-primary bg-customer-primary/5"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="cash"
+                      checked={orderData.paymentInfo.method === "cash"}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "paymentInfo",
+                          "method",
+                          e.target.value
+                        )
+                      }
+                      className="sr-only"
+                    />
+                    <div className="flex items-center">
+                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                        <span className="text-green-600 text-sm">₦</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          Cash Payment
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Pay with cash on pickup/delivery
+                        </p>
+                      </div>
+                    </div>
+                  </label>
+
+                  <label
+                    className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                      orderData.paymentInfo.method === "transfer"
+                        ? "border-customer-primary bg-customer-primary/5"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="transfer"
+                      checked={orderData.paymentInfo.method === "transfer"}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "paymentInfo",
+                          "method",
+                          e.target.value
+                        )
+                      }
+                      className="sr-only"
+                    />
+                    <div className="flex items-center">
+                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                        <Phone className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          Bank Transfer
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Transfer to our account and upload proof
+                        </p>
+                      </div>
+                    </div>
+                  </label>
+                </div>
               </div>
-              <div className="border-t border-customer-gray-200 pt-4 flex justify-between">
-                <span className="text-customer-gray-900 font-bold">Total</span>
-                <span className="text-customer-gray-900 font-bold text-lg">₦{total.toFixed(2)}</span>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-customer-primary hover:bg-customer-primary/90 text-white px-8 py-4 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Processing Order...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-5 h-5" />
+                    Place Order
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+
+          {/* Order Summary */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 sticky top-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">
+                Order Summary
+              </h3>
+
+              <div className="space-y-4 mb-6">
+                {cartItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between"
+                  >
+                    <div>
+                      <p className="font-medium text-gray-900">{item.name}</p>
+                      <p className="text-sm text-gray-600">
+                        {item.packageType} × {item.quantity}
+                      </p>
+                    </div>
+                    <p className="font-medium text-gray-900">
+                      ₦{(item.price * item.quantity).toLocaleString()}
+                    </p>
+                  </div>
+                ))}
               </div>
-            </div>
-            
-            {currentStep < 4 && (
-              <div className="bg-customer-primary/5 border border-customer-primary/20 rounded-lg p-4">
-                <div className="flex items-center">
-                  <Shield className="w-5 h-5 text-customer-primary mr-2" />
-                  <span className="text-sm text-customer-primary font-medium">
-                    Secure Checkout
+
+              <div className="space-y-3 pt-4 border-t border-gray-200">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span className="font-medium">
+                    ₦{subtotal.toLocaleString()}
                   </span>
                 </div>
-                <p className="text-xs text-customer-gray-600 mt-2">
-                  Your payment information is encrypted and secure
-                </p>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">
+                    {orderData.deliveryInfo.type === "delivery"
+                      ? "Delivery Fee"
+                      : "Pickup Fee"}
+                  </span>
+                  <span className="font-medium">
+                    {deliveryFee === 0
+                      ? "FREE"
+                      : `₦${deliveryFee.toLocaleString()}`}
+                  </span>
+                </div>
+                <div className="flex justify-between pt-3 border-t border-gray-200">
+                  <span className="text-lg font-semibold text-gray-900">
+                    Total
+                  </span>
+                  <span className="text-lg font-bold text-customer-primary">
+                    ₦{total.toLocaleString()}
+                  </span>
+                </div>
               </div>
-            )}
+
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-blue-900">
+                      Order Information
+                    </p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      You will receive a WhatsApp confirmation once your order
+                      is placed. Our team will contact you for any
+                      clarifications.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -1,16 +1,26 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Outlet } from 'react-router-dom'
-import AdminSidebar from './AdminSidebar'
 import AdminHeader from './AdminHeader'
+import AdminSidebar from './AdminSidebar'
 
-const AdminLayout = () => {
+const AdminLayout = ({ children }) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
   return (
-    <div className="min-h-screen bg-admin-gray-50">
-      <AdminSidebar />
-      <div className="ml-0 lg:ml-64">
-        <AdminHeader />
-        <main className="p-4 lg:p-8">
-          <Outlet />
+    <div className="min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      
+      {/* Main Content */}
+      <div className="lg:pl-64">
+        {/* Header */}
+        <AdminHeader onMenuClick={() => setSidebarOpen(true)} />
+        
+        {/* Page Content */}
+        <main className="py-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {children || <Outlet />}
+          </div>
         </main>
       </div>
     </div>

@@ -1,67 +1,60 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Home, Search, ArrowLeft } from 'lucide-react';
+import React from "react";
+import { Link } from "react-router-dom";
+import { Home, ArrowLeft, Search } from "lucide-react";
 
 const NotFound = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl w-full text-center">
-        {/* 404 Graphic */}
+    <div className="min-h-screen bg-gradient-to-br from-customer-primary/5 to-customer-secondary/5 flex items-center justify-center px-4">
+      <div className="max-w-md w-full text-center">
+        {/* 404 Illustration */}
         <div className="mb-8">
-          <div className="text-9xl font-bold bg-gradient-to-r from-customer-primary to-customer-secondary bg-clip-text text-transparent mb-4">
+          <div className="text-8xl font-bold text-customer-primary/20 mb-4">
             404
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Page Not Found</h1>
-          <p className="text-xl text-gray-600 mb-8">
-            Oops! The page you're looking for doesn't exist or has been moved.
-          </p>
-        </div>
-
-        {/* Search Bar */}
-        <div className="mb-8 max-w-md mx-auto">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search products..."
-              className="w-full bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-6 py-4 pl-12 text-gray-900 placeholder:text-gray-600 focus:ring-2 focus:ring-customer-primary focus:border-transparent shadow-glass-lg"
-            />
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <div className="w-24 h-24 bg-customer-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Search className="w-12 h-12 text-customer-primary/60" />
           </div>
         </div>
 
+        {/* Content */}
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          Oops! Page not found
+        </h1>
+        <p className="text-gray-600 mb-8 leading-relaxed">
+          The page you're looking for doesn't exist. It might have been moved,
+          deleted, or you entered the wrong URL.
+        </p>
+
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link 
-            to="/" 
-            className="customer-btn-primary flex items-center justify-center"
+        <div className="space-y-4">
+          <Link
+            to="/customer"
+            className="w-full bg-customer-primary hover:bg-customer-primary/90 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
           >
-            <Home className="w-5 h-5 mr-2" />
-            Go to Homepage
+            <Home className="w-5 h-5" />
+            Back to Home
           </Link>
-          
-          <button 
+
+          <button
             onClick={() => window.history.back()}
-            className="customer-btn-secondary flex items-center justify-center"
+            className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="w-5 h-5" />
             Go Back
           </button>
         </div>
 
-        {/* Additional Help */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Need Help?</h2>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/products" className="text-customer-primary hover:text-customer-secondary font-medium">
-              Browse Products
-            </Link>
-            <Link to="/categories" className="text-customer-primary hover:text-customer-secondary font-medium">
-              Shop by Category
-            </Link>
-            <Link to="/contact" className="text-customer-primary hover:text-customer-secondary font-medium">
-              Contact Support
-            </Link>
-          </div>
+        {/* Help Text */}
+        <div className="mt-8 pt-8 border-t border-gray-200">
+          <p className="text-sm text-gray-500">
+            Need help? Contact us at{" "}
+            <a
+              href="mailto:support@saleshostel.com"
+              className="text-customer-primary hover:underline"
+            >
+              support@saleshostel.com
+            </a>
+          </p>
         </div>
       </div>
     </div>

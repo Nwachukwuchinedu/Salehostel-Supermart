@@ -1,160 +1,238 @@
-import React, { useState } from 'react'
-import { Heart, ShoppingCart, Eye, Star, Shuffle } from 'lucide-react'
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { ShoppingCart, Heart, Star, Eye, Plus, Check } from "lucide-react";
 
-const ProductCard = ({ product }) => {
-  const [isLiked, setIsLiked] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
+const ProductCard = ({
+  product,
+  onAddToCart,
+  onToggleFavorite,
+  isFavorite = false,
+}) => {
+  const [selectedVariant, setSelectedVariant] = useState(product.variants[0]);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [showVariants, setShowVariants] = useState(false);
 
-  const handleAddToCart = (e) => {
-    e.preventDefault()
-    // Add cart animation
-    const button = e.currentTarget
-    button.classList.add('animate-pulse')
-    setTimeout(() => button.classList.remove('animate-pulse'), 300)
-    // Add to cart logic would go here
-  }
+  const handleAddToCart = async () => {
+    setIsAddingToCart(true);
+    try {
+      await onAddToCart?.(product, selectedVariant);
+      // Show success feedback
+      setTimeout(() => setIsAddingToCart(false), 1000);
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+      setIsAddingToCart(false);
+    }
+  };
 
-  const toggleWishlist = (e) => {
-    e.preventDefault()
-    setIsLiked(!isLiked)
-    // Wishlist logic would go here
-  }
+  const getLowestPrice = () => {
+    return Math.min(...product.variants.map((v) => v.price));
+  };
+
+  const getHighestPrice = () => {
+    return Math.max(...product.variants.map((v) => v.price));
+  };
+
+  const renderStars = (rating) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star
+        key={i}
+        className={`w-4 h-4 ${
+          i < Math.floor(rating)
+            ? "text-yellow-400 fill-current"
+            : "text-gray-300"
+        }`}
+      />
+    ));
+  };
+
+  const isLowStock = selectedVariant.stock <= 5;
+  const isOutOfStock = selectedVariant.stock === 0;
 
   return (
-    <div 
-      className="customer-product-card group"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {/* Image Container */}
-      <div className="customer-product-image">
-        <img 
-          src={product.image || "https://placehold.co/300x300"} 
+    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105 group">
+      {/* Product Image */}
+      <div className="relative aspect-square overflow-hidden bg-gray-100">
+        <img
+          src={product.image}
           alt={product.name}
-          className={`w-full h-full object-cover transition-all duration-500 ${
-            isHovered ? 'scale-110' : 'scale-100'
-          }`}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+          onError={(e) => {
+            e.target.src = "/images/placeholder-product.jpg";
+          }}
         />
-        
-        {/* Overlay Actions */}
-        <div className={`customer-product-overlay transition-opacity duration-300 ${
-          isHovered ? 'opacity-100' : 'opacity-0'
-        }`}>
-          <button 
-            onClick={toggleWishlist}
-            className={`customer-btn-icon transition-all duration-200 ${
-              isLiked 
-                ? 'bg-red-500 text-white scale-110' 
-                : 'bg-white/20 text-gray-700 hover:bg-red-500 hover:text-white'
-            }`}
-          >
-            <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-          </button>
-          
-          <button className="customer-btn-icon bg-white/20 text-gray-700 hover:bg-blue-500 hover:text-white">
-            <Eye className="w-5 h-5" />
-          </button>
-          
-          <button className="customer-btn-icon bg-white/20 text-gray-700 hover:bg-green-500 hover:text-white">
-            <Shuffle className="w-5 h-5" />
-          </button>
+
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex flex-col gap-2">
+          {product.featured && (
+            <span className="bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-semibold">
+              Featured
+            </span>
+          )}
+          {isLowStock && !isOutOfStock && (
+            <span className="bg-amber-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+              Low Stock
+            </span>
+          )}
+          {isOutOfStock && (
+            <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+              Out of Stock
+            </span>
+          )}
         </div>
-        
-        {/* Product Badges */}
-        <div className="absolute top-4 left-4 space-y-2">
-          {product.isNew && (
-            <span className="animate-bounce bg-customer-secondary text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-              NEW
-            </span>
-          )}
-          {product.discount > 0 && (
-            <span className="animate-pulse bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-              -{product.discount}%
-            </span>
-          )}
-          {product.stock <= 5 && product.stock > 0 && (
-            <span className="bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-              Only {product.stock} left!
-            </span>
-          )}
+
+        {/* Action Buttons */}
+        <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <button
+            onClick={() => onToggleFavorite?.(product.id)}
+            className={`p-2 rounded-full backdrop-blur-sm transition-colors ${
+              isFavorite
+                ? "bg-red-500 text-white"
+                : "bg-white/80 text-gray-600 hover:text-red-500"
+            }`}
+            title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          >
+            <Heart className={`w-4 h-4 ${isFavorite ? "fill-current" : ""}`} />
+          </button>
+
+          <Link
+            to={`/customer/product/${product.id}`}
+            className="p-2 bg-white/80 backdrop-blur-sm rounded-full text-gray-600 hover:text-blue-600 transition-colors"
+            title="View details"
+          >
+            <Eye className="w-4 h-4" />
+          </Link>
+        </div>
+
+        {/* Quick Add Overlay */}
+        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+          <button
+            onClick={handleAddToCart}
+            disabled={isOutOfStock || isAddingToCart}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {isAddingToCart ? (
+              <>
+                <Check className="w-4 h-4" />
+                Added!
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="w-4 h-4" />
+                Quick Add
+              </>
+            )}
+          </button>
         </div>
       </div>
-      
+
       {/* Product Info */}
-      <div className="customer-product-info">
+      <div className="p-4">
+        {/* Category Badge */}
+        <div className="mb-2">
+          <span className="inline-block bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs font-medium">
+            {product.category}
+          </span>
+        </div>
+
+        {/* Product Name */}
+        <Link to={`/customer/product/${product.id}`}>
+          <h3 className="font-semibold text-lg text-gray-900 mb-2 hover:text-blue-600 transition-colors">
+            {product.name}
+          </h3>
+        </Link>
+
         {/* Rating */}
-        <div className="flex items-center gap-2 mb-2">
-          <div className="flex items-center">
-            {[...Array(5)].map((_, i) => (
-              <Star 
-                key={i} 
-                className={`w-4 h-4 transition-colors ${
-                  i < Math.floor(product.rating || 4.5) 
-                    ? 'text-yellow-400 fill-current' 
-                    : 'text-gray-300'
-                }`} 
-              />
-            ))}
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center">{renderStars(product.rating)}</div>
+          <span className="text-sm text-gray-600">({product.reviews})</span>
+        </div>
+
+        {/* Package Variants */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-sm font-medium text-gray-700">Package:</p>
+            {product.variants.length > 1 && (
+              <button
+                onClick={() => setShowVariants(!showVariants)}
+                className="text-xs text-blue-600 hover:underline"
+              >
+                {showVariants ? "Hide" : "Show all"} ({product.variants.length})
+              </button>
+            )}
           </div>
-          <span className="text-sm text-gray-600">({product.reviewCount || 12})</span>
+
+          <div className="space-y-2">
+            {(showVariants ? product.variants : [selectedVariant]).map(
+              (variant, index) => (
+                <div
+                  key={index}
+                  onClick={() => setSelectedVariant(variant)}
+                  className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
+                    selectedVariant === variant
+                      ? "bg-blue-600/10 border border-blue-600"
+                      : "bg-gray-50 hover:bg-gray-100 border border-transparent"
+                  }`}
+                >
+                  <span className="text-sm font-medium text-gray-900">
+                    {variant.packageType}
+                  </span>
+                  <span className="text-sm font-semibold text-blue-600">
+                    ₦{variant.price.toLocaleString()}
+                  </span>
+                </div>
+              )
+            )}
+          </div>
         </div>
-        
-        {/* Title */}
-        <h3 className="customer-product-title group-hover:text-customer-primary transition-colors duration-200">
-          {product.name}
-        </h3>
-        
-        {/* Price */}
-        <div className="flex items-center gap-2 mt-2">
-          <span className="customer-product-price">₦{product.price || 99.99}</span>
-          {product.originalPrice && product.originalPrice > (product.price || 99.99) && (
-            <span className="text-gray-500 line-through text-sm">
-              ₦{product.originalPrice}
-            </span>
-          )}
-          {product.discount > 0 && (
-            <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-semibold">
-              Save ₦{((product.originalPrice || 120) - (product.price || 99.99)).toFixed(2)}
-            </span>
-          )}
-        </div>
-        
+
         {/* Stock Status */}
-        <div className="mt-3">
-          {(product.stock || 10) > 10 ? (
-            <div className="flex items-center text-green-600 text-sm">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-              In Stock
-            </div>
-          ) : (product.stock || 10) > 0 ? (
-            <div className="flex items-center text-amber-600 text-sm">
-              <div className="w-2 h-2 bg-amber-500 rounded-full mr-2 animate-pulse"></div>
-              Low Stock ({product.stock || 10} left)
-            </div>
+        <div className="mb-4">
+          {isOutOfStock ? (
+            <p className="text-sm text-red-600 font-medium">Out of Stock</p>
+          ) : isLowStock ? (
+            <p className="text-sm text-amber-600 font-medium">
+              Only {selectedVariant.stock} left!
+            </p>
           ) : (
-            <div className="flex items-center text-red-600 text-sm">
-              <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
-              Out of Stock
-            </div>
+            <p className="text-sm text-green-600 font-medium">
+              In Stock ({selectedVariant.stock} available)
+            </p>
           )}
         </div>
-        
-        {/* Add to Cart Button */}
-        <button 
-          onClick={handleAddToCart}
-          disabled={(product.stock || 10) === 0}
-          className={`mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${
-            (product.stock || 10) > 0
-              ? 'customer-btn-primary hover:shadow-lg active:scale-95'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-          }`}
-        >
-          <ShoppingCart className="w-5 h-5" />
-          <span>{(product.stock || 10) > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
-        </button>
+
+        {/* Price and Add to Cart */}
+        <div className="flex items-center justify-between">
+          <div>
+            {getLowestPrice() !== getHighestPrice() ? (
+              <div>
+                <p className="text-sm text-gray-600">From</p>
+                <p className="text-xl font-bold text-blue-600">
+                  ₦{getLowestPrice().toLocaleString()}
+                </p>
+              </div>
+            ) : (
+              <p className="text-xl font-bold text-blue-600">
+                ₦{selectedVariant.price.toLocaleString()}
+              </p>
+            )}
+          </div>
+
+          <button
+            onClick={handleAddToCart}
+            disabled={isOutOfStock || isAddingToCart}
+            className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            title="Add to cart"
+          >
+            {isAddingToCart ? (
+              <Check className="w-5 h-5" />
+            ) : (
+              <Plus className="w-5 h-5" />
+            )}
+          </button>
+        </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ProductCard
+export default ProductCard;
