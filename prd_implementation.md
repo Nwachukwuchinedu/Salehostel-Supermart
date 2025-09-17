@@ -318,43 +318,506 @@ saleshotel-backend/
 │   └── app.js
 ```
 
-### Frontend Structure
+### Frontend Structure (Complete File Breakdown)
 ```
 saleshotel-frontend/
+├── public/
+│   ├── index.html
+│   ├── favicon.ico
+│   ├── manifest.json
+│   ├── robots.txt
+│   └── images/
+│       ├── logo.png
+│       ├── placeholder-product.jpg
+│       └── categories/
+│           ├── staple-foods.jpg
+│           ├── frozen-foods.jpg
+│           ├── convenience-foods.jpg
+│           ├── cleaning-agents.jpg
+│           └── personal-care.jpg
 ├── src/
 │   ├── admin/
+│   │   ├── components/
+│   │   │   ├── layout/
+│   │   │   │   ├── AdminLayout.jsx
+│   │   │   │   ├── AdminHeader.jsx
+│   │   │   │   ├── AdminSidebar.jsx
+│   │   │   │   ├── AdminBreadcrumb.jsx
+│   │   │   │   └── AdminFooter.jsx
+│   │   │   ├── forms/
+│   │   │   │   ├── ProductForm.jsx
+│   │   │   │   ├── ProductVariantForm.jsx
+│   │   │   │   ├── PurchaseOrderForm.jsx
+│   │   │   │   ├── SupplierForm.jsx
+│   │   │   │   ├── CategoryForm.jsx
+│   │   │   │   ├── UserForm.jsx
+│   │   │   │   └── RoleAssignmentForm.jsx
+│   │   │   ├── tables/
+│   │   │   │   ├── ProductTable.jsx
+│   │   │   │   ├── ProductVariantTable.jsx
+│   │   │   │   ├── InventoryTable.jsx
+│   │   │   │   ├── CustomerOrderTable.jsx
+│   │   │   │   ├── PurchaseOrderTable.jsx
+│   │   │   │   ├── SupplierTable.jsx
+│   │   │   │   ├── SupplyHistoryTable.jsx
+│   │   │   │   ├── StaffTable.jsx
+│   │   │   │   ├── CustomerTable.jsx
+│   │   │   │   └── UserTable.jsx
+│   │   │   ├── charts/
+│   │   │   │   ├── RevenueChart.jsx
+│   │   │   │   ├── SalesChart.jsx
+│   │   │   │   ├── InventoryChart.jsx
+│   │   │   │   ├── CategoryPerformanceChart.jsx
+│   │   │   │   ├── SupplierPerformanceChart.jsx
+│   │   │   │   └── ProfitMarginChart.jsx
+│   │   │   ├── modals/
+│   │   │   │   ├── ProductModal.jsx
+│   │   │   │   ├── ProductVariantModal.jsx
+│   │   │   │   ├── StockAdjustmentModal.jsx
+│   │   │   │   ├── OrderStatusModal.jsx
+│   │   │   │   ├── SupplierModal.jsx
+│   │   │   │   ├── UserRoleModal.jsx
+│   │   │   │   └── DeleteConfirmationModal.jsx
+│   │   │   ├── cards/
+│   │   │   │   ├── DashboardStatsCard.jsx
+│   │   │   │   ├── RevenueCard.jsx
+│   │   │   │   ├── InventoryStatsCard.jsx
+│   │   │   │   ├── OrderStatsCard.jsx
+│   │   │   │   └── SupplierStatsCard.jsx
+│   │   │   └── alerts/
+│   │   │       ├── LowStockAlert.jsx
+│   │   │       ├── SystemAlert.jsx
+│   │   │       ├── PaymentAlert.jsx
+│   │   │       └── OrderAlert.jsx
 │   │   ├── pages/
+│   │   │   ├── auth/
+│   │   │   │   ├── AdminLogin.jsx
+│   │   │   │   ├── AdminProfile.jsx
+│   │   │   │   └── ChangePassword.jsx
 │   │   │   ├── dashboard/
+│   │   │   │   ├── AdminDashboard.jsx
+│   │   │   │   ├── DashboardOverview.jsx
+│   │   │   │   └── QuickActions.jsx
 │   │   │   ├── products/
+│   │   │   │   ├── ProductList.jsx
+│   │   │   │   ├── ProductDetails.jsx
+│   │   │   │   ├── AddProduct.jsx
+│   │   │   │   ├── EditProduct.jsx
+│   │   │   │   ├── ProductVariants.jsx
+│   │   │   │   ├── CategoryManagement.jsx
+│   │   │   │   └── BulkProductImport.jsx
 │   │   │   ├── suppliers/
+│   │   │   │   ├── SupplierList.jsx
+│   │   │   │   ├── SupplierDetails.jsx
+│   │   │   │   ├── AddSupplier.jsx
+│   │   │   │   ├── EditSupplier.jsx
+│   │   │   │   ├── SupplierPerformance.jsx
+│   │   │   │   └── SupplierPayments.jsx
 │   │   │   ├── purchases/
-│   │   │   ├── orders/
-│   │   │   ├── reports/
-│   │   │   └── users/
-│   ├── supplier/
-│   │   ├── pages/
-│   │   │   ├── dashboard/
-│   │   │   ├── products/
-│   │   │   ├── supplies/
-│   │   │   ├── orders/
-│   │   │   └── reports/
-│   ├── staff/
-│   │   ├── pages/
-│   │   │   ├── dashboard/
-│   │   │   ├── orders/
+│   │   │   │   ├── PurchaseOrderList.jsx
+│   │   │   │   ├── CreatePurchaseOrder.jsx
+│   │   │   │   ├── PurchaseOrderDetails.jsx
+│   │   │   │   ├── EditPurchaseOrder.jsx
+│   │   │   │   ├── SupplyHistory.jsx
+│   │   │   │   └── PurchaseAnalytics.jsx
 │   │   │   ├── inventory/
-│   │   │   └── reports/
-│   ├── customer/
-│   │   ├── pages/
-│   │   │   ├── shop/
-│   │   │   ├── cart/
+│   │   │   │   ├── InventoryOverview.jsx
+│   │   │   │   ├── StockMovements.jsx
+│   │   │   │   ├── StockAdjustments.jsx
+│   │   │   │   ├── LowStockAlerts.jsx
+│   │   │   │   ├── InventoryValuation.jsx
+│   │   │   │   └── StockTaking.jsx
 │   │   │   ├── orders/
-│   │   │   └── account/
-│   └── shared/
-│       ├── components/
-│       ├── services/
-│       └── utils/
-```
+│   │   │   │   ├── CustomerOrderList.jsx
+│   │   │   │   ├── OrderDetails.jsx
+│   │   │   │   ├── OrderFulfillment.jsx
+│   │   │   │   ├── RefundManagement.jsx
+│   │   │   │   ├── OrderAnalytics.jsx
+│   │   │   │   └── OrderHistory.jsx
+│   │   │   ├── reports/
+│   │   │   │   ├── SalesReport.jsx
+│   │   │   │   ├── InventoryReport.jsx
+│   │   │   │   ├── ProfitLossReport.jsx
+│   │   │   │   ├── CustomerReport.jsx
+│   │   │   │   ├── SupplierReport.jsx
+│   │   │   │   ├── ProductPerformanceReport.jsx
+│   │   │   │   ├── StaffPerformanceReport.jsx
+│   │   │   │   └── CustomReports.jsx
+│   │   │   └── users/
+│   │   │       ├── UserManagement.jsx
+│   │   │       ├── StaffList.jsx
+│   │   │       ├── CustomerList.jsx
+│   │   │       ├── SupplierUserList.jsx
+│   │   │       ├── RoleAssignment.jsx
+│   │   │       ├── UserPermissions.jsx
+│   │   │       └── UserActivity.jsx
+│   │   ├── hooks/
+│   │   │   ├── useAdminAuth.js
+│   │   │   ├── useAdminProducts.js
+│   │   │   ├── useAdminSuppliers.js
+│   │   │   ├── useAdminInventory.js
+│   │   │   ├── useAdminOrders.js
+│   │   │   ├── useAdminReports.js
+│   │   │   ├── useAdminUsers.js
+│   │   │   └── useAdminDashboard.js
+│   │   └── stores/
+│   │       ├── adminAuthStore.js
+│   │       ├── adminProductStore.js
+│   │       ├── adminSupplierStore.js
+│   │       ├── adminInventoryStore.js
+│   │       ├── adminOrderStore.js
+│   │       ├── adminUserStore.js
+│   │       ├── adminReportStore.js
+│   │       └── adminDashboardStore.js
+│   │
+│   ├── supplier/
+│   │   ├── components/
+│   │   │   ├── layout/
+│   │   │   │   ├── SupplierLayout.jsx
+│   │   │   │   ├── SupplierHeader.jsx
+│   │   │   │   ├── SupplierSidebar.jsx
+│   │   │   │   └── SupplierFooter.jsx
+│   │   │   ├── forms/
+│   │   │   │   ├── SupplyForm.jsx
+│   │   │   │   ├── SupplyItemForm.jsx
+│   │   │   │   ├── ProductPriceUpdateForm.jsx
+│   │   │   │   ├── DeliveryScheduleForm.jsx
+│   │   │   │   └── PaymentRequestForm.jsx
+│   │   │   ├── tables/
+│   │   │   │   ├── SupplyHistoryTable.jsx
+│   │   │   │   ├── ProductSuppliedTable.jsx
+│   │   │   │   ├── PurchaseOrderTable.jsx
+│   │   │   │   ├── PaymentHistoryTable.jsx
+│   │   │   │   └── DeliveryScheduleTable.jsx
+│   │   │   ├── cards/
+│   │   │   │   ├── SupplyStatsCard.jsx
+│   │   │   │   ├── PaymentStatsCard.jsx
+│   │   │   │   ├── ProductStatsCard.jsx
+│   │   │   │   └── PerformanceCard.jsx
+│   │   │   ├── modals/
+│   │   │   │   ├── SupplyConfirmationModal.jsx
+│   │   │   │   ├── OrderAcceptanceModal.jsx
+│   │   │   │   ├── PaymentStatusModal.jsx
+│   │   │   │   └── DeliveryModal.jsx
+│   │   │   └── alerts/
+│   │   │       ├── OrderAlert.jsx
+│   │   │       ├── PaymentAlert.jsx
+│   │   │       └── DeliveryAlert.jsx
+│   │   ├── pages/
+│   │   │   ├── auth/
+│   │   │   │   ├── SupplierLogin.jsx
+│   │   │   │   ├── SupplierProfile.jsx
+│   │   │   │   └── CompanySettings.jsx
+│   │   │   ├── dashboard/
+│   │   │   │   ├── SupplierDashboard.jsx
+│   │   │   │   ├── SupplyOverview.jsx
+│   │   │   │   └── QuickSupply.jsx
+│   │   │   ├── products/
+│   │   │   │   ├── ProductList.jsx
+│   │   │   │   ├── ProductDetails.jsx
+│   │   │   │   ├── AddProduct.jsx
+│   │   │   │   ├── UpdatePrices.jsx
+│   │   │   │   └── ProductPerformance.jsx
+│   │   │   ├── supplies/
+│   │   │   │   ├── SupplyList.jsx
+│   │   │   │   ├── CreateSupply.jsx
+│   │   │   │   ├── SupplyDetails.jsx
+│   │   │   │   ├── SupplyHistory.jsx
+│   │   │   │   └── BulkSupply.jsx
+│   │   │   ├── orders/
+│   │   │   │   ├── PurchaseOrderList.jsx
+│   │   │   │   ├── OrderDetails.jsx
+│   │   │   │   ├── OrderConfirmation.jsx
+│   │   │   │   ├── DeliverySchedule.jsx
+│   │   │   │   └── OrderHistory.jsx
+│   │   │   ├── payments/
+│   │   │   │   ├── PaymentOverview.jsx
+│   │   │   │   ├── PaymentHistory.jsx
+│   │   │   │   ├── OutstandingPayments.jsx
+│   │   │   │   └── PaymentRequests.jsx
+│   │   │   └── reports/
+│   │   │       ├── SupplyReport.jsx
+│   │   │       ├── PaymentReport.jsx
+│   │   │       ├── ProductReport.jsx
+│   │   │       └── PerformanceReport.jsx
+│   │   ├── hooks/
+│   │   │   ├── useSupplierAuth.js
+│   │   │   ├── useSupplierProducts.js
+│   │   │   ├── useSupplierSupplies.js
+│   │   │   ├── useSupplierOrders.js
+│   │   │   ├── useSupplierPayments.js
+│   │   │   └── useSupplierReports.js
+│   │   └── stores/
+│   │       ├── supplierAuthStore.js
+│   │       ├── supplierProductStore.js
+│   │       ├── supplierSupplyStore.js
+│   │       ├── supplierOrderStore.js
+│   │       ├── supplierPaymentStore.js
+│   │       └── supplierReportStore.js
+│   │
+│   ├── staff/
+│   │   ├── components/
+│   │   │   ├── layout/
+│   │   │   │   ├── StaffLayout.jsx
+│   │   │   │   ├── StaffHeader.jsx
+│   │   │   │   ├── StaffSidebar.jsx
+│   │   │   │   └── StaffFooter.jsx
+│   │   │   ├── forms/
+│   │   │   │   ├── QuickSaleForm.jsx
+│   │   │   │   ├── OrderStatusForm.jsx
+│   │   │   │   ├── StockUpdateForm.jsx
+│   │   │   │   ├── CustomerOrderForm.jsx
+│   │   │   │   └── InventoryAdjustmentForm.jsx
+│   │   │   ├── tables/
+│   │   │   │   ├── ActiveOrderTable.jsx
+│   │   │   │   ├── CompletedOrderTable.jsx
+│   │   │   │   ├── InventoryTable.jsx
+│   │   │   │   ├── DailySalesTable.jsx
+│   │   │   │   └── StockMovementTable.jsx
+│   │   │   ├── cards/
+│   │   │   │   ├── OrderStatsCard.jsx
+│   │   │   │   ├── SalesStatsCard.jsx
+│   │   │   │   ├── InventoryStatsCard.jsx
+│   │   │   │   └── PerformanceCard.jsx
+│   │   │   ├── widgets/
+│   │   │   │   ├── OrderQueue.jsx
+│   │   │   │   ├── InventoryAlerts.jsx
+│   │   │   │   ├── QuickActions.jsx
+│   │   │   │   └── CustomerService.jsx
+│   │   │   ├── modals/
+│   │   │   │   ├── OrderDetailsModal.jsx
+│   │   │   │   ├── StockUpdateModal.jsx
+│   │   │   │   ├── CustomerInfoModal.jsx
+│   │   │   │   └── OrderCancellationModal.jsx
+│   │   │   └── alerts/
+│   │   │       ├── UrgentOrderAlert.jsx
+│   │   │       ├── LowStockAlert.jsx
+│   │   │       ├── SystemAlert.jsx
+│   │   │       └── CustomerAlert.jsx
+│   │   ├── pages/
+│   │   │   ├── auth/
+│   │   │   │   ├── StaffLogin.jsx
+│   │   │   │   ├── StaffProfile.jsx
+│   │   │   │   └── ShiftSettings.jsx
+│   │   │   ├── dashboard/
+│   │   │   │   ├── StaffDashboard.jsx
+│   │   │   │   ├── OrderOverview.jsx
+│   │   │   │   └── DailyTasks.jsx
+│   │   │   ├── orders/
+│   │   │   │   ├── ActiveOrders.jsx
+│   │   │   │   ├── OrderDetails.jsx
+│   │   │   │   ├── OrderProcessing.jsx
+│   │   │   │   ├── OrderHistory.jsx
+│   │   │   │   ├── QuickSale.jsx
+│   │   │   │   └── CustomerOrders.jsx
+│   │   │   ├── inventory/
+│   │   │   │   ├── InventoryView.jsx
+│   │   │   │   ├── StockUpdate.jsx
+│   │   │   │   ├── StockAlerts.jsx
+│   │   │   │   ├── StockMovements.jsx
+│   │   │   │   └── InventorySearch.jsx
+│   │   │   ├── customers/
+│   │   │   │   ├── CustomerService.jsx
+│   │   │   │   ├── CustomerOrders.jsx
+│   │   │   │   ├── CustomerSupport.jsx
+│   │   │   │   └── CustomerFeedback.jsx
+│   │   │   └── reports/
+│   │   │       ├── DailySalesReport.jsx
+│   │   │       ├── ShiftReport.jsx
+│   │   │       ├── InventoryReport.jsx
+│   │   │       └── CustomerReport.jsx
+│   │   ├── hooks/
+│   │   │   ├── useStaffAuth.js
+│   │   │   ├── useStaffOrders.js
+│   │   │   ├── useStaffInventory.js
+│   │   │   ├── useStaffSales.js
+│   │   │   ├── useStaffCustomers.js
+│   │   │   └── useStaffReports.js
+│   │   └── stores/
+│   │       ├── staffAuthStore.js
+│   │       ├── staffOrderStore.js
+│   │       ├── staffInventoryStore.js
+│   │       ├── staffSalesStore.js
+│   │       ├── staffCustomerStore.js
+│   │       └── staffReportStore.js
+│   │
+│   ├── customer/
+│   │   ├── components/
+│   │   │   ├── layout/
+│   │   │   │   ├── CustomerLayout.jsx
+│   │   │   │   ├── CustomerHeader.jsx
+│   │   │   │   ├── CustomerNavbar.jsx
+│   │   │   │   ├── CustomerFooter.jsx
+│   │   │   │   ├── MobileMenu.jsx
+│   │   │   │   └── MobileHeader.jsx
+│   │   │   ├── shop/
+│   │   │   │   ├── ProductCard.jsx
+│   │   │   │   ├── ProductGrid.jsx
+│   │   │   │   ├── ProductList.jsx
+│   │   │   │   ├── ProductFilter.jsx
+│   │   │   │   ├── ProductSearch.jsx
+│   │   │   │   ├── ProductSort.jsx
+│   │   │   │   ├── CategoryFilter.jsx
+│   │   │   │   ├── PackageSelector.jsx
+│   │   │   │   ├── PriceFilter.jsx
+│   │   │   │   └── FeaturedProducts.jsx
+│   │   │   ├── cart/
+│   │   │   │   ├── CartItem.jsx
+│   │   │   │   ├── CartSummary.jsx
+│   │   │   │   ├── CartSidebar.jsx
+│   │   │   │   ├── CartDropdown.jsx
+│   │   │   │   ├── MiniCart.jsx
+│   │   │   │   ├── CartIcon.jsx
+│   │   │   │   └── EmptyCart.jsx
+│   │   │   ├── checkout/
+│   │   │   │   ├── CheckoutForm.jsx
+│   │   │   │   ├── CustomerInfoForm.jsx
+│   │   │   │   ├── DeliveryOptionsForm.jsx
+│   │   │   │   ├── PaymentMethodForm.jsx
+│   │   │   │   ├── OrderSummary.jsx
+│   │   │   │   ├── OrderConfirmation.jsx
+│   │   │   │   └── WhatsAppNotification.jsx
+│   │   │   ├── orders/
+│   │   │   │   ├── OrderCard.jsx
+│   │   │   │   ├── OrderStatus.jsx
+│   │   │   │   ├── OrderTracking.jsx
+│   │   │   │   ├── OrderActions.jsx
+│   │   │   │   ├── OrderHistory.jsx
+│   │   │   │   ├── OrderDetails.jsx
+│   │   │   │   └── ReorderButton.jsx
+│   │   │   ├── account/
+│   │   │   │   ├── ProfileForm.jsx
+│   │   │   │   ├── AddressForm.jsx
+│   │   │   │   ├── PasswordChangeForm.jsx
+│   │   │   │   ├── ContactForm.jsx
+│   │   │   │   └── PreferencesForm.jsx
+│   │   │   ├── favorites/
+│   │   │   │   ├── FavoritesList.jsx
+│   │   │   │   ├── FavoriteButton.jsx
+│   │   │   │   └── QuickReorder.jsx
+│   │   │   └── common/
+│   │   │       ├── LoadingSpinner.jsx
+│   │   │       ├── ErrorMessage.jsx
+│   │   │       ├── SuccessMessage.jsx
+│   │   │       ├── Pagination.jsx
+│   │   │       ├── Rating.jsx
+│   │   │       ├── CategoryBadge.jsx
+│   │   │       ├── PriceBadge.jsx
+│   │   │       └── StockIndicator.jsx
+│   │   ├── pages/
+│   │   │   ├── auth/
+│   │   │   │   ├── CustomerLogin.jsx
+│   │   │   │   ├── CustomerRegister.jsx
+│   │   │   │   ├── ForgotPassword.jsx
+│   │   │   │   ├── ResetPassword.jsx
+│   │   │   │   └── EmailVerification.jsx
+│   │   │   ├── home/
+│   │   │   │   ├── HomePage.jsx
+│   │   │   │   ├── HeroSection.jsx
+│   │   │   │   ├── FeaturedProducts.jsx
+│   │   │   │   ├── Categories.jsx
+│   │   │   │   └── SpecialOffers.jsx
+│   │   │   ├── shop/
+│   │   │   │   ├── ProductCatalog.jsx
+│   │   │   │   ├── ProductPage.jsx
+│   │   │   │   ├── CategoryPage.jsx
+│   │   │   │   ├── SearchResults.jsx
+│   │   │   │   ├── PackageSelection.jsx
+│   │   │   │   └── ProductComparison.jsx
+│   │   │   ├── cart/
+│   │   │   │   ├── Cart.jsx
+│   │   │   │   ├── Checkout.jsx
+│   │   │   │   ├── OrderConfirmation.jsx
+│   │   │   │   └── PaymentSuccess.jsx
+│   │   │   ├── account/
+│   │   │   │   ├── CustomerProfile.jsx
+│   │   │   │   ├── EditProfile.jsx
+│   │   │   │   ├── OrderHistory.jsx
+│   │   │   │   ├── AddressBook.jsx
+│   │   │   │   ├── ChangePassword.jsx
+│   │   │   │   ├── Favorites.jsx
+│   │   │   │   └── AccountSettings.jsx
+│   │   │   ├── orders/
+│   │   │   │   ├── OrderDetails.jsx
+│   │   │   │   ├── TrackOrder.jsx
+│   │   │   │   ├── OrderSupport.jsx
+│   │   │   │   └── ReorderPage.jsx
+│   │   │   └── support/
+│   │   │       ├── ContactUs.jsx
+│   │   │       ├── FAQ.jsx
+│   │   │       ├── Help.jsx
+│   │   │       └── WhatsAppSupport.jsx
+│   │   ├── hooks/
+│   │   │   ├── useCustomerAuth.js
+│   │   │   ├── useProducts.js
+│   │   │   ├── useCart.js
+│   │   │   ├── useOrders.js
+│   │   │   ├── useProfile.js
+│   │   │   ├── useFavorites.js
+│   │   │   ├── useSearch.js
+│   │   │   └── useCheckout.js
+│   │   └── stores/
+│   │       ├── customerAuthStore.js
+│   │       ├── productStore.js
+│   │       ├── cartStore.js
+│   │       ├── orderStore.js
+│   │       ├── profileStore.js
+│   │       ├── favoriteStore.js
+│   │       ├── searchStore.js
+│   │       └── checkoutStore.js
+│   │
+│   ├── shared/
+│   │   ├── components/
+│   │   │   ├── ui/
+│   │   │   │   ├── Button.jsx
+│   │   │   │   ├── Input.jsx
+│   │   │   │   ├── TextArea.jsx
+│   │   │   │   ├── Select.jsx
+│   │   │   │   ├── Checkbox.jsx
+│   │   │   │   ├── Radio.jsx
+│   │   │   │   ├── Switch.jsx
+│   │   │   │   ├── Modal.jsx
+│   │   │   │   ├── Dialog.jsx
+│   │   │   │   ├── Dropdown.jsx
+│   │   │   │   ├── Tooltip.jsx
+│   │   │   │   ├── Popover.jsx
+│   │   │   │   ├── Alert.jsx
+│   │   │   │   ├── Notification.jsx
+│   │   │   │   ├── Badge.jsx
+│   │   │   │   ├── Card.jsx
+│   │   │   │   ├── Table.jsx
+│   │   │   │   ├── Tabs.jsx
+│   │   │   │   ├── Accordion.jsx
+│   │   │   │   ├── Slider.jsx
+│   │   │   │   ├── Progress.jsx
+│   │   │   │   ├── Spinner.jsx
+│   │   │   │   ├── Avatar.jsx
+│   │   │   │   ├── Divider.jsx
+│   │   │   │   └── Skeleton.jsx
+│   │   │   ├── forms/
+│   │   │   │   ├── FormField.jsx
+│   │   │   │   ├── FormGroup.jsx
+│   │   │   │   ├── FormLabel.jsx
+│   │   │   │   ├── FormError.jsx
+│   │   │   │   ├── FormSuccess.jsx
+│   │   │   │   ├── FileUpload.jsx
+│   │   │   │   ├── ImageUpload.jsx
+│   │   │   │   ├── DatePicker.jsx
+│   │   │   │   ├── TimePicker.jsx
+│   │   │   │   ├── SearchInput.jsx
+│   │   │   │   └── AutoComplete.jsx
+│   │   │   ├── navigation/
+│   │   │   │   ├── Breadcrumb.jsx
+│   │   │   │   ├── Pagination.jsx
+│   │   │   │   ├── Steps.jsx
+│   │   │   │   └── BackButton.jsx
+│   │   │   ├── feedback/
+│   │   │   │   ├── LoadingState.jsx
+│   │   │   │   ├── EmptyState.jsx
+│   │   │   │   ├── ErrorState.jsx
+│   │   │   │   ├── SuccessState.jsx
+│   │   │   │   └── ConfirmationDialog.jsx
+│   │   │   └──
 
 ---
 
