@@ -1,33 +1,26 @@
 const express = require('express');
 const router = express.Router();
+const { 
+  register, 
+  login, 
+  logout, 
+  getProfile, 
+  updateProfile, 
+  forgotPassword, 
+  resetPassword 
+} = require('../../controllers/customer/customerAuthController');
+const { protect, customer } = require('../../middleware/customerAuth');
 
-// Placeholder routes - will implement controller functions later
-router.post('/register', (req, res) => {
-  res.json({ message: 'Customer registration' });
-});
+// Public routes
+router.post('/register', register);
+router.post('/login', login);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
-router.post('/login', (req, res) => {
-  res.json({ message: 'Customer login' });
-});
-
-router.post('/logout', (req, res) => {
-  res.json({ message: 'Customer logout' });
-});
-
-router.get('/profile', (req, res) => {
-  res.json({ message: 'Get customer profile' });
-});
-
-router.put('/profile', (req, res) => {
-  res.json({ message: 'Update customer profile' });
-});
-
-router.post('/forgot', (req, res) => {
-  res.json({ message: 'Forgot password' });
-});
-
-router.post('/reset', (req, res) => {
-  res.json({ message: 'Reset password' });
-});
+// Private routes
+router.post('/logout', protect, customer, logout);
+router.route('/profile')
+  .get(protect, customer, getProfile)
+  .put(protect, customer, updateProfile);
 
 module.exports = router;

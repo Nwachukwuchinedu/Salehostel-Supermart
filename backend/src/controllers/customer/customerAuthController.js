@@ -1,11 +1,13 @@
 const jwt = require('jsonwebtoken');
 const User = require('../../models/User');
 const config = require('../../config/env');
+const bcrypt = require('bcryptjs');
+const { validateEmail, validatePhone } = require('../../utils/validators');
 
 // Generate JWT token
-const generateToken = (id) => {
-  return jwt.sign({ id }, config.jwtSecret, {
-    expiresIn: config.jwtExpire,
+const generateToken = (userId, role) => {
+  return jwt.sign({ userId, role }, process.env.JWT_SECRET, {
+    expiresIn: '7d',
   });
 };
 
@@ -13,38 +15,99 @@ const generateToken = (id) => {
 // @route   POST /api/customer/auth/register
 // @access  Public
 const register = async (req, res) => {
-  const { name, email, password, phone } = req.body;
-
   try {
-    // Check if user already exists
-    const userExists = await User.findOne({ email });
-
-    if (userExists) {
-      return res.status(400).json({ message: 'User already exists with this email' });
-    }
-
-    const user = new User({
-      name,
+    const {
+      firstName,
+      lastName,
       email,
       password,
-      role: 'customer',
-      phone
+      whatsappNumber,
+      callNumber,
+    } = req.body;
+
+    // Validation
+    if (
+      !firstName ||
+      !lastName ||
+      !email ||
+      !password ||
+      !whatsappNumber ||
+      !callNumber
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide all required fields",
+      });
+    }
+
+    // Validate email
+    if (!validateEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid email address",
+      });
+    }
+
+    // Validate phone numbers
+    if (!validatePhone(whatsappNumber)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid WhatsApp number",
+      });
+    }
+
+    if (!validatePhone(callNumber)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid call number",
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User with this email already exists",
+      });
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create user
+    const user = new User({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: email.toLowerCase().trim(),
+      password: hashedPassword,
+      whatsappNumber: whatsappNumber.trim(),
+      callNumber: callNumber.trim(),
+      role: "customer",
     });
 
-    const createdUser = await user.save();
+    await user.save();
+
+    // Generate JWT token
+    const token = generateToken(user._id, user.role);
+
+    // Remove password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
 
     res.status(201).json({
       success: true,
-      customer: {
-        _id: createdUser._id,
-        name: createdUser.name,
-        email: createdUser.email,
-        phone: createdUser.phone,
-      },
-      token: generateToken(createdUser._id),
+      message: "User registered successfully",
+      user: userResponse,
+      token,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error("Registration error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error during registration",
+    });
   }
 };
 
@@ -56,24 +119,33 @@ const login = async (req, res) => {
 
   try {
     // Check for user
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: email.toLowerCase(), isActive: true });
 
     if (user && user.role === 'customer' && (await user.comparePassword(password))) {
+      const token = generateToken(user._id, user.role);
+      
+      // Remove password from response
+      const userResponse = user.toObject();
+      delete userResponse.password;
+
       res.json({
         success: true,
-        customer: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-        },
-        token: generateToken(user._id),
+        message: "Login successful",
+        user: userResponse,
+        token,
       });
     } else {
-      res.status(401).json({ message: 'Invalid email or password' });
+      res.status(401).json({ 
+        success: false,
+        message: 'Invalid email or password' 
+      });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error("Login error:", error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error during login' 
+    });
   }
 };
 
@@ -81,7 +153,10 @@ const login = async (req, res) => {
 // @route   POST /api/customer/auth/logout
 // @access  Private
 const logout = async (req, res) => {
-  res.json({ message: 'Logged out successfully' });
+  res.json({ 
+    success: true,
+    message: 'Logged out successfully' 
+  });
 };
 
 // @desc    Get customer profile
@@ -89,10 +164,27 @@ const logout = async (req, res) => {
 // @access  Private
 const getProfile = async (req, res) => {
   try {
-    const customer = await User.findById(req.user._id).select('-password');
-    res.json({ customer });
+    const user = await User.findById(req.user.userId)
+      .select("-password")
+      .populate("address");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      user,
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error("Profile fetch error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching profile",
+    });
   }
 };
 
@@ -101,32 +193,57 @@ const getProfile = async (req, res) => {
 // @access  Private
 const updateProfile = async (req, res) => {
   try {
-    const customer = await User.findById(req.user._id);
+    const { firstName, lastName, whatsappNumber, callNumber, address } =
+      req.body;
 
-    if (customer) {
-      customer.name = req.body.name || customer.name;
-      customer.email = req.body.email || customer.email;
-      customer.phone = req.body.phone || customer.phone;
-      customer.address = req.body.address || customer.address;
-
-      const updatedCustomer = await customer.save();
-
-      res.json({
-        success: true,
-        customer: {
-          _id: updatedCustomer._id,
-          name: updatedCustomer.name,
-          email: updatedCustomer.email,
-          phone: updatedCustomer.phone,
-          address: updatedCustomer.address,
-        },
-        token: generateToken(updatedCustomer._id),
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
       });
-    } else {
-      res.status(404).json({ message: 'Customer not found' });
     }
+
+    // Update fields if provided
+    if (firstName) user.firstName = firstName.trim();
+    if (lastName) user.lastName = lastName.trim();
+    if (whatsappNumber) {
+      if (!validatePhone(whatsappNumber)) {
+        return res.status(400).json({
+          success: false,
+          message: "Please provide a valid WhatsApp number",
+        });
+      }
+      user.whatsappNumber = whatsappNumber.trim();
+    }
+    if (callNumber) {
+      if (!validatePhone(callNumber)) {
+        return res.status(400).json({
+          success: false,
+          message: "Please provide a valid call number",
+        });
+      }
+      user.callNumber = callNumber.trim();
+    }
+    if (address) user.address = address;
+
+    await user.save();
+
+    // Remove password from response
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    res.json({
+      success: true,
+      message: "Profile updated successfully",
+      user: userResponse,
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error("Profile update error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while updating profile",
+    });
   }
 };
 

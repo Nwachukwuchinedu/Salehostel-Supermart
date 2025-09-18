@@ -12,7 +12,7 @@ const auth = async (req, res, next) => {
       token = req.headers.authorization.split(" ")[1];
       const decoded = jwt.verify(
         token,
-        process.env.JWT_SECRET || "fallback_secret"
+        process.env.JWT_SECRET
       );
 
       // Find user and add to request
@@ -24,13 +24,7 @@ const auth = async (req, res, next) => {
         });
       }
 
-      req.user = {
-        userId: user._id,
-        role: user.role,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      };
+      req.user = user;
 
       next();
     } catch (error) {

@@ -7,9 +7,11 @@ const CustomerRegister = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
-    phone: '',
+    whatsappNumber: '',
+    callNumber: '',
     password: '',
     confirmPassword: '',
   });
@@ -36,8 +38,12 @@ const CustomerRegister = () => {
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.name) {
-      newErrors.name = 'Name is required';
+    if (!formData.firstName) {
+      newErrors.firstName = 'First name is required';
+    }
+    
+    if (!formData.lastName) {
+      newErrors.lastName = 'Last name is required';
     }
     
     if (!formData.email) {
@@ -46,10 +52,16 @@ const CustomerRegister = () => {
       newErrors.email = 'Email address is invalid';
     }
     
-    if (!formData.phone) {
-      newErrors.phone = 'Phone number is required';
-    } else if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.phone)) {
-      newErrors.phone = 'Phone number is invalid';
+    if (!formData.whatsappNumber) {
+      newErrors.whatsappNumber = 'WhatsApp number is required';
+    } else if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.whatsappNumber)) {
+      newErrors.whatsappNumber = 'WhatsApp number is invalid';
+    }
+    
+    if (!formData.callNumber) {
+      newErrors.callNumber = 'Call number is required';
+    } else if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.callNumber)) {
+      newErrors.callNumber = 'Call number is invalid';
     }
     
     if (!formData.password) {
@@ -73,6 +85,8 @@ const CustomerRegister = () => {
     
     if (validateForm()) {
       setLoading(true);
+      // Clear any existing errors
+      setErrors({});
       try {
         // Prepare data for API call (remove confirmPassword as it's not needed on backend)
         const { confirmPassword, ...userData } = formData;
@@ -82,9 +96,16 @@ const CustomerRegister = () => {
         navigate('/login');
       } catch (error) {
         console.error('Registration failed:', error);
-        setErrors({
-          general: error.message || 'Registration failed. Please try again.'
-        });
+        // Check if error has a response object with data
+        if (error.response && error.response.data) {
+          setErrors({
+            general: error.response.data.message || 'Registration failed. Please try again.'
+          });
+        } else {
+          setErrors({
+            general: error.message || 'Registration failed. Please try again.'
+          });
+        }
       } finally {
         setLoading(false);
       }
@@ -106,23 +127,44 @@ const CustomerRegister = () => {
             </div>
           )}
           
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-customer-gray-700 mb-2">
-              Full Name
-            </label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-customer-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className={`customer-input pl-10 w-full ${errors.name ? 'border-red-500' : ''}`}
-                placeholder="John Doe"
-              />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="firstName" className="block text-sm font-medium text-customer-gray-700 mb-2">
+                First Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-customer-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className={`customer-input pl-10 w-full ${errors.firstName ? 'border-red-500' : ''}`}
+                  placeholder="John"
+                />
+              </div>
+              {errors.firstName && <p className="mt-1 text-red-500 text-sm">{errors.firstName}</p>}
             </div>
-            {errors.name && <p className="mt-1 text-red-500 text-sm">{errors.name}</p>}
+            
+            <div>
+              <label htmlFor="lastName" className="block text-sm font-medium text-customer-gray-700 mb-2">
+                Last Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-customer-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className={`customer-input pl-10 w-full ${errors.lastName ? 'border-red-500' : ''}`}
+                  placeholder="Doe"
+                />
+              </div>
+              {errors.lastName && <p className="mt-1 text-red-500 text-sm">{errors.lastName}</p>}
+            </div>
           </div>
           
           <div>
@@ -145,22 +187,41 @@ const CustomerRegister = () => {
           </div>
           
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-customer-gray-700 mb-2">
-              Phone Number
+            <label htmlFor="whatsappNumber" className="block text-sm font-medium text-customer-gray-700 mb-2">
+              WhatsApp Number
             </label>
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-customer-gray-400 w-5 h-5" />
               <input
                 type="tel"
-                id="phone"
-                name="phone"
-                value={formData.phone}
+                id="whatsappNumber"
+                name="whatsappNumber"
+                value={formData.whatsappNumber}
                 onChange={handleChange}
-                className={`customer-input pl-10 w-full ${errors.phone ? 'border-red-500' : ''}`}
+                className={`customer-input pl-10 w-full ${errors.whatsappNumber ? 'border-red-500' : ''}`}
                 placeholder="+1 (555) 123-4567"
               />
             </div>
-            {errors.phone && <p className="mt-1 text-red-500 text-sm">{errors.phone}</p>}
+            {errors.whatsappNumber && <p className="mt-1 text-red-500 text-sm">{errors.whatsappNumber}</p>}
+          </div>
+          
+          <div>
+            <label htmlFor="callNumber" className="block text-sm font-medium text-customer-gray-700 mb-2">
+              Call Number
+            </label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-customer-gray-400 w-5 h-5" />
+              <input
+                type="tel"
+                id="callNumber"
+                name="callNumber"
+                value={formData.callNumber}
+                onChange={handleChange}
+                className={`customer-input pl-10 w-full ${errors.callNumber ? 'border-red-500' : ''}`}
+                placeholder="+1 (555) 123-4567"
+              />
+            </div>
+            {errors.callNumber && <p className="mt-1 text-red-500 text-sm">{errors.callNumber}</p>}
           </div>
           
           <div>

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import api from "../services/api";
 
 const useAuthStore = create(
   persist(
@@ -10,62 +11,70 @@ const useAuthStore = create(
       loading: false,
       error: null,
 
-      // Login action (simplified for now)
+      // Login action
       login: async (credentials) => {
         set({ loading: true, error: null });
 
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Mock successful login
-        const mockUser = {
-          id: "1",
-          firstName: "John",
-          lastName: "Doe",
-          email: credentials.email,
-          role: "customer",
-        };
-
-        const mockToken = "mock-jwt-token";
-
-        set({
-          user: mockUser,
-          token: mockToken,
-          isAuthenticated: true,
-          loading: false,
-          error: null,
-        });
-
-        return { success: true, user: mockUser };
+        try {
+          const { data: response } = await api.post('/auth/login', credentials);
+          
+          if (response.success) {
+            set({
+              user: response.user,
+              token: response.token,
+              isAuthenticated: true,
+              loading: false,
+              error: null,
+            });
+            
+            return { success: true, user: response.user };
+          } else {
+            set({ 
+              error: response.message || 'Login failed',
+              loading: false 
+            });
+            return { success: false, error: response.message || 'Login failed' };
+          }
+        } catch (error) {
+          set({ 
+            error: error.message || 'Login failed',
+            loading: false 
+          });
+          return { success: false, error: error.message || 'Login failed' };
+        }
       },
 
-      // Register action (simplified for now)
+      // Register action
       register: async (userData) => {
         set({ loading: true, error: null });
 
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Mock successful registration
-        const mockUser = {
-          id: "1",
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          email: userData.email,
-          role: "customer",
-        };
-
-        const mockToken = "mock-jwt-token";
-
-        set({
-          user: mockUser,
-          token: mockToken,
-          isAuthenticated: true,
-          loading: false,
-          error: null,
-        });
-
-        return { success: true, user: mockUser };
+        try {
+          const { data: response } = await api.post('/auth/register', userData);
+          
+          if (response.success) {
+            set({
+              user: response.user,
+              token: response.token,
+              isAuthenticated: true,
+              loading: false,
+              error: null,
+            });
+            
+            return { success: true, user: response.user };
+          } else {
+            set({ 
+              error: response.message || 'Registration failed',
+              loading: false 
+            });
+            return { success: false, error: response.message || 'Registration failed' };
+          }
+        } catch (error) {
+          set({ 
+            error: error.message || 'Registration failed',
+            loading: false 
+          });
+          return { success: false, error: error.message || 'Registration failed' };
+        }
       },
 
       // Logout action
@@ -82,32 +91,70 @@ const useAuthStore = create(
         localStorage.removeItem("auth-storage");
       },
 
-      // Update profile (simplified for now)
+      // Update profile
       updateProfile: async (profileData) => {
         set({ loading: true, error: null });
 
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        const { user } = get();
-        const updatedUser = { ...user, ...profileData };
-
-        set({
-          user: updatedUser,
-          loading: false,
-          error: null,
-        });
-
-        return { success: true, user: updatedUser };
+        try {
+          const { data: response } = await api.put('/auth/profile', profileData);
+          
+          if (response.success) {
+            set({
+              user: response.user,
+              loading: false,
+              error: null,
+            });
+            
+            return { success: true, user: response.user };
+          } else {
+            set({ 
+              error: response.message || 'Profile update failed',
+              loading: false 
+            });
+            return { success: false, error: response.message || 'Profile update failed' };
+          }
+        } catch (error) {
+          set({ 
+            error: error.message || 'Profile update failed',
+            loading: false 
+          });
+          return { success: false, error: error.message || 'Profile update failed' };
+        }
       },
 
-      // Verify token (simplified for now)
-      verifyToken: async () => {
+      // Get current user profile
+      getProfile: async () => {
         const { token } = get();
-        if (!token) return false;
+        if (!token) return null;
 
-        // For now, just return true if token exists
-        return true;
+        set({ loading: true, error: null });
+        
+        try {
+          const { data: response } = await api.get('/auth/profile');
+          
+          if (response.success) {
+            set({
+              user: response.user,
+              isAuthenticated: true,
+              loading: false,
+              error: null,
+            });
+            
+            return response.user;
+          } else {
+            set({ 
+              error: response.message || 'Failed to fetch profile',
+              loading: false 
+            });
+            return null;
+          }
+        } catch (error) {
+          set({ 
+            error: error.message || 'Failed to fetch profile',
+            loading: false 
+          });
+          return null;
+        }
       },
 
       // Clear error

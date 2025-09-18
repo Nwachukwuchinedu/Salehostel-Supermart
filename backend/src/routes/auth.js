@@ -88,7 +88,7 @@ router.post("/register", async (req, res) => {
     // Generate JWT token
     const token = jwt.sign(
       { userId: user._id, role: user.role },
-      process.env.JWT_SECRET || "fallback_secret",
+      process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
@@ -151,7 +151,7 @@ router.post("/login", async (req, res) => {
     // Generate JWT token
     const token = jwt.sign(
       { userId: user._id, role: user.role },
-      process.env.JWT_SECRET || "fallback_secret",
+      process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
@@ -314,6 +314,16 @@ router.put("/change-password", auth, async (req, res) => {
       message: "Server error while changing password",
     });
   }
+});
+
+// @desc    Logout user
+// @route   POST /api/auth/logout
+// @access  Public
+router.post("/logout", (req, res) => {
+  res.json({
+    success: true,
+    message: "Logged out successfully",
+  });
 });
 
 module.exports = router;
