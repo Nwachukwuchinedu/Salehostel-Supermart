@@ -1,34 +1,37 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&family=Raleway:wght@300;400;500;600;700;800&display=swap');
 
 /* Custom base styles */
 @layer base {
   * {
     @apply border-gray-200;
   }
-  
+
   html {
     @apply scroll-smooth;
   }
-  
+
   body {
     @apply bg-gray-50 text-gray-900 font-primary antialiased;
   }
-  
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     @apply w-2;
   }
-  
+
   ::-webkit-scrollbar-track {
     @apply bg-gray-100;
   }
-  
+
   ::-webkit-scrollbar-thumb {
     @apply bg-gray-300 rounded-full;
   }
-  
+
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-400;
   }
@@ -36,18 +39,24 @@
 
 /* Animation keyframes */
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-10px);
   }
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 5px rgba(236, 72, 153, 0.5);
   }
+
   50% {
     box-shadow: 0 0 20px rgba(236, 72, 153, 0.8);
   }
@@ -57,9 +66,11 @@
   0% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
@@ -69,300 +80,215 @@
   0% {
     background-position: -200% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
 }
 
 @layer components {
-  /* ===== ADMIN COMPONENTS ===== */
-  
-  /* Admin Glass Card */
-  .admin-glass-card {
-    @apply bg-white/80 backdrop-blur-md border border-admin-gray-200/50 rounded-xl shadow-glass-md;
+  /* ===== SALESHOSTEL COMPONENTS ===== */
+
+  /* Glass Card */
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-gray-200/50 rounded-xl shadow-glass-md;
   }
-  
-  .admin-glass-card-dark {
-    @apply bg-admin-gray-800/80 backdrop-blur-md border border-admin-gray-700/50;
+
+  /* Buttons */
+  .btn-primary {
+    @apply bg-primary-green hover:bg-primary-green-dark text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95;
   }
-  
-  /* Admin Buttons */
-  .admin-btn-primary {
-    @apply bg-admin-primary hover:bg-admin-primary/90 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95;
+
+  .btn-secondary {
+    @apply bg-secondary-orange hover:bg-orange-600 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200;
   }
-  
-  .admin-btn-secondary {
-    @apply bg-admin-gray-600 hover:bg-admin-gray-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200;
+
+  .btn-outline {
+    @apply border-2 border-primary-green text-primary-green hover:bg-primary-green hover:text-white font-medium px-6 py-3 rounded-lg transition-all duration-200;
   }
-  
-  .admin-btn-glass {
-    @apply bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-admin-gray-700 font-medium px-6 py-3 rounded-lg transition-all duration-200;
+
+  /* Form Elements */
+  .form-input {
+    @apply bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-primary-green focus:border-transparent transition-all duration-200;
   }
-  
-  .admin-btn-danger {
-    @apply bg-admin-danger hover:bg-red-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200;
+
+  .form-select {
+    @apply bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:ring-2 focus:ring-primary-green focus:border-transparent transition-all duration-200;
   }
-  
-  /* Admin Form Elements */
-  .admin-input {
-    @apply bg-white/50 backdrop-blur-sm border border-admin-gray-300 rounded-lg px-4 py-3 text-admin-gray-900 placeholder:text-admin-gray-500 focus:ring-2 focus:ring-admin-primary focus:border-transparent transition-all duration-200;
+
+  .form-textarea {
+    @apply bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-primary-green focus:border-transparent resize-none transition-all duration-200;
   }
-  
-  .admin-select {
-    @apply bg-white/50 backdrop-blur-sm border border-admin-gray-300 rounded-lg px-4 py-3 text-admin-gray-900 focus:ring-2 focus:ring-admin-primary focus:border-transparent transition-all duration-200;
+
+  /* Product Cards */
+  .product-card {
+    @apply bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-2;
   }
-  
-  .admin-textarea {
-    @apply bg-white/50 backdrop-blur-sm border border-admin-gray-300 rounded-lg px-4 py-3 text-admin-gray-900 placeholder:text-admin-gray-500 focus:ring-2 focus:ring-admin-primary focus:border-transparent resize-none transition-all duration-200;
-  }
-  
-  /* Admin Sidebar */
-  .admin-sidebar {
-    @apply fixed left-0 top-0 h-full w-64 bg-white/90 backdrop-blur-xl border-r border-admin-gray-200/50 shadow-glass-lg transform transition-transform duration-300 ease-in-out z-40;
-  }
-  
-  .admin-sidebar-item {
-    @apply flex items-center px-6 py-3 text-admin-gray-700 hover:bg-admin-primary/10 hover:text-admin-primary transition-all duration-200;
-  }
-  
-  .admin-sidebar-item.active {
-    @apply bg-admin-primary text-white shadow-md;
-  }
-  
-  /* Admin Table */
-  .admin-table {
-    @apply w-full bg-white/80 backdrop-blur-md rounded-xl overflow-hidden shadow-glass-md;
-  }
-  
-  .admin-table-header {
-    @apply bg-admin-gray-50/80 backdrop-blur-sm;
-  }
-  
-  .admin-table-row {
-    @apply border-b border-admin-gray-200/50 hover:bg-admin-gray-50/50 transition-colors duration-200;
-  }
-  
-  .admin-table-cell {
-    @apply px-6 py-4 text-admin-gray-900;
-  }
-  
-  /* Admin Stats Card */
-  .admin-stats-card {
-    @apply bg-white/80 backdrop-blur-md border border-admin-gray-200/50 rounded-xl p-6 shadow-glass-md hover:shadow-glass-lg transition-all duration-300 hover:-translate-y-1;
-  }
-  
-  .admin-stats-icon {
-    @apply w-12 h-12 rounded-lg flex items-center justify-center;
-  }
-  
-  .admin-stats-number {
-    @apply text-2xl font-bold text-admin-gray-900 font-display;
-  }
-  
-  .admin-stats-label {
-    @apply text-admin-gray-600 text-sm font-medium;
-  }
-  
-  /* ===== CUSTOMER COMPONENTS ===== */
-  
-  /* Customer Glass Card */
-  .customer-glass-card {
-    @apply bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-glass-lg;
-  }
-  
-  .customer-glass-card-solid {
-    @apply bg-white backdrop-blur-sm border border-gray-200/50 rounded-2xl shadow-glass-md;
-  }
-  
-  /* Customer Buttons */
-  .customer-btn-primary {
-    @apply bg-gradient-to-r from-customer-primary to-customer-secondary hover:from-customer-primary/90 hover:to-customer-secondary/90 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-customer-glow active:scale-95;
-  }
-  
-  .customer-btn-secondary {
-    @apply bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-gray-900 font-semibold px-8 py-4 rounded-xl transition-all duration-300 hover:shadow-lg;
-  }
-  
-  .customer-btn-glass {
-    @apply bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/20 text-gray-900 font-semibold px-8 py-4 rounded-xl transition-all duration-300 hover:shadow-customer-glow;
-  }
-  
-  .customer-btn-icon {
-    @apply bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 p-3 rounded-full transition-all duration-300 hover:scale-110;
-  }
-  
-  /* Customer Product Cards */
-  .customer-product-card {
-    @apply bg-white backdrop-blur-sm border border-gray-200/50 rounded-2xl overflow-hidden shadow-glass-md hover:shadow-glass-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-2;
-  }
-  
-  .customer-product-image {
+
+  .product-image {
     @apply overflow-hidden relative;
     aspect-ratio: 1 / 1;
   }
-  
-  .customer-product-overlay {
+
+  .product-overlay {
     @apply absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2;
   }
-  
-  .customer-product-info {
+
+  .product-info {
     @apply p-6;
   }
-  
-  .customer-product-title {
-    @apply font-display font-semibold text-lg text-gray-900 mb-2;
+
+  .product-title {
+    @apply font-primary font-semibold text-lg text-gray-900 mb-2;
   }
-  
-  .customer-product-price {
-    @apply font-display font-bold text-xl text-customer-primary;
+
+  .product-price {
+    @apply font-primary font-bold text-xl text-primary-green;
   }
-  
-  /* Customer Navigation */
-  .customer-nav {
-    @apply fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-b border-gray-200/50 shadow-glass-sm z-50;
+
+  /* Navigation */
+  .nav-item {
+    @apply text-gray-700 hover:text-primary-green font-medium px-4 py-2 rounded-lg transition-colors duration-200;
   }
-  
-  .customer-nav-item {
-    @apply text-gray-700 hover:text-customer-primary font-medium px-4 py-2 rounded-lg transition-colors duration-200;
+
+  .nav-item.active {
+    @apply text-primary-green bg-primary-green/10;
   }
-  
-  .customer-nav-item.active {
-    @apply text-customer-primary bg-customer-primary/10;
+
+  /* Cart */
+  .cart-sidebar {
+    @apply fixed right-0 top-0 h-full w-96 bg-white border-l border-gray-200 shadow-lg transform transition-transform duration-300 ease-in-out z-50;
   }
-  
-  /* Customer Cart */
-  .customer-cart-sidebar {
-    @apply fixed right-0 top-0 h-full w-96 bg-white/95 backdrop-blur-xl border-l border-gray-200/50 shadow-glass-lg transform transition-transform duration-300 ease-in-out z-50;
+
+  .cart-item {
+    @apply flex items-center gap-4 p-4 border-b border-gray-200 last:border-b-0;
   }
-  
-  .customer-cart-item {
-    @apply flex items-center gap-4 p-4 border-b border-gray-200/50 last:border-b-0;
+
+  .cart-badge {
+    @apply absolute -top-2 -right-2 bg-secondary-orange text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center;
   }
-  
-  .customer-cart-badge {
-    @apply absolute -top-2 -right-2 bg-customer-secondary text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center animate-bounce;
-  }
-  
+
   /* ===== SHARED COMPONENTS ===== */
-  
+
   /* Form Components */
   .form-group {
     @apply space-y-2;
   }
-  
+
   .form-label {
     @apply block text-sm font-semibold text-gray-700;
   }
-  
+
   .form-error {
     @apply text-sm text-red-600 mt-1;
   }
-  
+
   .form-success {
     @apply text-sm text-green-600 mt-1;
   }
-  
+
   /* Loading Components */
   .loading-spinner {
     @apply animate-spin rounded-full border-2 border-gray-300 border-t-current;
   }
-  
+
   .loading-skeleton {
     @apply bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-shimmer rounded;
   }
-  
+
   /* Status Badges */
   .status-badge {
     @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
   }
-  
+
   .status-success {
     @apply bg-green-100 text-green-800;
   }
-  
+
   .status-warning {
     @apply bg-yellow-100 text-yellow-800;
   }
-  
+
   .status-danger {
     @apply bg-red-100 text-red-800;
   }
-  
+
   .status-info {
     @apply bg-blue-100 text-blue-800;
   }
-  
+
   /* Modal Components */
   .modal-backdrop {
     @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4;
   }
-  
+
   .modal-content {
-    @apply bg-white/95 backdrop-blur-xl border border-gray-200/50 rounded-2xl shadow-glass-lg max-w-md w-full max-h-[90vh] overflow-y-auto;
+    @apply bg-white border border-gray-200 rounded-2xl shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto;
   }
-  
+
   .modal-header {
-    @apply flex items-center justify-between p-6 border-b border-gray-200/50;
+    @apply flex items-center justify-between p-6 border-b border-gray-200;
   }
-  
+
   .modal-body {
     @apply p-6;
   }
-  
+
   .modal-footer {
-    @apply flex items-center justify-end gap-3 p-6 border-t border-gray-200/50;
+    @apply flex items-center justify-end gap-3 p-6 border-t border-gray-200;
   }
 }
 
 @layer utilities {
+
   /* Glass Effect Utilities */
   .glass-light {
     @apply bg-white/10 backdrop-blur-md;
   }
-  
+
   .glass-medium {
     @apply bg-white/20 backdrop-blur-lg;
   }
-  
+
   .glass-heavy {
     @apply bg-white/30 backdrop-blur-xl;
   }
-  
+
   .glass-border {
     @apply border border-white/20;
   }
-  
+
   /* Animation Utilities */
-  .animate-float {
-    @apply animate-float;
+  .float-animation {
+    animation: float 3s ease-in-out infinite;
   }
-  
-  .animate-glow {
-    @apply animate-pulse-glow;
+
+  .glow-animation {
+    animation: pulse-glow 2s ease-in-out infinite alternate;
   }
-  
-  .animate-gradient {
+
+  .gradient-animation {
     @apply bg-gradient-to-r from-customer-primary via-customer-secondary to-customer-accent bg-[length:200%_100%] animate-gradient-shift;
   }
-  
+
   /* Responsive Utilities */
   .responsive-padding {
     @apply px-4 sm:px-6 lg:px-8;
   }
-  
+
   .responsive-margin {
     @apply mx-4 sm:mx-6 lg:mx-8;
   }
-  
+
   /* Focus States */
   .focus-ring {
     @apply focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:outline-none;
   }
-  
+
   .focus-ring-admin {
     @apply focus:ring-2 focus:ring-offset-2 focus:ring-admin-primary focus:outline-none;
   }
-  
+
   .focus-ring-customer {
     @apply focus:ring-2 focus:ring-offset-2 focus:ring-customer-primary focus:outline-none;
   }

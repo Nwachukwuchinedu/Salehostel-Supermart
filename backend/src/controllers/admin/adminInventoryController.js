@@ -8,18 +8,22 @@ const inventoryService = require('../../services/inventoryService');
 const getInventoryOverview = async (req, res) => {
   try {
     const overview = await inventoryService.getInventoryOverview();
-    
+
     // Get low stock products
     const lowStockProducts = await Product.find({
-      currentStock: { $lte: '$minStockLevel' },
       isActive: true
-    }).select('name sku currentStock minStockLevel');
-    
+    }).select('name units');
+
+    // Filter products with low stock in any unit
+    const productsWithLowStock = lowStockProducts.filter(product =>
+      product.units.some(unit => unit.stockQuantity <= unit.minStockLevel)
+    );
+
     res.json({
       success: true,
       overview,
-      lowStockCount: lowStockProducts.length,
-      lowStockProducts
+      lowStockCount: productsWithLowStock.length,
+      lowStockProducts: productsWithLowStock
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
@@ -31,47 +35,55 @@ const getInventoryOverview = async (req, res) => {
 // @access  Private
 const adjustStock = async (req, res) => {
   try {
-    const { productId, quantity, reason, notes } = req.body;
-    
+    const { productId, unitType, quantity, reason, notes } = req.body;
+
     // Validate product exists
     const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
-    
-    // Update product stock
-    const previousStock = product.currentStock;
-    product.currentStock = quantity;
+
+    // Find the specific unit to adjust
+    const unitIndex = product.units.findIndex(unit => unit.unitType === unitType);
+    if (unitIndex === -1) {
+      return res.status(404).json({ message: 'Unit type not found for this product' });
+    }
+
+    // Update product stock for specific unit
+    const previousStock = product.units[unitIndex].stockQuantity;
+    product.units[unitIndex].stockQuantity = quantity;
     await product.save();
-    
+
     // Create stock movement record
     const stockMovement = new StockMovement({
       product: productId,
-      type: 'manual_adjustment',
+      type: 'adjustment',
       quantity: quantity - previousStock,
       previousStock,
       newStock: quantity,
-      reason,
-      notes,
+      referenceType: 'adjustment',
+      referenceId: productId,
+      notes: `${reason} - Unit: ${unitType}`,
       createdBy: req.user._id
     });
-    
+
     await stockMovement.save();
-    
+
     res.json({
       success: true,
       message: 'Stock adjusted successfully',
       product: {
         _id: product._id,
         name: product.name,
-        sku: product.sku,
+        unitType,
         previousStock,
-        newStock: product.currentStock
+        newStock: quantity
       },
       stockMovement
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error adjusting stock:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
@@ -82,17 +94,17 @@ const getStockMovements = async (req, res) => {
   try {
     const pageSize = Number(req.query.pageSize) || 10;
     const page = Number(req.query.page) || 1;
-    
+
     const filter = {};
-    
+
     if (req.query.productId) {
       filter.product = req.query.productId;
     }
-    
+
     if (req.query.type) {
       filter.type = req.query.type;
     }
-    
+
     const count = await StockMovement.countDocuments(filter);
     const movements = await StockMovement.find(filter)
       .populate('product', 'name sku')
@@ -100,7 +112,7 @@ const getStockMovements = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(pageSize)
       .skip(pageSize * (page - 1));
-    
+
     res.json({
       success: true,
       movements,
@@ -119,19 +131,28 @@ const getStockMovements = async (req, res) => {
 const getLowStockAlerts = async (req, res) => {
   try {
     const products = await Product.find({
-      currentStock: { $lte: '$minStockLevel' },
       isActive: true
     })
-    .select('name sku currentStock minStockLevel unit')
-    .sort({ currentStock: 1 });
-    
+      .select('name units')
+      .sort({ name: 1 });
+
+    // Filter products with low stock in any unit
+    const lowStockProducts = products.filter(product =>
+      product.units.some(unit => unit.stockQuantity <= unit.minStockLevel)
+    ).map(product => ({
+      _id: product._id,
+      name: product.name,
+      lowStockUnits: product.units.filter(unit => unit.stockQuantity <= unit.minStockLevel)
+    }));
+
     res.json({
       success: true,
-      products,
-      count: products.length
+      products: lowStockProducts,
+      count: lowStockProducts.length
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error getting low stock alerts:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 

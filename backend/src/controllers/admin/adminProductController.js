@@ -11,11 +11,11 @@ const getProducts = async (req, res) => {
 
     const keyword = req.query.keyword
       ? {
-          name: {
-            $regex: req.query.keyword,
-            $options: 'i',
-          },
-        }
+        name: {
+          $regex: req.query.keyword,
+          $options: 'i',
+        },
+      }
       : {};
 
     const count = await Product.countDocuments({ ...keyword });
@@ -65,25 +65,12 @@ const createProduct = async (req, res) => {
     const product = new Product({
       name: req.body.name,
       description: req.body.description,
-      shortDescription: req.body.shortDescription,
       category: req.body.category,
-      brand: req.body.brand,
-      sku: req.body.sku,
-      barcode: req.body.barcode,
-      sellingPrice: req.body.sellingPrice,
-      costPrice: req.body.costPrice,
-      salePrice: req.body.salePrice,
-      onSale: req.body.onSale,
-      currentStock: req.body.currentStock,
-      minStockLevel: req.body.minStockLevel,
-      maxStockLevel: req.body.maxStockLevel,
-      unit: req.body.unit,
-      featured: req.body.featured,
-      tags: req.body.tags,
-      metaTitle: req.body.metaTitle,
-      metaDescription: req.body.metaDescription,
-      isActive: req.body.isActive,
-      isPublished: req.body.isPublished,
+      units: req.body.units || [], // Array of units with prices and stock
+      images: req.body.images || [],
+      tags: req.body.tags || [],
+      featured: req.body.featured || false,
+      isActive: req.body.isActive !== undefined ? req.body.isActive : true,
       createdBy: req.user._id,
     });
 
@@ -93,7 +80,8 @@ const createProduct = async (req, res) => {
       product: createdProduct,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error creating product:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
@@ -107,25 +95,12 @@ const updateProduct = async (req, res) => {
     if (product) {
       product.name = req.body.name || product.name;
       product.description = req.body.description || product.description;
-      product.shortDescription = req.body.shortDescription || product.shortDescription;
       product.category = req.body.category || product.category;
-      product.brand = req.body.brand || product.brand;
-      product.sku = req.body.sku || product.sku;
-      product.barcode = req.body.barcode || product.barcode;
-      product.sellingPrice = req.body.sellingPrice || product.sellingPrice;
-      product.costPrice = req.body.costPrice || product.costPrice;
-      product.salePrice = req.body.salePrice || product.salePrice;
-      product.onSale = req.body.onSale || product.onSale;
-      product.currentStock = req.body.currentStock || product.currentStock;
-      product.minStockLevel = req.body.minStockLevel || product.minStockLevel;
-      product.maxStockLevel = req.body.maxStockLevel || product.maxStockLevel;
-      product.unit = req.body.unit || product.unit;
-      product.featured = req.body.featured || product.featured;
+      product.units = req.body.units || product.units;
+      product.images = req.body.images || product.images;
       product.tags = req.body.tags || product.tags;
-      product.metaTitle = req.body.metaTitle || product.metaTitle;
-      product.metaDescription = req.body.metaDescription || product.metaDescription;
-      product.isActive = req.body.isActive || product.isActive;
-      product.isPublished = req.body.isPublished || product.isPublished;
+      product.featured = req.body.featured !== undefined ? req.body.featured : product.featured;
+      product.isActive = req.body.isActive !== undefined ? req.body.isActive : product.isActive;
 
       const updatedProduct = await product.save();
       res.json({
@@ -136,7 +111,8 @@ const updateProduct = async (req, res) => {
       res.status(404).json({ message: 'Product not found' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error updating product:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
