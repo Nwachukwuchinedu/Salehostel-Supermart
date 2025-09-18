@@ -91,11 +91,12 @@ SalesHostel is a modern grocery provision store serving the NDDC hostel communit
 ### Typography
 ```css
 /* Font Stack */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&family=Raleway:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  --font-primary: 'Inter', system-ui, sans-serif;    /* UI text */
-  --font-secondary: 'Nunito', system-ui, sans-serif; /* Headings */
+  --font-primary: 'Montserrat', system-ui, sans-serif;    /* UI text and body */
+  --font-secondary: 'Poppins', system-ui, sans-serif;     /* Headings and buttons */
+  --font-display: 'Raleway', system-ui, sans-serif;       /* Display text and hero titles */
   
   /* Font Sizes */
   --text-xs: 0.75rem;      /* 12px - Captions */
@@ -106,6 +107,9 @@ SalesHostel is a modern grocery provision store serving the NDDC hostel communit
   --text-2xl: 1.5rem;      /* 24px - Section headers */
   --text-3xl: 1.875rem;    /* 30px - Page titles */
   --text-4xl: 2.25rem;     /* 36px - Hero titles */
+  --text-5xl: 3rem;        /* 48px - Large hero titles */
+  --text-6xl: 3.75rem;     /* 60px - Extra large hero titles */
+  --text-7xl: 4.5rem;      /* 72px - Massive hero titles */
 }
 ```
 
@@ -872,8 +876,9 @@ module.exports = {
         }
       },
       fontFamily: {
-        'primary': ['Inter', 'system-ui', 'sans-serif'],
-        'secondary': ['Nunito', 'system-ui', 'sans-serif'],
+        'primary': ['Montserrat', 'system-ui', 'sans-serif'],
+        'secondary': ['Poppins', 'system-ui', 'sans-serif'],
+        'display': ['Raleway', 'system-ui', 'sans-serif'],
       },
       screens: {
         'xs': '475px',
