@@ -87,6 +87,90 @@ router.get("/", async (req, res) => {
   }
 });
 
+// @desc    Search products (public)
+// @route   GET /api/public/products/search
+// @access  Public
+router.get("/search", async (req, res) => {
+  try {
+    const {
+      q: searchQuery,
+      page = 1,
+      limit = 12,
+      category,
+      minPrice,
+      maxPrice,
+      sortBy = "name",
+      sortOrder = "asc",
+    } = req.query;
+
+    if (!searchQuery) {
+      return res.status(400).json({
+        success: false,
+        message: "Search query is required",
+      });
+    }
+
+    // Build query
+    const query = {
+      isActive: true,
+      $or: [
+        { name: { $regex: searchQuery, $options: "i" } },
+        { description: { $regex: searchQuery, $options: "i" } },
+        { tags: { $regex: searchQuery, $options: "i" } },
+      ],
+    };
+
+    // Category filter
+    if (category) {
+      query.category = category;
+    }
+
+    // Price filter
+    if (minPrice || maxPrice) {
+      query["units.price"] = {};
+      if (minPrice) query["units.price"].$gte = Number(minPrice);
+      if (maxPrice) query["units.price"].$lte = Number(maxPrice);
+    }
+
+    // Sort options
+    const sortOptions = {};
+    sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
+
+    // Execute query with pagination
+    const skip = (page - 1) * limit;
+    const products = await Product.find(query)
+      .populate("category", "name slug")
+      .select("name description images units category tags")
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(Number(limit));
+
+    // Get total count for pagination
+    const total = await Product.countDocuments(query);
+    const totalPages = Math.ceil(total / limit);
+
+    res.json({
+      success: true,
+      products,
+      searchQuery,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    });
+  } catch (error) {
+    console.error("Error searching products:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while searching products",
+    });
+  }
+});
+
 // @desc    Get single product by ID (public)
 // @route   GET /api/public/products/:id
 // @access  Public
@@ -183,90 +267,6 @@ router.get("/category/:categoryId", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error while fetching products",
-    });
-  }
-});
-
-// @desc    Search products (public)
-// @route   GET /api/public/products/search
-// @access  Public
-router.get("/search", async (req, res) => {
-  try {
-    const {
-      q: searchQuery,
-      page = 1,
-      limit = 12,
-      category,
-      minPrice,
-      maxPrice,
-      sortBy = "name",
-      sortOrder = "asc",
-    } = req.query;
-
-    if (!searchQuery) {
-      return res.status(400).json({
-        success: false,
-        message: "Search query is required",
-      });
-    }
-
-    // Build query
-    const query = {
-      isActive: true,
-      $or: [
-        { name: { $regex: searchQuery, $options: "i" } },
-        { description: { $regex: searchQuery, $options: "i" } },
-        { tags: { $in: [new RegExp(searchQuery, "i")] } },
-      ],
-    };
-
-    // Category filter
-    if (category) {
-      query.category = category;
-    }
-
-    // Price filter
-    if (minPrice || maxPrice) {
-      query["units.price"] = {};
-      if (minPrice) query["units.price"].$gte = Number(minPrice);
-      if (maxPrice) query["units.price"].$lte = Number(maxPrice);
-    }
-
-    // Sort options
-    const sortOptions = {};
-    sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
-
-    // Execute query with pagination
-    const skip = (page - 1) * limit;
-    const products = await Product.find(query)
-      .populate("category", "name slug")
-      .select("name description images units category tags")
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(Number(limit));
-
-    // Get total count for pagination
-    const total = await Product.countDocuments(query);
-    const totalPages = Math.ceil(total / limit);
-
-    res.json({
-      success: true,
-      products,
-      searchQuery,
-      pagination: {
-        page: Number(page),
-        limit: Number(limit),
-        total,
-        totalPages,
-        hasNext: page < totalPages,
-        hasPrev: page > 1,
-      },
-    });
-  } catch (error) {
-    console.error("Error searching products:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error while searching products",
     });
   }
 });

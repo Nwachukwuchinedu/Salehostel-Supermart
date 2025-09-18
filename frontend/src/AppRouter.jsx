@@ -30,7 +30,7 @@ import AdminList from './admin/pages/users/AdminList';
 import ProductCatalog from './customer/pages/shop/ProductCatalog';
 import ProductPage from './customer/pages/shop/ProductPage';
 import CategoryPage from './customer/pages/shop/CategoryPage';
-import SearchResults from './customer/pages/shop/SearchResults';
+
 import Cart from './customer/pages/cart/Cart';
 import Checkout from './customer/pages/checkout/Checkout';
 import OrderConfirmation from './customer/pages/checkout/OrderConfirmation';
@@ -114,9 +114,7 @@ const AppRouter = () => {
         <Route path="/" element={<CustomerLayout />}>
           <Route index element={<ProductCatalog />} />
           <Route path="product/:id" element={<ProductPage />} />
-          <Route path="category/:id" element={<CategoryPage />} />
           <Route path="categories/:slug" element={<CategoryPage />} />
-          <Route path="search" element={<SearchResults />} />
           <Route path="cart" element={<Cart />} />
           <Route path="checkout" element={<Checkout />} />
           <Route path="order-confirmation" element={<OrderConfirmation />} />

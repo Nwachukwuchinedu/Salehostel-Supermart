@@ -49,6 +49,12 @@ class ApiService {
     }
   }
 
+  // SEARCH request
+  async searchProducts(query, filters = {}) {
+    const params = { q: query, ...filters };
+    return this.get("/public/products/search", params);
+  }
+
   // GET request
   async get(endpoint, params = {}) {
     const queryString = new URLSearchParams(params).toString();

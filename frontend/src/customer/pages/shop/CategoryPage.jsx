@@ -5,8 +5,8 @@ import ProductCard from '../../components/shop/ProductCard';
 import api from '../../../shared/services/api';
 
 const CategoryPage = () => {
-  const { id, slug } = useParams();
-  const categoryKey = id || slug;
+  const { slug } = useParams();
+  
   const [viewMode, setViewMode] = useState('grid');
   const [sortBy, setSortBy] = useState('featured');
   const [showFilters, setShowFilters] = useState(false);
@@ -15,7 +15,7 @@ const CategoryPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({ brands: [], priceRanges: [], ratings: [] });
-  const [debug, setDebug] = useState({ slug, id, resolvedCategoryId: '', logs: [] });
+  const [debug, setDebug] = useState({ slug, resolvedCategoryId: '', logs: [] });
 
   const pushLog = (label, payload) => {
     // eslint-disable-next-line no-console
@@ -24,9 +24,15 @@ const CategoryPage = () => {
   };
 
   useEffect(() => {
+    // Only fetch data when component mounts or slug changes
+    pushLog('CategoryPage component mounted or updated', { 
+      slug, 
+      windowLocation: window.location.href,
+      pathname: window.location.pathname
+    });
     fetchCategoryData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryKey]);
+  }, [slug]); // Only re-run when slug changes
 
   const fetchCategoryData = async () => {
     try {
@@ -34,51 +40,111 @@ const CategoryPage = () => {
       setProducts([]);
       setError(null);
 
-      let resolvedCategory = null;
-      if (slug) {
-        const catUrl = `/public/categories/${slug}`;
-        pushLog('GET ' + catUrl, null);
-        const catRes = await api.get(catUrl);
-        pushLog('Category by slug response', catRes.data);
-        resolvedCategory = catRes.data?.category || null;
-      }
-
-      if (resolvedCategory) {
-        setCategory(resolvedCategory);
-      }
-
-      const categoryId = resolvedCategory?._id || id || '';
-      setDebug(prev => ({ ...prev, resolvedCategoryId: categoryId }));
-      pushLog('Resolved categoryId', categoryId);
-      if (!categoryId) {
-        pushLog('Missing categoryId, aborting products fetch', null);
+      pushLog('fetchCategoryData called. Current slug:', slug);
+      
+      // Check if slug is valid
+      if (!slug || typeof slug !== 'string' || slug.trim() === '') {
+        pushLog('Invalid slug provided:', slug);
+        setError('Invalid category URL');
         setLoading(false);
         return;
       }
 
-      const prodUrl = '/public/products';
-      const params = { category: categoryId, limit: 48 };
-      pushLog('GET ' + prodUrl + ' params:', params);
-      const productsResponse = await api.get(prodUrl, { params });
-      pushLog('Products by category response', productsResponse.data);
-      const productsData = productsResponse.data?.products || [];
-      setProducts(productsData);
+      let resolvedCategory = null;
+      let categoryId = '';
 
-      const uniqueBrands = [...new Set(productsData.map(p => p.brand).filter(Boolean))];
-      setFilters({
-        brands: uniqueBrands,
-        priceRanges: [
-          { label: 'Under ₦50', min: 0, max: 50 },
-          { label: '₦50 - ₦100', min: 50, max: 100 },
-          { label: '₦100 - ₦500', min: 100, max: 500 },
-          { label: 'Over ₦500', min: 500, max: Infinity }
-        ],
-        ratings: [4, 3, 2, 1]
-      });
+      // Try to get category by slug first
+      if (slug) {
+        try {
+          const catUrl = `/public/categories/${slug}`;
+          pushLog('Making request to: ' + catUrl, null);
+          const catRes = await api.get(catUrl);
+          pushLog('Full category response:', catRes);
+          pushLog('typeof catRes:', typeof catRes);
+          pushLog('catRes keys:', Object.keys(catRes || {}));
+          
+          // Log the exact structure
+          if (catRes && typeof catRes === 'object') {
+            pushLog('catRes.category:', catRes.category);
+            pushLog('catRes.data:', catRes.data);
+            if (catRes.data) {
+              pushLog('catRes.data.category:', catRes.data.category);
+            }
+          }
+          
+          // Handle the response structure correctly
+          // API service returns the parsed JSON directly
+          resolvedCategory = catRes?.category || (catRes?.data?.category) || null;
+          pushLog('resolvedCategory:', resolvedCategory);
+          
+          if (resolvedCategory) {
+            categoryId = resolvedCategory._id || resolvedCategory.id || '';
+            setCategory(resolvedCategory);
+          } else {
+            pushLog('Category not found in response. Response structure:', catRes);
+          }
+        } catch (slugError) {
+          pushLog('Error fetching category by slug. Error details:', slugError);
+          pushLog('Error type:', typeof slugError);
+          if (slugError && typeof slugError === 'object') {
+            pushLog('Error response:', slugError.response);
+            pushLog('Error message:', slugError.message);
+          }
+        }
+      }
+
+      setDebug(prev => ({ ...prev, resolvedCategoryId: categoryId }));
+      pushLog('Final resolved categoryId:', categoryId);
+
+      // Fetch products if we have a category ID
+      if (categoryId) {
+        // Use the correct endpoint for products by category
+        const prodUrl = `/public/products/category/${categoryId}`;
+        pushLog('Making products request to: ' + prodUrl, null);
+        const productsResponse = await api.get(prodUrl);
+        pushLog('Full products response:', productsResponse);
+        pushLog('typeof productsResponse:', typeof productsResponse);
+        pushLog('productsResponse keys:', Object.keys(productsResponse || {}));
+        
+        // Log the exact structure
+        if (productsResponse && typeof productsResponse === 'object') {
+          pushLog('productsResponse.products:', productsResponse.products);
+          pushLog('productsResponse.data:', productsResponse.data);
+          if (productsResponse.data) {
+            pushLog('productsResponse.data.products:', productsResponse.data.products);
+          }
+        }
+        
+        // Handle the response structure correctly
+        // API service returns the parsed JSON directly
+        const productsData = productsResponse?.products || (productsResponse?.data?.products) || [];
+        pushLog('Final productsData:', productsData);
+        pushLog('Products count:', productsData.length);
+        setProducts(productsData);
+
+        const uniqueBrands = [...new Set(productsData.map(p => p.brand).filter(Boolean))];
+        setFilters({
+          brands: uniqueBrands,
+          priceRanges: [
+            { label: 'Under ₦50', min: 0, max: 50 },
+            { label: '₦50 - ₦100', min: 50, max: 100 },
+            { label: '₦100 - ₦500', min: 100, max: 500 },
+            { label: 'Over ₦500', min: 500, max: Infinity }
+          ],
+          ratings: [4, 3, 2, 1]
+        });
+      } else {
+        pushLog('Missing categoryId, aborting products fetch. slug was:', slug);
+      }
 
       setError(null);
     } catch (err) {
-      pushLog('Error fetching category/products', err?.response?.data || err?.message || err);
+      pushLog('Error in fetchCategoryData. Error details:', err);
+      pushLog('Error type:', typeof err);
+      if (err && typeof err === 'object') {
+        pushLog('Error response:', err.response);
+        pushLog('Error message:', err.message);
+      }
       setError('Failed to load category data. Please try again.');
     } finally {
       setLoading(false);
@@ -89,7 +155,6 @@ const CategoryPage = () => {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-4">
-          <div className="text-xs text-gray-500">Debug: slug={slug} id={id} resolvedId={debug.resolvedCategoryId}</div>
           <button className="customer-btn-secondary" onClick={fetchCategoryData}>Retry</button>
         </div>
         <div className="flex items-center justify-center h-64">
@@ -103,7 +168,6 @@ const CategoryPage = () => {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="customer-glass-card p-8 text-center">
-          <div className="text-xs text-gray-500 mb-2">Debug: slug={slug} id={id} resolvedId={debug.resolvedCategoryId}</div>
           <p className="text-red-500 mb-4">{error}</p>
           <button onClick={fetchCategoryData} className="customer-btn-primary">Retry</button>
         </div>
@@ -115,7 +179,6 @@ const CategoryPage = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Debug panel */}
       <div className="mb-4 text-xs text-gray-500">
-        <div>Debug: slug={slug} id={id} resolvedId={debug.resolvedCategoryId} • products={products.length}</div>
       </div>
 
       {/* Breadcrumbs */}

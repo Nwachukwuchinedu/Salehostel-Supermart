@@ -4,7 +4,7 @@ import Layout from "./components/layout/Layout";
 import Home from "./pages/public/Home";
 import ProductCatalog from "./pages/public/ProductCatalog";
 import ProductDetails from "./pages/public/ProductDetails";
-import CategoryPage from "./pages/public/CategoryPage";
+import CategoryPage from "./customer/pages/shop/CategoryPage";
 import Cart from "./pages/public/Cart";
 import Checkout from "./pages/public/Checkout";
 import Login from "./pages/auth/Login";
@@ -25,7 +25,7 @@ function App() {
           <Route index element={<Home />} />
           <Route path="products" element={<ProductCatalog />} />
           <Route path="product/:id" element={<ProductDetails />} />
-          <Route path="categories/:categorySlug" element={<CategoryPage />} />
+          <Route path="categories/:slug" element={<CategoryPage />} />
           <Route path="search" element={<ProductCatalog />} />
           <Route path="cart" element={<Cart />} />
           <Route path="checkout" element={<Checkout />} />
