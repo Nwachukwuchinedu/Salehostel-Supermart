@@ -7,11 +7,11 @@ const {
   cancelSupply,
   getSupplyStats
 } = require('../../controllers/admin/adminSupplyController');
-const { protect, authorize } = require('../../middleware/auth');
+const { protect, admin } = require('../../middleware/adminAuth');
 
 // All routes are protected and require admin role
 router.use(protect);
-router.use(authorize('admin'));
+router.use(admin);
 
 // @route   GET /api/admin/supplies/stats
 // @desc    Get supply statistics (Admin view)
