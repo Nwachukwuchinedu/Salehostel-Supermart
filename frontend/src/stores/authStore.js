@@ -96,7 +96,7 @@ const useAuthStore = create(
         set({ loading: true, error: null });
 
         try {
-          const { data: response } = await api.put('/auth/profile', profileData);
+          const response = await api.put('/auth/profile', profileData);
           
           if (response.success) {
             set({
@@ -130,7 +130,7 @@ const useAuthStore = create(
         set({ loading: true, error: null });
         
         try {
-          const { data: response } = await api.get('/auth/profile');
+          const response = await api.get('/auth/profile');
           
           if (response.success) {
             set({
