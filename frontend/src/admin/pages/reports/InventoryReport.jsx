@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Package, TrendingUp, AlertTriangle, Filter, Download, Printer } from 'lucide-react';
+import adminApi from '../../../shared/services/adminApi';
 
 const InventoryReport = () => {
   const [dateRange, setDateRange] = useState({ start: '2023-06-01', end: '2023-06-30' });
-  
+  const [exporting, setExporting] = useState(false);
+
   // Sample data for inventory levels
   const inventoryData = [
     { name: 'Electronics', current: 120, reserved: 30, available: 90 },
@@ -13,7 +15,7 @@ const InventoryReport = () => {
     { name: 'Books', current: 320, reserved: 40, available: 280 },
     { name: 'Toys', current: 90, reserved: 10, available: 80 },
   ];
-  
+
   // Sample data for stock movement
   const stockMovementData = [
     { date: 'Jun 1', received: 45, sold: 32, adjusted: 5 },
@@ -23,7 +25,7 @@ const InventoryReport = () => {
     { date: 'Jun 20', received: 40, sold: 38, adjusted: -1 },
     { date: 'Jun 25', received: 55, sold: 62, adjusted: 2 },
   ];
-  
+
   // Sample data for low stock items
   const lowStockData = [
     { name: 'iPhone 15 Pro', stock: 3, minStock: 5 },
@@ -31,8 +33,29 @@ const InventoryReport = () => {
     { name: 'AirPods Pro', stock: 0, minStock: 10 },
     { name: 'iPad Air', stock: 4, minStock: 10 },
   ];
-  
+
   const COLORS = ['#1e40af', '#8b5cf6', '#059669'];
+
+  const exportCsv = async () => {
+    try {
+      setExporting(true);
+      const res = await adminApi.getInventoryReport({});
+      const rows = (res.data || []).map(r => [r.name, r.category, r.totalStock, r.totalValue, r.lowStockUnits]);
+      const header = ['Product', 'Category', 'Total Stock', 'Total Value', 'Low-Stock Units'];
+      const csv = [header, ...rows].map(r => r.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `inventory-report-${new Date().toISOString().slice(0, 10)}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Failed to export inventory report', e);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <div className="p-8">
@@ -47,9 +70,9 @@ const InventoryReport = () => {
             <Filter className="w-5 h-5 mr-2" />
             Filter
           </button>
-          <button className="admin-btn-secondary">
+          <button className="admin-btn-secondary" onClick={exportCsv} disabled={exporting}>
             <Download className="w-5 h-5 mr-2" />
-            Export
+            {exporting ? 'Exporting...' : 'Export CSV'}
           </button>
           <button className="admin-btn-secondary">
             <Printer className="w-5 h-5 mr-2" />
@@ -57,26 +80,26 @@ const InventoryReport = () => {
           </button>
         </div>
       </div>
-      
+
       {/* Date Range Selector */}
       <div className="admin-glass-card p-6 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="form-label">Start Date</label>
-            <input 
-              type="date" 
+            <input
+              type="date"
               className="admin-input w-full"
               value={dateRange.start}
-              onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
+              onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
             />
           </div>
           <div>
             <label className="form-label">End Date</label>
-            <input 
-              type="date" 
+            <input
+              type="date"
               className="admin-input w-full"
               value={dateRange.end}
-              onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
+              onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
             />
           </div>
           <div className="flex items-end">
@@ -84,7 +107,7 @@ const InventoryReport = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="admin-stats-card">
@@ -97,7 +120,7 @@ const InventoryReport = () => {
           <div className="admin-stats-number">2,847</div>
           <div className="admin-stats-label">All inventory items</div>
         </div>
-        
+
         <div className="admin-stats-card">
           <div className="flex items-center justify-between mb-4">
             <div className="admin-stats-icon bg-green-100 text-green-600">
@@ -108,7 +131,7 @@ const InventoryReport = () => {
           <div className="admin-stats-number">2,156</div>
           <div className="admin-stats-label">Available items</div>
         </div>
-        
+
         <div className="admin-stats-card">
           <div className="flex items-center justify-between mb-4">
             <div className="admin-stats-icon bg-amber-100 text-amber-600">
@@ -119,7 +142,7 @@ const InventoryReport = () => {
           <div className="admin-stats-number">42</div>
           <div className="admin-stats-label">Items below threshold</div>
         </div>
-        
+
         <div className="admin-stats-card">
           <div className="flex items-center justify-between mb-4">
             <div className="admin-stats-icon bg-purple-100 text-purple-600">
@@ -131,7 +154,7 @@ const InventoryReport = () => {
           <div className="admin-stats-label">Product categories</div>
         </div>
       </div>
-      
+
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Inventory Levels Chart */}
@@ -146,13 +169,13 @@ const InventoryReport = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--admin-border)" />
                 <XAxis dataKey="name" stroke="var(--admin-gray-500)" />
                 <YAxis stroke="var(--admin-gray-500)" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'var(--admin-glass)', 
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--admin-glass)',
                     borderColor: 'var(--admin-border)',
                     backdropFilter: 'blur(20px)',
                     borderRadius: '0.5rem'
-                  }} 
+                  }}
                 />
                 <Legend />
                 <Bar dataKey="current" name="Current Stock" fill="var(--admin-primary)" />
@@ -162,7 +185,7 @@ const InventoryReport = () => {
             </ResponsiveContainer>
           </div>
         </div>
-        
+
         {/* Stock Movement Chart */}
         <div className="admin-glass-card p-6">
           <h3 className="text-lg font-semibold text-admin-gray-900 mb-6">Stock Movement</h3>
@@ -175,13 +198,13 @@ const InventoryReport = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--admin-border)" />
                 <XAxis dataKey="date" stroke="var(--admin-gray-500)" />
                 <YAxis stroke="var(--admin-gray-500)" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'var(--admin-glass)', 
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--admin-glass)',
                     borderColor: 'var(--admin-border)',
                     backdropFilter: 'blur(20px)',
                     borderRadius: '0.5rem'
-                  }} 
+                  }}
                 />
                 <Legend />
                 <Bar dataKey="received" name="Received" fill="var(--admin-success)" />
@@ -192,7 +215,7 @@ const InventoryReport = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Low Stock Items */}
       <div className="admin-glass-card p-6 mb-8">
         <h3 className="text-lg font-semibold text-admin-gray-900 mb-6">Low Stock Items</h3>
@@ -220,9 +243,8 @@ const InventoryReport = () => {
                   {item.minStock}
                 </div>
                 <div className="admin-table-cell">
-                  <span className={`status-badge ${
-                    item.stock === 0 ? 'status-danger' : 'status-warning'
-                  }`}>
+                  <span className={`status-badge ${item.stock === 0 ? 'status-danger' : 'status-warning'
+                    }`}>
                     {item.stock === 0 ? 'Out of Stock' : 'Low Stock'}
                   </span>
                 </div>

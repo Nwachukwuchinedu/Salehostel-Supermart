@@ -1,26 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AlertTriangle, Bell, BellOff, PackagePlus, ShoppingCart, Filter, Search } from 'lucide-react';
+import adminApi from '../../../shared/services/adminApi';
 
 const LowStockAlerts = () => {
-  const [alerts, setAlerts] = useState([
-    { id: 1, product: 'MacBook Pro 16"', sku: 'MBP16', category: 'Computers', currentStock: 3, minStock: 5, status: 'Low Stock', lastUpdated: '2023-06-14' },
-    { id: 2, product: 'AirPods Pro', sku: 'APP2023', category: 'Audio', currentStock: 0, minStock: 10, status: 'Out of Stock', lastUpdated: '2023-06-12' },
-    { id: 3, product: 'iPad Air', sku: 'IPDA2023', category: 'Tablets', currentStock: 2, minStock: 5, status: 'Critical', lastUpdated: '2023-06-10' },
-    { id: 4, product: 'Dell XPS 13', sku: 'DXPS13', category: 'Computers', currentStock: 1, minStock: 5, status: 'Critical', lastUpdated: '2023-06-05' },
-    { id: 5, product: 'Sony WH-1000XM5', sku: 'SWHXM5', category: 'Audio', currentStock: 4, minStock: 10, status: 'Low Stock', lastUpdated: '2023-06-01' },
-  ]);
+  const [alerts, setAlerts] = useState([]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
+  useEffect(() => {
+    let isMounted = true;
+    const loadAlerts = async () => {
+      try {
+        const res = await adminApi.getLowStockAlerts();
+        const products = res.data?.products || [];
+        // Expand per unit
+        const flat = products.flatMap(p =>
+          p.lowStockUnits.map(u => ({
+            id: `${p._id}-${u.unitType}`,
+            product: `${p.name} (${u.unitType})`,
+            sku: p._id?.slice(-6),
+            category: '—',
+            currentStock: u.stockQuantity,
+            minStock: u.minStockLevel,
+            status: u.stockQuantity === 0 ? 'Out of Stock' : 'Low Stock',
+            lastUpdated: new Date().toISOString()
+          }))
+        );
+        if (isMounted) setAlerts(flat);
+      } catch (e) {
+        console.error('Failed loading low stock alerts', e);
+      }
+    };
+    loadAlerts();
+    const interval = setInterval(loadAlerts, 60000);
+    return () => { isMounted = false; clearInterval(interval); };
+  }, []);
+
+  const exportCsv = () => {
+    const header = ['Product', 'SKU', 'Current Stock', 'Min Stock', 'Status', 'Last Updated'];
+    const rows = alerts.map(a => [a.product, a.sku, a.currentStock, a.minStock, a.status, a.lastUpdated]);
+    const csv = [header, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `low-stock-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const filteredAlerts = alerts.filter(alert => {
-    const matchesSearch = alert.product.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          alert.sku.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch = alert.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      alert.sku.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesCategory = categoryFilter ? alert.category === categoryFilter : true;
     const matchesStatus = statusFilter ? alert.status === statusFilter : true;
-    
+
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
@@ -34,7 +71,7 @@ const LowStockAlerts = () => {
   };
 
   const snoozeAlert = (id) => {
-    setAlerts(alerts.map(alert => 
+    setAlerts(alerts.map(alert =>
       alert.id === id ? { ...alert, snoozed: true } : alert
     ));
   };
@@ -58,6 +95,9 @@ const LowStockAlerts = () => {
           <p className="text-admin-gray-600">Monitor and manage inventory alerts</p>
         </div>
         <div className="flex gap-3">
+          <button className="admin-btn-secondary" onClick={exportCsv}>
+            Export CSV
+          </button>
           <button className="admin-btn-secondary">
             <Bell className="w-5 h-5 mr-2" />
             Enable Notifications
@@ -110,15 +150,15 @@ const LowStockAlerts = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-admin-gray-400 w-5 h-5" />
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Search alerts..."
               className="admin-input pl-10 w-full"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <select 
+          <select
             className="admin-select"
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
@@ -128,7 +168,7 @@ const LowStockAlerts = () => {
               <option key={category} value={category}>{category}</option>
             ))}
           </select>
-          <select 
+          <select
             className="admin-select"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -171,18 +211,16 @@ const LowStockAlerts = () => {
               </div>
               <div className="admin-table-cell">
                 <div className="flex items-center gap-2">
-                  <span className={`font-semibold ${
-                    alert.currentStock === 0 ? 'text-red-600' : 'text-amber-600'
-                  }`}>
+                  <span className={`font-semibold ${alert.currentStock === 0 ? 'text-red-600' : 'text-amber-600'
+                    }`}>
                     {alert.currentStock}
                   </span>
                   <span className="text-gray-500">/ {alert.minStock}</span>
                   <div className="w-24 bg-gray-200 rounded-full h-2">
-                    <div 
-                      className={`h-2 rounded-full ${
-                        alert.currentStock === 0 ? 'bg-red-500' : 
+                    <div
+                      className={`h-2 rounded-full ${alert.currentStock === 0 ? 'bg-red-500' :
                         alert.currentStock <= alert.minStock ? 'bg-amber-500' : 'bg-green-500'
-                      }`}
+                        }`}
                       style={{ width: `${(alert.currentStock / alert.minStock) * 100}%` }}
                     ></div>
                   </div>
@@ -198,20 +236,20 @@ const LowStockAlerts = () => {
               </div>
               <div className="admin-table-cell">
                 <div className="flex items-center gap-2">
-                  <button 
+                  <button
                     className="p-2 text-admin-gray-400 hover:text-admin-primary"
                     title="Create Purchase Order"
                   >
                     <ShoppingCart className="w-4 h-4" />
                   </button>
-                  <button 
+                  <button
                     className="p-2 text-admin-gray-400 hover:text-amber-600"
                     title="Snooze Alert"
                     onClick={() => snoozeAlert(alert.id)}
                   >
                     <Bell className="w-4 h-4" />
                   </button>
-                  <button 
+                  <button
                     className="p-2 text-admin-gray-400 hover:text-red-600"
                     title="Dismiss Alert"
                     onClick={() => dismissAlert(alert.id)}

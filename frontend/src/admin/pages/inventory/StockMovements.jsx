@@ -1,29 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowUpDown, Package, ShoppingCart, PackagePlus, PackageMinus, Filter, Calendar, Search } from 'lucide-react';
+import adminApi from '../../../shared/services/adminApi';
 
 const StockMovements = () => {
-  const [movements, setMovements] = useState([
-    { id: 1, product: 'iPhone 15 Pro Max', sku: 'IPH15PM', type: 'IN', quantity: 20, date: '2023-06-15', user: 'John Admin', reference: 'PO-2023-001' },
-    { id: 2, product: 'MacBook Pro 16"', sku: 'MBP16', type: 'OUT', quantity: 5, date: '2023-06-14', user: 'Sarah Manager', reference: 'SO-2023-045' },
-    { id: 3, product: 'AirPods Pro', sku: 'APP2023', type: 'IN', quantity: 50, date: '2023-06-12', user: 'Mike Supervisor', reference: 'PO-2023-002' },
-    { id: 4, product: 'Samsung Galaxy S24', sku: 'SGS24', type: 'OUT', quantity: 8, date: '2023-06-10', user: 'Lisa Sales', reference: 'SO-2023-044' },
-    { id: 5, product: 'iPad Air', sku: 'IPDA2023', type: 'IN', quantity: 15, date: '2023-06-08', user: 'John Admin', reference: 'PO-2023-003' },
-    { id: 6, product: 'Dell XPS 13', sku: 'DXPS13', type: 'OUT', quantity: 3, date: '2023-06-05', user: 'Sarah Manager', reference: 'SO-2023-043' },
-    { id: 7, product: 'Sony WH-1000XM5', sku: 'SWHXM5', type: 'IN', quantity: 25, date: '2023-06-01', user: 'Mike Supervisor', reference: 'PO-2023-004' },
-  ]);
+  const [movements, setMovements] = useState([]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [dateFilter, setDateFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
 
+  useEffect(() => {
+    const loadMovements = async () => {
+      try {
+        const res = await adminApi.getStockMovements();
+        const data = res.data?.movements || [];
+        const rows = data.map(m => ({
+          id: m._id,
+          product: m.product?.name || 'Product',
+          sku: m.product?._id?.slice(-6) || '',
+          type: (m.type || '').toUpperCase().includes('OUT') ? 'OUT' : (m.type || '').toUpperCase().includes('IN') ? 'IN' : 'ADJUST',
+          quantity: m.quantity,
+          date: new Date(m.createdAt).toLocaleDateString(),
+          user: `${m.createdBy?.firstName || ''} ${m.createdBy?.lastName || ''}`.trim() || '—',
+          reference: `${m.referenceType || ''}-${String(m.referenceId || '').slice(-6)}`
+        }));
+        setMovements(rows);
+      } catch (e) {
+        console.error('Failed loading stock movements', e);
+      }
+    };
+    loadMovements();
+  }, []);
+
   const filteredMovements = movements.filter(movement => {
-    const matchesSearch = movement.product.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          movement.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          movement.reference.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch = movement.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      movement.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      movement.reference.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesDate = dateFilter ? movement.date === dateFilter : true;
     const matchesType = typeFilter ? movement.type === typeFilter : true;
-    
+
     return matchesSearch && matchesDate && matchesType;
   });
 
@@ -70,8 +86,8 @@ const StockMovements = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-admin-gray-400 w-5 h-5" />
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Search movements..."
               className="admin-input pl-10 w-full"
               value={searchTerm}
@@ -80,14 +96,14 @@ const StockMovements = () => {
           </div>
           <div className="relative">
             <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-admin-gray-400 w-5 h-5" />
-            <input 
-              type="date" 
+            <input
+              type="date"
               className="admin-input pl-10 w-full"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
             />
           </div>
-          <select 
+          <select
             className="admin-select"
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
@@ -133,9 +149,8 @@ const StockMovements = () => {
                 </div>
               </div>
               <div className="admin-table-cell">
-                <span className={`font-semibold ${
-                  movement.type === 'IN' ? 'text-green-600' : 'text-red-600'
-                }`}>
+                <span className={`font-semibold ${movement.type === 'IN' ? 'text-green-600' : 'text-red-600'
+                  }`}>
                   {movement.type === 'OUT' ? '-' : '+'}{movement.quantity}
                 </span>
               </div>

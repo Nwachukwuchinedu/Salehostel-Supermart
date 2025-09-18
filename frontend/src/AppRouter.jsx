@@ -14,6 +14,7 @@ import PurchaseList from './admin/pages/purchases/PurchaseList';
 import CreatePurchase from './admin/pages/purchases/CreatePurchase';
 import PurchaseDetails from './admin/pages/purchases/PurchaseDetails';
 import SupplierManagement from './admin/pages/purchases/SupplierManagement';
+import Supplies from './admin/pages/purchases/Supplies';
 import OrderList from './admin/pages/orders/OrderList';
 import OrderDetails from './admin/pages/orders/OrderDetails';
 import OrderFulfillment from './admin/pages/orders/OrderFulfillment';
@@ -75,6 +76,7 @@ const AppRouter = () => {
             <Route path="create" element={<CreatePurchase />} />
             <Route path=":id" element={<PurchaseDetails />} />
             <Route path="suppliers" element={<SupplierManagement />} />
+            <Route path="supplies" element={<Supplies />} />
           </Route>
 
           {/* Order Management */}
@@ -113,6 +115,7 @@ const AppRouter = () => {
           <Route index element={<ProductCatalog />} />
           <Route path="product/:id" element={<ProductPage />} />
           <Route path="category/:id" element={<CategoryPage />} />
+          <Route path="categories/:slug" element={<CategoryPage />} />
           <Route path="search" element={<SearchResults />} />
           <Route path="cart" element={<Cart />} />
           <Route path="checkout" element={<Checkout />} />
@@ -131,7 +134,7 @@ const AppRouter = () => {
           {/* Customer Order Tracking Routes */}
           <Route path="track-order" element={<TrackOrder />} />
         </Route>
-        
+
         {/* 404 Page */}
         <Route path="*" element={<NotFound />} />
       </Routes>

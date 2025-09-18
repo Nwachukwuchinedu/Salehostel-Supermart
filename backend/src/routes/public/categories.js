@@ -8,7 +8,7 @@ const Category = require("../../models/Category");
 router.get("/", async (req, res) => {
   try {
     const categories = await Category.find({ isActive: true })
-      .select("name description image slug")
+      .select("_id name description image slug")
       .sort({ name: 1 });
 
     res.json({
@@ -33,7 +33,7 @@ router.get("/:slug", async (req, res) => {
     const category = await Category.findOne({
       slug: req.params.slug,
       isActive: true,
-    }).select("name description image slug");
+    }).select("_id name description image slug");
 
     if (!category) {
       return res.status(404).json({

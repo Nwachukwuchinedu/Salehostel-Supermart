@@ -1,61 +1,91 @@
-import React, { useState } from 'react';
-import { PackagePlus, PackageMinus, Package, Plus, Minus, Save, X } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { PackagePlus, PackageMinus, Package, Plus, Minus, Save, X, Search } from 'lucide-react';
+import adminApi from '../../../shared/services/adminApi';
+import api from '../../../shared/services/api';
 
 const StockAdjustments = () => {
-  const [adjustments, setAdjustments] = useState([
-    { id: 1, product: 'iPhone 15 Pro Max', sku: 'IPH15PM', currentStock: 15, newStock: 15, difference: 0, reason: 'Initial stock' },
-    { id: 2, product: 'MacBook Pro 16"', sku: 'MBP16', currentStock: 3, newStock: 5, difference: 2, reason: 'Received shipment' },
-    { id: 3, product: 'AirPods Pro', sku: 'APP2023', currentStock: 0, newStock: 0, difference: 0, reason: 'Out of stock' },
-  ]);
+  const [adjustments, setAdjustments] = useState([]);
+
+  const [products, setProducts] = useState([]);
+  const [query, setQuery] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedUnit, setSelectedUnit] = useState('');
 
   const [newAdjustment, setNewAdjustment] = useState({
-    product: '',
-    sku: '',
     currentStock: 0,
     adjustment: 0,
     reason: ''
   });
 
   const [isAdding, setIsAdding] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleAdjustmentChange = (field, value) => {
-    setNewAdjustment(prev => ({
-      ...prev,
-      [field]: value,
-      newStock: field === 'adjustment' ? prev.currentStock + parseInt(value || 0) : prev.newStock,
-      difference: field === 'adjustment' ? parseInt(value || 0) : prev.difference
-    }));
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await api.get('/public/products');
+        setProducts(res.data?.products || []);
+      } catch (e) {
+        console.error('Failed to load products', e);
+      }
+    };
+    load();
+  }, []);
+
+  const filteredProducts = useMemo(() => {
+    const q = query.toLowerCase();
+    return products.filter(p => p.name.toLowerCase().includes(q));
+  }, [products, query]);
+
+  const onSelectProduct = (p) => {
+    setSelectedProduct(p);
+    setSelectedUnit('');
+    setNewAdjustment({ currentStock: 0, adjustment: 0, reason: '' });
   };
 
-  const addAdjustment = () => {
-    if (newAdjustment.product && newAdjustment.reason) {
-      const adjustment = {
-        id: adjustments.length + 1,
-        ...newAdjustment,
-        newStock: newAdjustment.currentStock + newAdjustment.adjustment,
-        difference: newAdjustment.adjustment
-      };
-      
-      setAdjustments([adjustment, ...adjustments]);
-      setNewAdjustment({
-        product: '',
-        sku: '',
-        currentStock: 0,
-        adjustment: 0,
-        reason: ''
+  const onSelectUnit = (u) => {
+    setSelectedUnit(u.unitType);
+    setNewAdjustment(prev => ({ ...prev, currentStock: u.stockQuantity }));
+  };
+
+  const addAdjustment = async () => {
+    if (!selectedProduct || !selectedUnit) return;
+    const newQty = (newAdjustment.currentStock || 0) + (newAdjustment.adjustment || 0);
+    if (newQty < 0) return;
+    if (!newAdjustment.reason) return;
+
+    try {
+      setLoading(true);
+      await adminApi.adjustStock({
+        productId: selectedProduct._id,
+        unitType: selectedUnit,
+        quantity: newQty,
+        reason: newAdjustment.reason,
       });
+      setAdjustments([{
+        id: Date.now(),
+        product: selectedProduct.name,
+        sku: selectedProduct._id.slice(-6),
+        currentStock: newAdjustment.currentStock,
+        newStock: newQty,
+        difference: newQty - (newAdjustment.currentStock || 0),
+        reason: newAdjustment.reason,
+      }, ...adjustments]);
       setIsAdding(false);
+      setSelectedProduct(null);
+      setSelectedUnit('');
+      setNewAdjustment({ currentStock: 0, adjustment: 0, reason: '' });
+    } catch (e) {
+      console.error('Failed to adjust stock', e);
+    } finally {
+      setLoading(false);
     }
   };
 
   const cancelAdjustment = () => {
-    setNewAdjustment({
-      product: '',
-      sku: '',
-      currentStock: 0,
-      adjustment: 0,
-      reason: ''
-    });
+    setSelectedProduct(null);
+    setSelectedUnit('');
+    setNewAdjustment({ currentStock: 0, adjustment: 0, reason: '' });
     setIsAdding(false);
   };
 
@@ -67,7 +97,7 @@ const StockAdjustments = () => {
           <h1 className="text-3xl font-bold text-admin-gray-900">Stock Adjustments</h1>
           <p className="text-admin-gray-600">Manually adjust inventory levels and track changes</p>
         </div>
-        <button 
+        <button
           className="admin-btn-primary"
           onClick={() => setIsAdding(true)}
         >
@@ -80,68 +110,83 @@ const StockAdjustments = () => {
       {isAdding && (
         <div className="admin-glass-card p-6 mb-8">
           <h3 className="text-lg font-semibold text-admin-gray-900 mb-4">Add New Stock Adjustment</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="lg:col-span-2">
-              <label className="form-label">Product</label>
-              <input 
-                type="text" 
-                className="admin-input"
-                placeholder="Product name"
-                value={newAdjustment.product}
-                onChange={(e) => handleAdjustmentChange('product', e.target.value)}
+
+          {/* Product Search */}
+          <div className="mb-4">
+            <label className="form-label">Product</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-admin-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                className="admin-input pl-10 w-full"
+                placeholder="Search product by name"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
               />
             </div>
-            <div>
-              <label className="form-label">SKU</label>
-              <input 
-                type="text" 
-                className="admin-input"
-                placeholder="SKU"
-                value={newAdjustment.sku}
-                onChange={(e) => handleAdjustmentChange('sku', e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="form-label">Current Stock</label>
-              <input 
-                type="number" 
-                className="admin-input"
-                placeholder="0"
-                value={newAdjustment.currentStock}
-                onChange={(e) => handleAdjustmentChange('currentStock', parseInt(e.target.value) || 0)}
-              />
-            </div>
-            <div>
-              <label className="form-label">Adjustment</label>
-              <div className="flex gap-2">
-                <input 
-                  type="number" 
-                  className="admin-input flex-1"
-                  placeholder="0"
-                  value={newAdjustment.adjustment}
-                  onChange={(e) => handleAdjustmentChange('adjustment', parseInt(e.target.value) || 0)}
-                />
+            {query && (
+              <div className="mt-2 max-h-48 overflow-auto border rounded-lg">
+                {filteredProducts.slice(0, 10).map(p => (
+                  <button key={p._id} className="w-full text-left px-3 py-2 hover:bg-gray-50" onClick={() => onSelectProduct(p)}>
+                    {p.name}
+                  </button>
+                ))}
+                {filteredProducts.length === 0 && <div className="px-3 py-2 text-sm text-gray-500">No products found</div>}
+              </div>
+            )}
+          </div>
+
+          {/* Unit Selection */}
+          {selectedProduct && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="form-label">Unit</label>
+                <select className="admin-select w-full" value={selectedUnit} onChange={(e) => onSelectUnit(selectedProduct.units.find(u => u.unitType === e.target.value) || { unitType: '', stockQuantity: 0 })}>
+                  <option value="">Select unit</option>
+                  {selectedProduct.units.map(u => (
+                    <option key={u.unitType} value={u.unitType}>{u.unitType}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="form-label">Current Stock</label>
+                <input type="number" className="admin-input" value={newAdjustment.currentStock} readOnly />
               </div>
             </div>
-            <div className="lg:col-span-4">
+          )}
+
+          {/* Adjustment Inputs */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              <label className="form-label">Adjustment</label>
+              <input
+                type="number"
+                className="admin-input"
+                placeholder="0"
+                value={newAdjustment.adjustment}
+                onChange={(e) => setNewAdjustment(prev => ({ ...prev, adjustment: parseInt(e.target.value) || 0 }))}
+              />
+            </div>
+            <div className="lg:col-span-2">
               <label className="form-label">Reason for Adjustment</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="admin-input"
                 placeholder="Enter reason for adjustment"
                 value={newAdjustment.reason}
-                onChange={(e) => handleAdjustmentChange('reason', e.target.value)}
+                onChange={(e) => setNewAdjustment(prev => ({ ...prev, reason: e.target.value }))}
               />
             </div>
             <div className="flex items-end gap-2">
-              <button 
+              <button
                 className="admin-btn-primary flex-1"
                 onClick={addAdjustment}
+                disabled={loading || !selectedProduct || !selectedUnit || !newAdjustment.reason}
               >
                 <Save className="w-5 h-5 mr-2" />
                 Save
               </button>
-              <button 
+              <button
                 className="admin-btn-secondary p-3"
                 onClick={cancelAdjustment}
               >
@@ -177,18 +222,16 @@ const StockAdjustments = () => {
                 {adjustment.currentStock}
               </div>
               <div className="admin-table-cell">
-                <span className={`font-semibold ${
-                  adjustment.difference > 0 ? 'text-green-600' : 
-                  adjustment.difference < 0 ? 'text-red-600' : 'text-gray-600'
-                }`}>
+                <span className={`font-semibold ${adjustment.difference > 0 ? 'text-green-600' :
+                    adjustment.difference < 0 ? 'text-red-600' : 'text-gray-600'
+                  }`}>
                   {adjustment.difference > 0 ? '+' : ''}{adjustment.difference}
                 </span>
               </div>
               <div className="admin-table-cell">
-                <span className={`font-semibold ${
-                  adjustment.newStock > adjustment.currentStock ? 'text-green-600' : 
-                  adjustment.newStock < adjustment.currentStock ? 'text-red-600' : 'text-gray-600'
-                }`}>
+                <span className={`font-semibold ${adjustment.newStock > adjustment.currentStock ? 'text-green-600' :
+                    adjustment.newStock < adjustment.currentStock ? 'text-red-600' : 'text-gray-600'
+                  }`}>
                   {adjustment.newStock}
                 </span>
               </div>

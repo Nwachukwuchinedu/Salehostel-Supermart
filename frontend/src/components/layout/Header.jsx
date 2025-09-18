@@ -204,8 +204,8 @@ const Header = () => {
 
                 {/* Category Dropdown */}
                 <div className={`absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 transition-all duration-300 ${isCategoryDropdownOpen
-                    ? 'opacity-100 visible translate-y-0'
-                    : 'opacity-0 invisible -translate-y-2'
+                  ? 'opacity-100 visible translate-y-0'
+                  : 'opacity-0 invisible -translate-y-2'
                   }`}>
                   <div className="p-4">
                     <div className="grid grid-cols-1 gap-2">

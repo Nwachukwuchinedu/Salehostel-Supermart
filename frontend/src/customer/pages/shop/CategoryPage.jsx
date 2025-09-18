@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Filter, Grid, List, ChevronDown, Star, ShoppingCart } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import ProductCard from '../../components/shop/ProductCard';
-import customerApi from '../../../shared/services/customerApi';
+import api from '../../../shared/services/api';
 
 const CategoryPage = () => {
-  const { id } = useParams();
+  const { id, slug } = useParams();
+  const categoryKey = id || slug;
   const [viewMode, setViewMode] = useState('grid');
   const [sortBy, setSortBy] = useState('featured');
   const [showFilters, setShowFilters] = useState(false);
@@ -13,36 +14,56 @@ const CategoryPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filters, setFilters] = useState({
-    brands: [],
-    priceRanges: [],
-    ratings: []
-  });
+  const [filters, setFilters] = useState({ brands: [], priceRanges: [], ratings: [] });
+  const [debug, setDebug] = useState({ slug, id, resolvedCategoryId: '', logs: [] });
+
+  const pushLog = (label, payload) => {
+    // eslint-disable-next-line no-console
+    console.log(label, payload);
+    setDebug(prev => ({ ...prev, logs: [...prev.logs, { label, payload }] }));
+  };
 
   useEffect(() => {
     fetchCategoryData();
-  }, [id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryKey]);
 
   const fetchCategoryData = async () => {
     try {
       setLoading(true);
-      
-      // Fetch category details
-      // Note: We might need to adjust this based on the actual API response structure
-      const categoryResponse = await customerApi.getCategories();
-      const categories = categoryResponse.data || categoryResponse;
-      const foundCategory = Array.isArray(categories) 
-        ? categories.find(cat => cat._id === id || cat.id === id) 
-        : categories;
-      
-      setCategory(foundCategory || { name: 'Category', description: 'Products in this category', productCount: 0 });
-      
-      // Fetch products for this category
-      const productsResponse = await customerApi.getProducts({ category: id });
-      const productsData = productsResponse.data?.products || productsResponse.data || [];
+      setProducts([]);
+      setError(null);
+
+      let resolvedCategory = null;
+      if (slug) {
+        const catUrl = `/public/categories/${slug}`;
+        pushLog('GET ' + catUrl, null);
+        const catRes = await api.get(catUrl);
+        pushLog('Category by slug response', catRes.data);
+        resolvedCategory = catRes.data?.category || null;
+      }
+
+      if (resolvedCategory) {
+        setCategory(resolvedCategory);
+      }
+
+      const categoryId = resolvedCategory?._id || id || '';
+      setDebug(prev => ({ ...prev, resolvedCategoryId: categoryId }));
+      pushLog('Resolved categoryId', categoryId);
+      if (!categoryId) {
+        pushLog('Missing categoryId, aborting products fetch', null);
+        setLoading(false);
+        return;
+      }
+
+      const prodUrl = '/public/products';
+      const params = { category: categoryId, limit: 48 };
+      pushLog('GET ' + prodUrl + ' params:', params);
+      const productsResponse = await api.get(prodUrl, { params });
+      pushLog('Products by category response', productsResponse.data);
+      const productsData = productsResponse.data?.products || [];
       setProducts(productsData);
-      
-      // Set filters based on available data
+
       const uniqueBrands = [...new Set(productsData.map(p => p.brand).filter(Boolean))];
       setFilters({
         brands: uniqueBrands,
@@ -54,10 +75,10 @@ const CategoryPage = () => {
         ],
         ratings: [4, 3, 2, 1]
       });
-      
+
       setError(null);
     } catch (err) {
-      console.error('Failed to fetch category data:', err);
+      pushLog('Error fetching category/products', err?.response?.data || err?.message || err);
       setError('Failed to load category data. Please try again.');
     } finally {
       setLoading(false);
@@ -67,6 +88,10 @@ const CategoryPage = () => {
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-xs text-gray-500">Debug: slug={slug} id={id} resolvedId={debug.resolvedCategoryId}</div>
+          <button className="customer-btn-secondary" onClick={fetchCategoryData}>Retry</button>
+        </div>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-customer-primary"></div>
         </div>
@@ -78,13 +103,9 @@ const CategoryPage = () => {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="customer-glass-card p-8 text-center">
+          <div className="text-xs text-gray-500 mb-2">Debug: slug={slug} id={id} resolvedId={debug.resolvedCategoryId}</div>
           <p className="text-red-500 mb-4">{error}</p>
-          <button 
-            onClick={fetchCategoryData}
-            className="customer-btn-primary"
-          >
-            Retry
-          </button>
+          <button onClick={fetchCategoryData} className="customer-btn-primary">Retry</button>
         </div>
       </div>
     );
@@ -92,6 +113,11 @@ const CategoryPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Debug panel */}
+      <div className="mb-4 text-xs text-gray-500">
+        <div>Debug: slug={slug} id={id} resolvedId={debug.resolvedCategoryId} • products={products.length}</div>
+      </div>
+
       {/* Breadcrumbs */}
       <nav className="flex mb-6" aria-label="Breadcrumb">
         <ol className="inline-flex items-center space-x-1 md:space-x-3">
@@ -131,11 +157,11 @@ const CategoryPage = () => {
             <button className="customer-btn-filter">Rating</button>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-4">
           <div className="flex items-center">
             <span className="text-customer-gray-700 mr-2">Sort by:</span>
-            <select 
+            <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               className="customer-select"
@@ -147,7 +173,7 @@ const CategoryPage = () => {
               <option value="newest">Newest Arrivals</option>
             </select>
           </div>
-          
+
           <div className="flex border border-customer-gray-300 rounded-lg overflow-hidden">
             <button
               onClick={() => setViewMode('grid')}
@@ -185,7 +211,7 @@ const CategoryPage = () => {
               ))}
             </div>
           </div>
-          
+
           <div className="mb-6">
             <h3 className="font-medium text-customer-gray-900 mb-3">Price Range</h3>
             <div className="space-y-2">
@@ -203,7 +229,7 @@ const CategoryPage = () => {
               ))}
             </div>
           </div>
-          
+
           <div>
             <h3 className="font-medium text-customer-gray-900 mb-3">Rating</h3>
             <div className="space-y-2">
@@ -217,13 +243,12 @@ const CategoryPage = () => {
                   <label htmlFor={`rating-${rating}`} className="ml-2 text-customer-gray-700 flex items-center">
                     <div className="flex">
                       {[...Array(5)].map((_, i) => (
-                        <Star 
+                        <Star
                           key={i}
-                          className={`w-4 h-4 ${
-                            i < rating 
-                              ? 'text-amber-400 fill-current' 
-                              : 'text-customer-gray-300'
-                          }`}
+                          className={`w-4 h-4 ${i < rating
+                            ? 'text-amber-400 fill-current'
+                            : 'text-customer-gray-300'
+                            }`}
                         />
                       ))}
                     </div>
@@ -241,7 +266,7 @@ const CategoryPage = () => {
         <div className="w-64 flex-shrink-0">
           <div className="customer-glass-card p-6 rounded-2xl">
             <h2 className="text-lg font-semibold text-customer-gray-900 mb-4">Filters</h2>
-            
+
             <div className="mb-6">
               <button className="flex items-center justify-between w-full text-left font-medium text-customer-gray-900 mb-3">
                 Brand
@@ -262,7 +287,7 @@ const CategoryPage = () => {
                 ))}
               </div>
             </div>
-            
+
             <div className="mb-6">
               <button className="flex items-center justify-between w-full text-left font-medium text-customer-gray-900 mb-3">
                 Price Range
@@ -283,7 +308,7 @@ const CategoryPage = () => {
                 ))}
               </div>
             </div>
-            
+
             <div>
               <button className="flex items-center justify-between w-full text-left font-medium text-customer-gray-900 mb-3">
                 Rating
@@ -300,13 +325,12 @@ const CategoryPage = () => {
                     <label htmlFor={`rating-${rating}`} className="ml-2 text-customer-gray-700 flex items-center">
                       <div className="flex">
                         {[...Array(5)].map((_, i) => (
-                          <Star 
+                          <Star
                             key={i}
-                            className={`w-4 h-4 ${
-                              i < rating 
-                                ? 'text-amber-400 fill-current' 
-                                : 'text-customer-gray-300'
-                            }`}
+                            className={`w-4 h-4 ${i < rating
+                              ? 'text-amber-400 fill-current'
+                              : 'text-customer-gray-300'
+                              }`}
                           />
                         ))}
                       </div>
@@ -318,7 +342,7 @@ const CategoryPage = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Products Grid */}
         <div className="flex-1">
           {viewMode === 'grid' ? (
@@ -332,8 +356,8 @@ const CategoryPage = () => {
               {products.map((product) => (
                 <div key={product._id || product.id} className="customer-glass-card rounded-2xl p-6 flex">
                   <div className="w-32 h-32 flex-shrink-0">
-                    <img 
-                      src={product.image || product.images?.[0] || "https://placehold.co/300x300"} 
+                    <img
+                      src={product.image || product.images?.[0] || "https://placehold.co/300x300"}
                       alt={product.name}
                       className="w-full h-full object-cover rounded-xl"
                     />
@@ -343,13 +367,12 @@ const CategoryPage = () => {
                     <div className="flex items-center mt-1">
                       <div className="flex items-center">
                         {[...Array(5)].map((_, i) => (
-                          <Star 
+                          <Star
                             key={i}
-                            className={`w-4 h-4 ${
-                              i < Math.floor(product.rating || 4.5) 
-                                ? 'text-amber-400 fill-current' 
-                                : 'text-customer-gray-300'
-                            }`}
+                            className={`w-4 h-4 ${i < Math.floor(product.rating || 4.5)
+                              ? 'text-amber-400 fill-current'
+                              : 'text-customer-gray-300'
+                              }`}
                           />
                         ))}
                       </div>
@@ -379,7 +402,7 @@ const CategoryPage = () => {
               ))}
             </div>
           )}
-          
+
           {/* Pagination */}
           <div className="flex items-center justify-between mt-12">
             <p className="text-customer-gray-600">Showing 1 to {products.length} of {products.length} products</p>
@@ -393,7 +416,7 @@ const CategoryPage = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Mobile Products */}
       <div className="md:hidden">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -401,7 +424,7 @@ const CategoryPage = () => {
             <ProductCard key={product._id || product.id} product={product} />
           ))}
         </div>
-        
+
         {/* Pagination */}
         <div className="flex items-center justify-between mt-12">
           <p className="text-customer-gray-600">Showing 1 to {products.length} of {products.length} products</p>

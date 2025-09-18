@@ -1,21 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Package, TrendingUp, AlertTriangle, BarChart3, Filter, Search, Eye, Edit, Plus } from 'lucide-react';
+import adminApi from '../../../shared/services/adminApi';
 
 const InventoryOverview = () => {
   const [inventoryData, setInventoryData] = useState({
-    totalItems: 2547,
-    lowStockItems: 23,
-    outOfStockItems: 8,
-    totalValue: 125430.50
+    totalItems: 0,
+    lowStockItems: 0,
+    outOfStockItems: 0,
+    totalValue: 0
   });
 
-  const [inventoryItems, setInventoryItems] = useState([
-    { id: 1, name: 'iPhone 15 Pro Max', sku: 'IPH15PM', category: 'Electronics', stock: 15, minStock: 5, status: 'In Stock', value: 999.99 },
-    { id: 2, name: 'MacBook Pro 16"', sku: 'MBP16', category: 'Computers', stock: 3, minStock: 5, status: 'Low Stock', value: 2499.99 },
-    { id: 3, name: 'AirPods Pro', sku: 'APP2023', category: 'Audio', stock: 0, minStock: 10, status: 'Out of Stock', value: 249.99 },
-    { id: 4, name: 'Samsung Galaxy S24', sku: 'SGS24', category: 'Electronics', stock: 12, minStock: 5, status: 'In Stock', value: 899.99 },
-    { id: 5, name: 'iPad Air', sku: 'IPDA2023', category: 'Tablets', stock: 7, minStock: 5, status: 'In Stock', value: 599.99 },
-  ]);
+  const [inventoryItems, setInventoryItems] = useState([]);
 
   const [filteredItems, setFilteredItems] = useState(inventoryItems);
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,25 +19,39 @@ const InventoryOverview = () => {
 
   // Filter inventory items based on search and filters
   useEffect(() => {
-    let result = inventoryItems;
-    
-    if (searchTerm) {
-      result = result.filter(item => 
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.sku.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    if (categoryFilter) {
-      result = result.filter(item => item.category === categoryFilter);
-    }
-    
-    if (statusFilter) {
-      result = result.filter(item => item.status === statusFilter);
-    }
-    
-    setFilteredItems(result);
-  }, [searchTerm, categoryFilter, statusFilter, inventoryItems]);
+    const loadOverview = async () => {
+      try {
+        const [overviewRes, lowStockRes] = await Promise.all([
+          adminApi.getInventoryOverview(),
+          adminApi.getLowStockAlerts(),
+        ]);
+
+        const overview = overviewRes.data;
+        setInventoryData({
+          totalItems: overview?.overview?.totalProducts || 0,
+          lowStockItems: overview?.overview?.lowStockItems || 0,
+          outOfStockItems: 0,
+          totalValue: overview?.overview?.totalStockValue || 0,
+        });
+
+        // Flatten products into display rows
+        const items = (overview?.overview?.recentMovements || []).map(m => ({
+          id: m._id,
+          name: m.product?.name || 'Product',
+          sku: m.product?._id?.slice(-6) || '',
+          category: '',
+          stock: m.newStock ?? 0,
+          minStock: 0,
+          status: (m.newStock ?? 0) === 0 ? 'Out of Stock' : 'In Stock',
+          value: 0,
+        }));
+        setInventoryItems(items);
+      } catch (e) {
+        console.error('Failed loading inventory overview', e);
+      }
+    };
+    loadOverview();
+  }, []);
 
   // Get unique categories for filter dropdown
   const categories = [...new Set(inventoryItems.map(item => item.category))];
@@ -93,7 +102,7 @@ const InventoryOverview = () => {
             <div className="admin-stats-icon bg-admin-danger/10 text-admin-danger">
               <AlertTriangle className="w-6 h-6" />
             </div>
-            <TrendingDown className="w-5 h-5 text-red-500" />
+            <TrendingUp className="w-5 h-5 text-red-500" />
           </div>
           <div className="admin-stats-number">{inventoryData.outOfStockItems}</div>
           <div className="admin-stats-label">Out of Stock Items</div>
@@ -116,15 +125,15 @@ const InventoryOverview = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-admin-gray-400 w-5 h-5" />
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Search items..."
               className="admin-input pl-10 w-full"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <select 
+          <select
             className="admin-select"
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
@@ -134,7 +143,7 @@ const InventoryOverview = () => {
               <option key={category} value={category}>{category}</option>
             ))}
           </select>
-          <select 
+          <select
             className="admin-select"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -177,10 +186,9 @@ const InventoryOverview = () => {
                 <span className="status-badge status-info">{item.category}</span>
               </div>
               <div className="admin-table-cell">
-                <span className={`font-semibold ${
-                  item.stock === 0 ? 'text-red-600' : 
-                  item.stock <= item.minStock ? 'text-amber-600' : 'text-green-600'
-                }`}>
+                <span className={`font-semibold ${item.stock === 0 ? 'text-red-600' :
+                    item.stock <= item.minStock ? 'text-amber-600' : 'text-green-600'
+                  }`}>
                   {item.stock}
                 </span>
               </div>
@@ -188,10 +196,9 @@ const InventoryOverview = () => {
                 {item.minStock}
               </div>
               <div className="admin-table-cell">
-                <span className={`status-badge ${
-                  item.status === 'In Stock' ? 'status-success' : 
-                  item.status === 'Low Stock' ? 'status-warning' : 'status-danger'
-                }`}>
+                <span className={`status-badge ${item.status === 'In Stock' ? 'status-success' :
+                    item.status === 'Low Stock' ? 'status-warning' : 'status-danger'
+                  }`}>
                   {item.status}
                 </span>
               </div>
