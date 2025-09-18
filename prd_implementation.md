@@ -3,10 +3,13 @@
 ## 🎯 Product Overview
 
 ### Vision Statement
+
 Build a comprehensive grocery store inventory management system integrated with an e-commerce platform for SalesHostel, enabling efficient stock management, supplier coordination, and customer shopping experiences for staple foods, frozen foods, convenience foods, and household items.
 
 ### Business Model
+
 SalesHostel operates as a grocery provision store located at NDDC hostel, shop 12, offering:
+
 - **Staple Foods**: Rice, Garri, Beans, Semovita, Melon
 - **Frozen Foods**: Chicken wings, Chicken lap
 - **Convenience Foods**: Spaghetti, Noodles, Pasta
@@ -18,6 +21,7 @@ SalesHostel operates as a grocery provision store located at NDDC hostel, shop 1
 - **Stationery**: Notebooks, Biros
 
 ### Target Users
+
 - **Admin**: Full system access - manages inventory, assigns roles, processes orders
 - **Supplier**: Manages product supply, updates stock levels, handles deliveries
 - **Staff**: Assists with inventory management and customer service
@@ -28,7 +32,9 @@ SalesHostel operates as a grocery provision store located at NDDC hostel, shop 1
 ## 📋 Core Features & Requirements
 
 ### 1. Role-Based Access Control
+
 - **Admin Role**
+
   - Complete system access
   - User role assignment (Supplier/Staff)
   - Product and category management
@@ -37,6 +43,7 @@ SalesHostel operates as a grocery provision store located at NDDC hostel, shop 1
   - Stock movement tracking
 
 - **Supplier Role**
+
   - Add/Edit/Delete products
   - Manage supply deliveries
   - Update stock quantities
@@ -44,6 +51,7 @@ SalesHostel operates as a grocery provision store located at NDDC hostel, shop 1
   - Generate supply reports
 
 - **Staff Role**
+
   - Assist with inventory management
   - Process customer orders
   - Update stock levels
@@ -57,7 +65,9 @@ SalesHostel operates as a grocery provision store located at NDDC hostel, shop 1
   - Manage profile and addresses
 
 ### 2. Product Catalog System
+
 - **Product Categories**
+
   - Staple Foods
   - Frozen Foods
   - Convenience Foods
@@ -77,7 +87,9 @@ SalesHostel operates as a grocery provision store located at NDDC hostel, shop 1
   - Product images and specifications
 
 ### 3. Inventory Management
+
 - **Stock Tracking**
+
   - Real-time inventory levels
   - Multiple unit measurements per product
   - Low stock alerts
@@ -91,7 +103,9 @@ SalesHostel operates as a grocery provision store located at NDDC hostel, shop 1
   - Supply history and reports
 
 ### 4. Order Management
+
 - **Customer Orders**
+
   - Shopping cart functionality
   - Order processing workflow
   - Order tracking and status updates
@@ -104,7 +118,9 @@ SalesHostel operates as a grocery provision store located at NDDC hostel, shop 1
   - Downloadable order summaries
 
 ### 5. Reporting & Analytics
+
 - **Stock Reports**
+
   - Current inventory levels
   - Stock movement history
   - Low stock alerts
@@ -121,6 +137,7 @@ SalesHostel operates as a grocery provision store located at NDDC hostel, shop 1
 ## 🏗️ Technical Architecture
 
 ### Tech Stack
+
 - **Frontend**: React.js with TypeScript
 - **Styling**: Tailwind CSS
 - **State Management**: Zustand
@@ -135,6 +152,7 @@ SalesHostel operates as a grocery provision store located at NDDC hostel, shop 1
 ## 📁 Complete Folder Structure
 
 ### Backend Structure
+
 ```
 saleshostel-backend/
 ├── src/
@@ -187,6 +205,7 @@ saleshostel-backend/
 ```
 
 ### Frontend Structure
+
 ```
 saleshostel-frontend/
 ├── public/
@@ -271,6 +290,7 @@ saleshostel-frontend/
 ## 💾 Database Schema
 
 ### User Schema
+
 ```javascript
 {
   firstName: String,
@@ -300,6 +320,7 @@ saleshostel-frontend/
 ```
 
 ### Product Schema
+
 ```javascript
 {
   name: String, // e.g., "Rice", "Beans"
@@ -327,6 +348,7 @@ saleshostel-frontend/
 ```
 
 ### Category Schema
+
 ```javascript
 {
   name: String, // "Staple Foods", "Frozen Foods", etc.
@@ -342,6 +364,7 @@ saleshostel-frontend/
 ```
 
 ### Supply Schema
+
 ```javascript
 {
   supplier: ObjectId (ref: User),
@@ -366,6 +389,7 @@ saleshostel-frontend/
 ```
 
 ### Order Schema
+
 ```javascript
 {
   orderNumber: String (auto-generated),
@@ -404,6 +428,7 @@ saleshostel-frontend/
 ```
 
 ### Cart Schema
+
 ```javascript
 {
   customer: ObjectId (ref: User),
@@ -420,6 +445,7 @@ saleshostel-frontend/
 ```
 
 ### Stock Movement Schema
+
 ```javascript
 {
   product: ObjectId (ref: Product),
@@ -443,6 +469,7 @@ saleshostel-frontend/
 ## 🔗 API Endpoints
 
 ### Authentication & User Management
+
 ```
 POST   /api/auth/register          # User registration
 POST   /api/auth/login             # User login
@@ -453,6 +480,7 @@ GET    /api/users                  # Get all users (admin only)
 ```
 
 ### Public Product Browsing (No Authentication Required)
+
 ```
 GET    /api/public/categories      # Get all categories
 GET    /api/public/products        # Get all active products
@@ -462,6 +490,7 @@ GET    /api/public/products/search # Search products
 ```
 
 ### Product Management
+
 ```
 GET    /api/products               # Get products (role-based)
 POST   /api/products               # Create product (admin/supplier)
@@ -471,6 +500,7 @@ POST   /api/products/:id/images    # Upload product images
 ```
 
 ### Category Management
+
 ```
 GET    /api/categories             # Get categories
 POST   /api/categories             # Create category (admin only)
@@ -479,6 +509,7 @@ DELETE /api/categories/:id         # Delete category (admin only)
 ```
 
 ### Supply Management
+
 ```
 GET    /api/supplies               # Get supplies
 POST   /api/supplies               # Create new supply (supplier)
@@ -487,6 +518,7 @@ GET    /api/supplies/history       # Supply history
 ```
 
 ### Inventory Management
+
 ```
 GET    /api/inventory              # Get inventory overview
 GET    /api/inventory/:productId   # Get product inventory
@@ -496,6 +528,7 @@ GET    /api/inventory/alerts       # Low stock alerts
 ```
 
 ### Order Management
+
 ```
 GET    /api/orders                 # Get orders (role-based)
 POST   /api/orders                 # Create order (customer)
@@ -505,6 +538,7 @@ GET    /api/orders/customer/:id    # Customer order history
 ```
 
 ### Cart Management
+
 ```
 GET    /api/cart                   # Get user cart
 POST   /api/cart/add               # Add item to cart
@@ -514,6 +548,7 @@ DELETE /api/cart/clear             # Clear cart
 ```
 
 ### Reports
+
 ```
 GET    /api/reports/inventory      # Inventory reports
 GET    /api/reports/sales          # Sales reports
@@ -526,6 +561,7 @@ GET    /api/reports/stock-movement # Stock movement reports
 ## 🎨 UI/UX Design Updates
 
 ### Public Browsing (Jumia-like Experience)
+
 - **Homepage**: Featured categories and popular products
 - **Category Pages**: Grid layout with filters and sorting
 - **Product Listing**: Card-based layout with quick add to cart
@@ -533,6 +569,7 @@ GET    /api/reports/stock-movement # Stock movement reports
 - **Cart**: Slide-out cart with quantity management
 
 ### Admin Interface
+
 - **Dashboard**: Overview with key metrics and alerts
 - **Product Management**: CRUD operations with bulk actions
 - **User Management**: Role assignment and user monitoring
@@ -540,17 +577,20 @@ GET    /api/reports/stock-movement # Stock movement reports
 - **Reports**: Charts and downloadable reports
 
 ### Supplier Interface
+
 - **Supply Dashboard**: Recent supplies and pending orders
 - **Product Supply**: Form to add new supplies
 - **Inventory View**: Current stock levels for their products
 - **Supply History**: Track all previous supplies
 
 ### Staff Interface
+
 - **Order Processing**: Assist with order fulfillment
 - **Inventory Updates**: Update stock levels
 - **Customer Service**: Handle customer inquiries
 
 ### Customer Interface
+
 - **Account Dashboard**: Order history and profile management
 - **Wishlist**: Save products for later
 - **Order Tracking**: Real-time order status
@@ -561,6 +601,7 @@ GET    /api/reports/stock-movement # Stock movement reports
 ## 🚀 Implementation Roadmap
 
 ### Phase 1: Foundation (Week 1-2)
+
 - [ ] Set up project structure and database
 - [ ] Implement authentication system with role-based access
 - [ ] Create basic product and category models
@@ -568,24 +609,27 @@ GET    /api/reports/stock-movement # Stock movement reports
 - [ ] Implement basic cart functionality
 
 ### Phase 2: Core Inventory (Week 3-4)
+
 - [ ] Product management system with multiple units
 - [ ] Supply management for suppliers
 - [ ] Stock tracking and movement logging
 - [ ] Inventory alerts and reporting
 
 ### Phase 3: Order Management (Week 5-6)
+
 - [ ] Complete order processing workflow
-- [ ] Payment integration (PayStack)
 - [ ] Order tracking and status updates
 - [ ] Customer order history
 
 ### Phase 4: Advanced Features (Week 7-8)
+
 - [ ] Advanced reporting and analytics
 - [ ] Bulk operations and data import
 - [ ] Mobile optimization
 - [ ] Performance optimization
 
 ### Phase 5: Testing & Deployment (Week 9-10)
+
 - [ ] Comprehensive testing
 - [ ] User acceptance testing
 - [ ] Production deployment
@@ -596,12 +640,14 @@ GET    /api/reports/stock-movement # Stock movement reports
 ## 📱 Mobile Optimization
 
 ### Touch-Friendly Design
+
 - Large touch targets (44px minimum)
 - Swipe gestures for product browsing
 - Pull-to-refresh functionality
 - Optimized keyboard input
 
 ### Performance Considerations
+
 - Image lazy loading
 - Progressive web app features
 - Offline cart functionality
@@ -612,12 +658,14 @@ GET    /api/reports/stock-movement # Stock movement reports
 ## 🔐 Security Considerations
 
 ### Authentication & Authorization
+
 - JWT tokens with role-based permissions
 - Password hashing with bcrypt
 - Rate limiting on sensitive endpoints
 - Secure session management
 
 ### Data Protection
+
 - Input validation and sanitization
 - File upload security
 - Environment variables for sensitive data
