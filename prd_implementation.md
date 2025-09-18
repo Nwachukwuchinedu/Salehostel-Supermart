@@ -145,7 +145,7 @@ SalesHostel operates as a grocery provision store located at NDDC hostel, shop 1
 - **Database**: MongoDB with Mongoose ODM
 - **Authentication**: JWT + bcrypt
 - **File Upload**: Multer + Cloudinary
-- **Payment**: PayStack integration (for Nigerian market)
+- **Payment**: Manual payment processing
 
 ---
 
@@ -686,4 +686,7 @@ GET    /api/reports/stock-movement # Stock movement reports
 
 4. **View All Results Option**: Added a "View all results" button in the search dropdown for users who want to see a full page of search results.
 
-This updated PRD reflects the SalesHostel grocery store business model with proper role separation, comprehensive product management for Nigerian grocery items, and a Jumia-like customer experience for product browsing and purchasing.
+### Payment System Update (September 2025)
+
+1. **Removed Paystack Integration**: Eliminated Paystack payment gateway in favor of manual payment processing.
+2. **Manual Payment Processing**: Implemented manual payment handling for order processing.
