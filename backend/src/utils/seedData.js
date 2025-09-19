@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const Category = require('../models/Category');
 const Product = require('../models/Product');
 const User = require('../models/User');
@@ -59,6 +60,12 @@ const categories = [
     image: '/images/categories/stationery.jpg'
   }
 ];
+
+// Function to hash passwords
+const hashPassword = async (password) => {
+  const salt = await bcrypt.genSalt(10);
+  return await bcrypt.hash(password, salt);
+};
 
 const products = [
   // Staple Foods
@@ -382,8 +389,18 @@ const seedDatabase = async () => {
     const createdProducts = await Product.insertMany(productsWithCategories);
     console.log(`Created ${createdProducts.length} products`);
 
-    // Create users
-    const createdUsers = await User.insertMany(users);
+    // Hash passwords for users and create them
+    const usersWithHashedPasswords = [];
+    for (const user of users) {
+      const hashedPassword = await hashPassword(user.password);
+      usersWithHashedPasswords.push({
+        ...user,
+        password: hashedPassword
+      });
+    }
+
+    // Create users with hashed passwords
+    const createdUsers = await User.insertMany(usersWithHashedPasswords);
     console.log(`Created ${createdUsers.length} users`);
 
     console.log('Database seeding completed successfully!');
