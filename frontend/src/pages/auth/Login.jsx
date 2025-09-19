@@ -68,9 +68,9 @@ const Login = () => {
     const result = await login(formData);
 
     if (result.success) {
-      // Redirect based on user role
-      const redirectPath = user?.role 
-        ? getRedirectPathByRole(user.role)
+      // Redirect based on user role from the login result
+      const redirectPath = result.user?.role 
+        ? getRedirectPathByRole(result.user.role)
         : from !== "/" ? from : "/";
       
       navigate(redirectPath, { replace: true });
