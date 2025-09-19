@@ -1,6 +1,11 @@
 // Simple API service for SalesHostel
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
+// Debug logging in development
+if (import.meta.env.DEV) {
+  console.log('API Base URL:', API_BASE_URL);
+}
+
 class ApiService {
   constructor() {
     this.baseURL = API_BASE_URL;
@@ -10,6 +15,11 @@ class ApiService {
     // Ensure endpoint starts with /
     const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
     const url = `${this.baseURL}${normalizedEndpoint}`;
+
+    // Debug logging in development
+    if (import.meta.env.DEV) {
+      console.log('Making API request to:', url);
+    }
 
     const config = {
       headers: {
