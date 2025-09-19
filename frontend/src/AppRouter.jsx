@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import AuthSync from './components/AuthSync';
 import AdminLayout from './admin/components/layout/AdminLayout';
 import CustomerLayout from './customer/components/layout/CustomerLayout';
 import AdminDashboard from './admin/pages/dashboard/AdminDashboard';
@@ -56,6 +57,7 @@ import ResetPassword from "./pages/auth/ResetPassword";
 const AppRouter = () => {
   return (
     <Router>
+      <AuthSync />
       <Routes>
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminLayout />}>

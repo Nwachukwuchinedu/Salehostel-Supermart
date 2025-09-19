@@ -1,163 +1,124 @@
 const Order = require('../../models/Order');
-const Product = require('../../models/Product');
-const Cart = require('../../models/Cart');
+const { updateStockFromOrder } = require('../../services/inventoryService');
 
-// @desc    Get customer orders
-// @route   GET /api/customer/orders
-// @access  Private
+// GET /api/customer/orders
 const getOrders = async (req, res) => {
   try {
-    const pageSize = Number(req.query.pageSize) || 10;
-    const page = Number(req.query.page) || 1;
-    
-    const filter = { customer: req.user._id };
-    
-    // Apply status filter
-    if (req.query.status) {
-      filter.status = req.query.status;
-    }
-    
-    const count = await Order.countDocuments(filter);
-    const orders = await Order.find(filter)
+    const orders = await Order.find({ customer: req.user._id })
       .sort({ createdAt: -1 })
-      .limit(pageSize)
-      .skip(pageSize * (page - 1));
-    
-    res.json({
-      success: true,
-      orders,
-      page,
-      pages: Math.ceil(count / pageSize),
-      total: count
-    });
+      .select('-__v');
+    res.json({ success: true, orders });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('getOrders error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch orders' });
   }
 };
 
-// @desc    Create new order
-// @route   POST /api/customer/orders
-// @access  Private
+// POST /api/customer/orders
 const createOrder = async (req, res) => {
   try {
-    const { 
-      items, 
-      shippingAddress, 
-      billingAddress, 
-      paymentMethod, 
-      notes 
-    } = req.body;
-    
-    // Validate items
-    if (!items || items.length === 0) {
-      return res.status(400).json({ message: 'Order must contain at least one item' });
+    const { items = [], shippingAddress = {}, billingAddress = {}, notes, paymentMethod = 'cash_on_delivery' } = req.body;
+
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ success: false, message: 'Order items required' });
     }
-    
-    // Calculate order totals
+
+    // Compute totals
     let subtotal = 0;
-    let totalQuantity = 0;
-    
-    // Validate each item and check stock
-    for (const item of items) {
-      const product = await Product.findById(item.product);
-      
-      if (!product) {
-        return res.status(400).json({ message: `Product not found: ${item.product}` });
-      }
-      
-      if (product.currentStock < item.quantity) {
-        return res.status(400).json({ 
-          message: `Insufficient stock for ${product.name}. Available: ${product.currentStock}` 
-        });
-      }
-      
-      item.price = product.sellingPrice;
-      item.totalPrice = product.sellingPrice * item.quantity;
-      subtotal += item.totalPrice;
-      totalQuantity += item.quantity;
-    }
-    
-    // Calculate tax and shipping (simplified)
-    const tax = subtotal * 0.1; // 10% tax
-    const shipping = subtotal > 100 ? 0 : 10; // Free shipping over ₦100
-    const totalAmount = subtotal + tax + shipping;
-    
+    const normalizedItems = items.map((it) => {
+      const quantity = Number(it.quantity || 0);
+      const price = Number(it.price || 0);
+      const totalPrice = quantity * price;
+      subtotal += totalPrice;
+      return {
+        product: it.product,
+        quantity,
+        price,
+        totalPrice,
+        unitType: it.unitType, // keep if sent for inventory update
+      };
+    });
+
+    const shipping = Number(req.body.shipping || 0);
+    const tax = Number(req.body.tax || 0);
+    const totalAmount = subtotal + shipping + tax;
+
+    // Create order
     const order = new Order({
       customer: req.user._id,
-      items,
+      items: normalizedItems.map(({ unitType, ...rest }) => rest),
       subtotal,
       tax,
       shipping,
       totalAmount,
-      shippingAddress,
-      billingAddress,
       paymentMethod,
-      notes
+      shippingAddress: {
+        name: shippingAddress.name || `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim(),
+        street: shippingAddress.street || shippingAddress.address || 'N/A',
+        city: shippingAddress.city || 'N/A',
+        state: shippingAddress.state || 'N/A',
+        zipCode: shippingAddress.zipCode || '000000',
+        country: shippingAddress.country || 'NG',
+        phone: shippingAddress.phone || req.user.callNumber || req.user.whatsappNumber || ''
+      },
+      billingAddress: {
+        name: (billingAddress.name || shippingAddress.name) || `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim(),
+        street: (billingAddress.street || billingAddress.address) || shippingAddress.street || 'N/A',
+        city: billingAddress.city || shippingAddress.city || 'N/A',
+        state: billingAddress.state || shippingAddress.state || 'N/A',
+        zipCode: billingAddress.zipCode || shippingAddress.zipCode || '000000',
+        country: billingAddress.country || shippingAddress.country || 'NG',
+        phone: billingAddress.phone || shippingAddress.phone || req.user.callNumber || ''
+      },
+      notes: notes || ''
     });
-    
-    const createdOrder = await order.save();
-    
-    // Clear customer cart
-    await Cart.findOneAndDelete({ customer: req.user._id });
-    
-    res.status(201).json({
-      success: true,
-      order: createdOrder
-    });
+
+    const created = await order.save();
+
+    // Update stock and record movements
+    try {
+      await updateStockFromOrder(
+        normalizedItems.map((it) => ({
+          product: it.product,
+          unitType: it.unitType,
+          quantity: it.quantity,
+          orderId: created._id,
+        }))
+      );
+    } catch (stockErr) {
+      console.error('Stock update failed after order save, rolling back order id:', created._id, stockErr);
+      await Order.findByIdAndDelete(created._id);
+      return res.status(400).json({ success: false, message: stockErr.message || 'Insufficient stock' });
+    }
+
+    res.status(201).json({ success: true, order: created });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('createOrder error:', error);
+    res.status(500).json({ success: false, message: 'Failed to create order' });
   }
 };
 
-// @desc    Get single order
-// @route   GET /api/customer/orders/:id
-// @access  Private
+// GET /api/customer/orders/:id
 const getOrder = async (req, res) => {
   try {
-    const order = await Order.findOne({
-      _id: req.params.id,
-      customer: req.user._id
-    }).populate('items.product', 'name sku images');
-    
-    if (order) {
-      res.json({
-        success: true,
-        order
-      });
-    } else {
-      res.status(404).json({ message: 'Order not found' });
-    }
+    const order = await Order.findOne({ _id: req.params.id, customer: req.user._id }).select('-__v');
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+    res.json({ success: true, order });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('getOrder error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch order' });
   }
 };
 
-// @desc    Track order status
-// @route   GET /api/customer/orders/:id/track
-// @access  Private/Customer
+// GET /api/customer/orders/:id/track
 const trackOrder = async (req, res) => {
   try {
-    const order = await Order.findOne({
-      _id: req.params.id,
-      customer: req.user._id
-    }).select('orderNumber status trackingNumber estimatedDeliveryDate deliveredAt');
-    
-    if (order) {
-      res.json({
-        success: true,
-        order: {
-          orderNumber: order.orderNumber,
-          status: order.status,
-          trackingNumber: order.trackingNumber,
-          estimatedDeliveryDate: order.estimatedDeliveryDate,
-          deliveredAt: order.deliveredAt
-        }
-      });
-    } else {
-      res.status(404).json({ message: 'Order not found' });
-    }
+    const order = await Order.findOne({ _id: req.params.id, customer: req.user._id }).select('status trackingNumber estimatedDeliveryDate createdAt updatedAt');
+    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+    res.json({ success: true, tracking: order });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('trackOrder error:', error);
+    res.status(500).json({ success: false, message: 'Failed to track order' });
   }
 };
 
@@ -165,5 +126,5 @@ module.exports = {
   getOrders,
   createOrder,
   getOrder,
-  trackOrder
+  trackOrder,
 };

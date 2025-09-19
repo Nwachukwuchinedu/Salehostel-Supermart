@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import customerApi from '../../shared/services/customerApi';
+import customerApi from '../../../shared/services/customerApi';
 
 const useProfileStore = create(
   persist(

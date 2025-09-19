@@ -23,10 +23,15 @@ const customerApi = {
 
   // Cart
   getCart: () => api.get('/customer/cart'),
-  addToCart: (itemData) => api.post('/customer/cart/add', itemData),
-  updateCartItem: (itemData) => api.put('/customer/cart/update', itemData),
-  removeFromCart: (itemData) => api.delete('/customer/cart/remove', { body: JSON.stringify(itemData) }),
-  clearCart: () => api.delete('/customer/cart/clear'),
+  addToCart: (itemData) => api.post('/customer/cart', itemData),
+  updateCartItem: (itemData) => api.put(`/customer/cart/${itemData.productId}`, itemData),
+  removeFromCart: (itemData) => api.delete(`/customer/cart/${itemData.productId}`, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(itemData)
+  }),
+  clearCart: () => api.delete('/customer/cart'),
 
   // Orders
   getOrders: () => api.get('/customer/orders'),

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, Plus, Minus, ShoppingCart, ArrowLeft, CreditCard } from 'lucide-react';
+import useCartStore from '../../stores/cartStore';
 import customerApi from '../../../shared/services/customerApi';
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { items: cartItems, updateCartItem, removeFromCart, fetchCart } = useCartStore();
 
   useEffect(() => {
     fetchCartData();
@@ -15,9 +16,7 @@ const Cart = () => {
   const fetchCartData = async () => {
     try {
       setLoading(true);
-      const response = await customerApi.getCart();
-      const cartData = response.data || response;
-      setCartItems(Array.isArray(cartData) ? cartData : (cartData.items || []));
+      await fetchCart();
       setError(null);
     } catch (err) {
       console.error('Failed to fetch cart data:', err);
@@ -27,20 +26,15 @@ const Cart = () => {
     }
   };
 
-  const updateQuantity = async (itemId, newQuantity) => {
-    if (newQuantity < 1) return;
+  const handleUpdateQuantity = async (itemId, newQuantity) => {
+    if (newQuantity < 1) {
+      handleRemoveItem(itemId);
+      return;
+    }
     
     try {
-      // Update quantity in UI immediately for better UX
-      setCartItems(cartItems.map(item => 
-        item._id === itemId || item.id === itemId ? { ...item, quantity: newQuantity } : item
-      ));
-      
-      // Update on backend
-      await customerApi.updateCartItem({ 
-        productId: itemId, 
-        quantity: newQuantity 
-      });
+      // Update on backend and local store
+      await updateCartItem(itemId, newQuantity);
     } catch (err) {
       console.error('Failed to update cart item:', err);
       // Revert UI change on error
@@ -49,15 +43,10 @@ const Cart = () => {
     }
   };
 
-  const removeItem = async (itemId) => {
+  const handleRemoveItem = async (itemId) => {
     try {
-      // Remove from UI immediately for better UX
-      setCartItems(cartItems.filter(item => item._id !== itemId && item.id !== itemId));
-      
-      // Remove from backend
-      await customerApi.removeFromCart({ 
-        productId: itemId 
-      });
+      // Remove from backend and local store
+      await removeFromCart(itemId);
     } catch (err) {
       console.error('Failed to remove cart item:', err);
       // Revert UI change on error
@@ -122,68 +111,82 @@ const Cart = () => {
             </div>
           ) : (
             <div className="space-y-6">
-              {cartItems.map((item) => (
-                <div key={item._id || item.id} className="customer-glass-card rounded-2xl p-6">
-                  <div className="flex flex-col sm:flex-row">
-                    <div className="w-32 h-32 flex-shrink-0">
-                      <img 
-                        src={item.image || item.images?.[0] || item.product?.image || item.product?.images?.[0] || "https://placehold.co/300x300"} 
-                        alt={item.name || item.product?.name}
-                        className="w-full h-full object-cover rounded-xl"
-                      />
-                    </div>
-                    
-                    <div className="mt-4 sm:mt-0 sm:ml-6 flex-1">
-                      <div className="flex flex-col sm:flex-row sm:justify-between">
-                        <div>
-                          <h3 className="text-lg font-semibold text-customer-gray-900">{item.name || item.product?.name}</h3>
-                          <p className="text-customer-gray-600">SKU: {item.sku || item.product?.sku || 'N/A'}</p>
-                        </div>
-                        
-                        <div className="mt-2 sm:mt-0">
-                          <p className="text-xl font-bold text-customer-gray-900">₦{(item.price || item.sellingPrice || item.product?.price || item.product?.sellingPrice || 0).toFixed(2)}</p>
-                        </div>
+              {cartItems.map((item) => {
+                // Handle different cart item structures
+                // For unauthenticated users, item has { product: { _id, name, ... }, quantity, price, ... }
+                // For authenticated users, item might have { _id, product: { _id, name, ... }, quantity, ... }
+                const productId = item.product?._id || item.productId || item._id;
+                const uniqueKey = productId || `${item.name || item.product?.name}-${item.sku || item.product?.sku || Math.random()}`;
+                
+                // Ensure we have a valid product ID for API calls
+                if (!productId) {
+                  console.warn('Cart item missing product ID:', item);
+                  return null; // Skip items without product IDs
+                }
+                
+                return (
+                  <div key={uniqueKey} className="customer-glass-card rounded-2xl p-6">
+                    <div className="flex flex-col sm:flex-row">
+                      <div className="w-32 h-32 flex-shrink-0">
+                        <img 
+                          src={item.image || item.images?.[0] || item.product?.image || item.product?.images?.[0] || "https://placehold.co/300x300"} 
+                          alt={item.name || item.product?.name}
+                          className="w-full h-full object-cover rounded-xl"
+                        />
                       </div>
                       
-                      <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex items-center">
-                          <button
-                            onClick={() => updateQuantity(item._id || item.id, item.quantity - 1)}
-                            className="p-2 border border-customer-gray-300 rounded-l-lg hover:bg-customer-gray-100"
-                          >
-                            <Minus className="w-4 h-4" />
-                          </button>
-                          <input
-                            type="number"
-                            min="1"
-                            value={item.quantity}
-                            onChange={(e) => updateQuantity(item._id || item.id, parseInt(e.target.value) || 1)}
-                            className="w-16 text-center border-y border-customer-gray-300 py-2"
-                          />
-                          <button
-                            onClick={() => updateQuantity(item._id || item.id, item.quantity + 1)}
-                            className="p-2 border border-customer-gray-300 rounded-r-lg hover:bg-customer-gray-100"
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
+                      <div className="mt-4 sm:mt-0 sm:ml-6 flex-1">
+                        <div className="flex flex-col sm:flex-row sm:justify-between">
+                          <div>
+                            <h3 className="text-lg font-semibold text-customer-gray-900">{item.name || item.product?.name}</h3>
+                            <p className="text-customer-gray-600">SKU: {item.sku || item.product?.sku || 'N/A'}</p>
+                          </div>
+                          
+                          <div className="mt-2 sm:mt-0">
+                            <p className="text-xl font-bold text-customer-gray-900">₦{(item.price || item.sellingPrice || item.product?.price || item.product?.sellingPrice || 0).toFixed(2)}</p>
+                          </div>
                         </div>
                         
-                        <div className="mt-4 sm:mt-0 flex items-center">
-                          <p className="text-lg font-semibold text-customer-gray-900 mr-4">
-                            ₦{((item.price || item.sellingPrice || item.product?.price || item.product?.sellingPrice || 0) * item.quantity).toFixed(2)}
-                          </p>
-                          <button
-                            onClick={() => removeItem(item._id || item.id)}
-                            className="p-2 text-customer-gray-400 hover:text-red-600"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
+                        <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex items-center">
+                            <button
+                              onClick={() => handleUpdateQuantity(productId, item.quantity - 1)}
+                              className="p-2 border border-customer-gray-300 rounded-l-lg hover:bg-customer-gray-100"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                            <input
+                              type="number"
+                              min="1"
+                              value={item.quantity}
+                              onChange={(e) => handleUpdateQuantity(productId, parseInt(e.target.value) || 1)}
+                              className="w-16 text-center border-y border-customer-gray-300 py-2"
+                            />
+                            <button
+                              onClick={() => handleUpdateQuantity(productId, item.quantity + 1)}
+                              className="p-2 border border-customer-gray-300 rounded-r-lg hover:bg-customer-gray-100"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </div>
+                          
+                          <div className="mt-4 sm:mt-0 flex items-center">
+                            <p className="text-lg font-semibold text-customer-gray-900 mr-4">
+                              ₦{((item.price || item.sellingPrice || item.product?.price || item.product?.sellingPrice || 0) * item.quantity).toFixed(2)}
+                            </p>
+                            <button
+                              onClick={() => handleRemoveItem(productId)}
+                              className="p-2 text-customer-gray-400 hover:text-red-600"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

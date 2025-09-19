@@ -12,10 +12,9 @@ const useCartStore = create(
       // Add item to cart
       addItem: (item) => {
         const { items } = get();
+        // Check if item already exists in cart (by productId only)
         const existingItemIndex = items.findIndex(
-          (cartItem) =>
-            cartItem.productId === item.productId &&
-            cartItem.unitType === item.unitType
+          (cartItem) => cartItem.productId === item.productId
         );
 
         let newItems;
@@ -39,11 +38,10 @@ const useCartStore = create(
       },
 
       // Remove item from cart
-      removeItem: (productId, unitType) => {
+      removeItem: (productId) => {
         const { items } = get();
         const newItems = items.filter(
-          (item) =>
-            !(item.productId === productId && item.unitType === unitType)
+          (item) => item.productId !== productId
         );
 
         set({ items: newItems });
@@ -51,14 +49,14 @@ const useCartStore = create(
       },
 
       // Update item quantity
-      updateQuantity: (productId, unitType, quantity) => {
+      updateQuantity: (productId, quantity) => {
         if (quantity <= 0) {
-          return get().removeItem(productId, unitType);
+          return get().removeItem(productId);
         }
 
         const { items } = get();
         const newItems = items.map((item) =>
-          item.productId === productId && item.unitType === unitType
+          item.productId === productId
             ? { ...item, quantity }
             : item
         );
@@ -124,5 +122,8 @@ const useCartStore = create(
     }
   )
 );
+
+// Debugging: Log the store functions
+console.log('Cart store functions:', Object.keys(useCartStore.getState() || {}));
 
 export default useCartStore;

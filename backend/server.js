@@ -79,7 +79,6 @@ app.use("/api/products", require("./src/routes/products"));
 app.use("/api/categories", require("./src/routes/categories"));
 app.use("/api/inventory", require("./src/routes/inventory"));
 app.use("/api/orders", require("./src/routes/orders"));
-app.use("/api/cart", require("./src/routes/cart"));
 app.use("/api/reports", require("./src/routes/reports"));
 app.use("/api/users", require("./src/routes/users"));
 

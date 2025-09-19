@@ -1,17 +1,53 @@
 import React, { useState } from 'react'
-import { Heart, ShoppingCart, Eye, Star, Shuffle } from 'lucide-react'
+import { Heart, ShoppingCart, Eye, Star, Shuffle, Trash2 } from 'lucide-react'
+import useCartStore from '../../stores/cartStore'
+import customerApi from '../../../shared/services/customerApi'
 
 const ProductCard = ({ product }) => {
   const [isLiked, setIsLiked] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  
+  // Use the customer-specific cart store functions
+  const { items, addToCart, removeFromCart } = useCartStore()
 
-  const handleAddToCart = (e) => {
+  // Check if product is already in cart (matching by productId only)
+  const isProductInCart = items.some(item => item.product?._id === (product._id || product.id) || item.productId === (product._id || product.id))
+
+  const handleAddToCart = async (e) => {
     e.preventDefault()
     // Add cart animation
     const button = e.currentTarget
     button.classList.add('animate-pulse')
     setTimeout(() => button.classList.remove('animate-pulse'), 300)
-    // Add to cart logic would go here
+    
+    // Add to cart logic
+    try {
+      // For now, we'll add a default quantity of 1
+      // In a more advanced implementation, we might want to show a modal to select unit/quantity
+      const itemData = {
+        productId: product._id || product.id,
+        quantity: 1
+      }
+      
+      // Add item to cart using the customer-specific function
+      await addToCart(itemData)
+      // Could add a success notification here
+    } catch (error) {
+      console.error('Failed to add to cart:', error)
+      // Could add an error notification here
+    }
+  }
+
+  const handleRemoveFromCart = async (e) => {
+    e.preventDefault()
+    try {
+      // Remove item from cart using the customer-specific function
+      await removeFromCart(product._id || product.id)
+      // Could add a success notification here
+    } catch (error) {
+      console.error('Failed to remove from cart:', error)
+      // Could add an error notification here
+    }
   }
 
   const toggleWishlist = (e) => {
@@ -139,18 +175,29 @@ const ProductCard = ({ product }) => {
           )}
         </div>
         
-        {/* Add to Cart Button */}
+        {/* Add/Remove from Cart Button */}
         <button 
-          onClick={handleAddToCart}
+          onClick={isProductInCart ? handleRemoveFromCart : handleAddToCart}
           disabled={(product.stock || 10) === 0}
           className={`mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold transition-all duration-200 ${
             (product.stock || 10) > 0
-              ? 'customer-btn-primary hover:shadow-lg active:scale-95'
+              ? isProductInCart 
+                ? 'bg-red-500 hover:bg-red-600 text-white hover:shadow-lg active:scale-95'
+                : 'customer-btn-primary hover:shadow-lg active:scale-95'
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
         >
-          <ShoppingCart className="w-5 h-5" />
-          <span>{(product.stock || 10) > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
+          {isProductInCart ? (
+            <>
+              <Trash2 className="w-5 h-5" />
+              <span>Remove from Cart</span>
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="w-5 h-5" />
+              <span>{(product.stock || 10) > 0 ? 'Add to Cart' : 'Out of Stock'}</span>
+            </>
+          )}
         </button>
       </div>
     </div>

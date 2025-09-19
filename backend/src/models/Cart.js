@@ -19,12 +19,10 @@ const cartSchema = new mongoose.Schema({
     },
     price: {
       type: Number,
-      required: true,
       min: 0
     },
     totalPrice: {
       type: Number,
-      required: true,
       min: 0
     }
   }],
@@ -49,10 +47,20 @@ cartSchema.pre('save', function(next) {
   next();
 });
 
-// Calculate subtotal before saving
+// Calculate item totalPrice and cart subtotal before saving
 cartSchema.pre('save', function(next) {
   if (this.items && this.items.length > 0) {
-    this.subtotal = this.items.reduce((total, item) => total + item.totalPrice, 0);
+    // Calculate totalPrice for each item if price is available
+    this.items.forEach(item => {
+      if (item.price && item.quantity) {
+        item.totalPrice = item.price * item.quantity;
+      }
+    });
+    
+    // Calculate subtotal
+    this.subtotal = this.items.reduce((total, item) => {
+      return total + (item.totalPrice || 0);
+    }, 0);
   } else {
     this.subtotal = 0;
   }

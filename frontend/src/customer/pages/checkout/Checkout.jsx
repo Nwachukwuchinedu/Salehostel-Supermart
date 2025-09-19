@@ -27,6 +27,7 @@ const Checkout = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [addresses, setAddresses] = useState([]);
+  const [createdOrder, setCreatedOrder] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,12 +37,12 @@ const Checkout = () => {
   const fetchCheckoutData = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch cart data
       const cartResponse = await customerApi.getCart();
       const cartData = cartResponse.data || cartResponse;
       setCartItems(Array.isArray(cartData) ? cartData : (cartData.items || []));
-      
+
       // Fetch user profile for pre-filling form
       try {
         const profileResponse = await customerApi.getProfile();
@@ -53,13 +54,13 @@ const Checkout = () => {
           lastName: profileData.lastName || '',
           phone: profileData.phone || ''
         }));
-        
+
         // Fetch user addresses
         try {
           const addressResponse = await customerApi.getAddresses();
           const addressData = addressResponse.data || addressResponse;
           setAddresses(Array.isArray(addressData) ? addressData : []);
-          
+
           // Pre-fill with default address if available
           const defaultAddress = Array.isArray(addressData) ? addressData.find(addr => addr.isDefault) : null;
           if (defaultAddress) {
@@ -79,7 +80,7 @@ const Checkout = () => {
       } catch (profileErr) {
         console.log('Could not fetch profile:', profileErr);
       }
-      
+
       setError(null);
     } catch (err) {
       console.error('Failed to fetch checkout data:', err);
@@ -111,16 +112,17 @@ const Checkout = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       setLoading(true);
-      
+
       // Prepare order data
       const orderData = {
         items: cartItems.map(item => ({
           product: item.product?._id || item.product?.id || item._id || item.id,
           quantity: item.quantity,
-          price: item.price || item.sellingPrice || item.product?.price || item.product?.sellingPrice
+          price: item.price || item.sellingPrice || item.product?.price || item.product?.sellingPrice,
+          unitType: item.unitType || item.selectedUnitType || item.product?.unitType
         })),
         shippingAddress: {
           firstName: formData.firstName,
@@ -129,7 +131,7 @@ const Checkout = () => {
           apartment: formData.apartment,
           city: formData.city,
           state: formData.state,
-          postalCode: formData.zipCode,
+          zipCode: formData.zipCode,
           country: formData.country,
           phone: formData.phone
         },
@@ -140,7 +142,7 @@ const Checkout = () => {
           apartment: formData.apartment,
           city: formData.city,
           state: formData.state,
-          postalCode: formData.zipCode,
+          zipCode: formData.zipCode,
           country: formData.country,
           phone: formData.phone
         } : {
@@ -150,7 +152,7 @@ const Checkout = () => {
           apartment: formData.apartment,
           city: formData.city,
           state: formData.state,
-          postalCode: formData.zipCode,
+          zipCode: formData.zipCode,
           country: formData.country,
           phone: formData.phone
         },
@@ -158,11 +160,20 @@ const Checkout = () => {
         shippingMethod: formData.shippingMethod,
         notes: ''
       };
-      
+
       // Create order
       const response = await customerApi.createOrder(orderData);
-      const order = response.data || response;
-      
+      const orderPayload = response?.data?.order || response?.order || response?.data || response;
+      setCreatedOrder(orderPayload);
+
+      // Clear cart after successful order
+      try {
+        await customerApi.clearCart();
+      } catch (clearErr) {
+        console.log('Cart clear failed (non-blocking):', clearErr);
+      }
+      setCartItems([]);
+
       // Move to confirmation step
       setCurrentStep(4);
     } catch (err) {
@@ -175,8 +186,8 @@ const Checkout = () => {
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + ((item.price || item.sellingPrice || item.product?.price || item.product?.sellingPrice || 0) * item.quantity), 0);
-  const shipping = formData.shippingMethod === 'express' ? 29.99 : 
-                  formData.shippingMethod === 'overnight' ? 49.99 : 15.99;
+  const shipping = formData.shippingMethod === 'express' ? 29.99 :
+    formData.shippingMethod === 'overnight' ? 49.99 : 15.99;
   const tax = subtotal * 0.08;
   const total = subtotal + shipping + tax;
 
@@ -195,7 +206,7 @@ const Checkout = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="customer-glass-card p-8 text-center">
           <p className="text-red-500 mb-4">{error}</p>
-          <button 
+          <button
             onClick={fetchCheckoutData}
             className="customer-btn-primary"
           >
@@ -219,24 +230,22 @@ const Checkout = () => {
         {/* Checkout Form */}
         <div className="flex-1">
           <h1 className="text-3xl font-bold text-customer-gray-900 mb-8">Checkout</h1>
-          
+
           {/* Progress Steps */}
           <div className="flex items-center mb-12">
             {[1, 2, 3].map((step) => (
               <div key={step} className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  currentStep >= step 
-                    ? 'bg-customer-primary text-white' 
-                    : 'bg-customer-gray-200 text-customer-gray-500'
-                }`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${currentStep >= step
+                  ? 'bg-customer-primary text-white'
+                  : 'bg-customer-gray-200 text-customer-gray-500'
+                  }`}>
                   {step}
                 </div>
                 {step < 3 && (
-                  <div className={`w-16 h-1 mx-2 ${
-                    currentStep > step 
-                      ? 'bg-customer-primary' 
-                      : 'bg-customer-gray-200'
-                  }`}></div>
+                  <div className={`w-16 h-1 mx-2 ${currentStep > step
+                    ? 'bg-customer-primary'
+                    : 'bg-customer-gray-200'
+                    }`}></div>
                 )}
               </div>
             ))}
@@ -246,13 +255,13 @@ const Checkout = () => {
               {currentStep === 3 && 'Payment'}
             </div>
           </div>
-          
+
           {/* Step 1: Contact Information */}
           {currentStep === 1 && (
             <form onSubmit={(e) => { e.preventDefault(); setCurrentStep(2); }}>
               <div className="customer-glass-card rounded-2xl p-6 mb-6">
                 <h2 className="text-xl font-bold text-customer-gray-900 mb-6">Contact Information</h2>
-                
+
                 <div className="mb-4">
                   <label htmlFor="email" className="block text-sm font-medium text-customer-gray-700 mb-2">
                     Email Address
@@ -268,13 +277,13 @@ const Checkout = () => {
                     required
                   />
                 </div>
-                
+
                 {addresses.length > 0 && (
                   <div className="mb-6">
                     <h3 className="text-lg font-medium text-customer-gray-900 mb-3">Select Saved Address</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {addresses.map((address) => (
-                        <div 
+                        <div
                           key={address._id || address.id}
                           className="border border-customer-gray-300 rounded-lg p-4 cursor-pointer hover:border-customer-primary"
                           onClick={() => handleAddressSelect(address)}
@@ -293,10 +302,10 @@ const Checkout = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="customer-glass-card rounded-2xl p-6">
                 <h2 className="text-xl font-bold text-customer-gray-900 mb-6">Shipping Address</h2>
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label htmlFor="firstName" className="block text-sm font-medium text-customer-gray-700 mb-2">
@@ -313,7 +322,7 @@ const Checkout = () => {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label htmlFor="lastName" className="block text-sm font-medium text-customer-gray-700 mb-2">
                       Last Name
@@ -330,7 +339,7 @@ const Checkout = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="mb-4">
                   <label htmlFor="address" className="block text-sm font-medium text-customer-gray-700 mb-2">
                     Address
@@ -346,7 +355,7 @@ const Checkout = () => {
                     required
                   />
                 </div>
-                
+
                 <div className="mb-4">
                   <label htmlFor="apartment" className="block text-sm font-medium text-customer-gray-700 mb-2">
                     Apartment, suite, etc. (optional)
@@ -361,7 +370,7 @@ const Checkout = () => {
                     placeholder="Apartment or suite number"
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                   <div>
                     <label htmlFor="city" className="block text-sm font-medium text-customer-gray-700 mb-2">
@@ -378,7 +387,7 @@ const Checkout = () => {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label htmlFor="state" className="block text-sm font-medium text-customer-gray-700 mb-2">
                       State
@@ -394,7 +403,7 @@ const Checkout = () => {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label htmlFor="zipCode" className="block text-sm font-medium text-customer-gray-700 mb-2">
                       ZIP Code
@@ -410,7 +419,7 @@ const Checkout = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="mb-6">
                   <label htmlFor="country" className="block text-sm font-medium text-customer-gray-700 mb-2">
                     Country
@@ -429,7 +438,7 @@ const Checkout = () => {
                     <option value="South Africa">South Africa</option>
                   </select>
                 </div>
-                
+
                 <div className="mb-6">
                   <label htmlFor="phone" className="block text-sm font-medium text-customer-gray-700 mb-2">
                     Phone Number
@@ -445,7 +454,7 @@ const Checkout = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="flex justify-between mt-8">
                 <Link to="/cart" className="customer-btn-secondary">
                   Back to Cart
@@ -456,15 +465,15 @@ const Checkout = () => {
               </div>
             </form>
           )}
-          
+
           {/* Step 2: Shipping Method */}
           {currentStep === 2 && (
             <form onSubmit={(e) => { e.preventDefault(); setCurrentStep(3); }}>
               <div className="customer-glass-card rounded-2xl p-6">
                 <h2 className="text-xl font-bold text-customer-gray-900 mb-6">Shipping Method</h2>
-                
+
                 <div className="space-y-4">
-                  <div 
+                  <div
                     className="border border-customer-gray-300 rounded-lg p-4 cursor-pointer hover:border-customer-primary"
                     onClick={() => setFormData(prev => ({ ...prev, shippingMethod: 'standard' }))}
                   >
@@ -487,8 +496,8 @@ const Checkout = () => {
                       </label>
                     </div>
                   </div>
-                  
-                  <div 
+
+                  <div
                     className="border border-customer-gray-300 rounded-lg p-4 cursor-pointer hover:border-customer-primary"
                     onClick={() => setFormData(prev => ({ ...prev, shippingMethod: 'express' }))}
                   >
@@ -511,8 +520,8 @@ const Checkout = () => {
                       </label>
                     </div>
                   </div>
-                  
-                  <div 
+
+                  <div
                     className="border border-customer-gray-300 rounded-lg p-4 cursor-pointer hover:border-customer-primary"
                     onClick={() => setFormData(prev => ({ ...prev, shippingMethod: 'overnight' }))}
                   >
@@ -537,10 +546,10 @@ const Checkout = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex justify-between mt-8">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setCurrentStep(1)}
                   className="customer-btn-secondary"
                 >
@@ -552,19 +561,19 @@ const Checkout = () => {
               </div>
             </form>
           )}
-          
+
           {/* Step 3: Payment Method */}
           {currentStep === 3 && (
             <form onSubmit={handleSubmit}>
               <div className="customer-glass-card rounded-2xl p-6 mb-6">
                 <h2 className="text-xl font-bold text-customer-gray-900 mb-6">Payment Method</h2>
-                
+
                 <div className="mb-6">
                   <div className="flex items-center mb-4">
                     <CreditCard className="w-5 h-5 text-customer-gray-500 mr-2" />
                     <span className="font-medium text-customer-gray-900">Credit Card</span>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                     <div className="sm:col-span-2">
                       <label htmlFor="cardNumber" className="block text-sm font-medium text-customer-gray-700 mb-2">
@@ -581,7 +590,7 @@ const Checkout = () => {
                         required
                       />
                     </div>
-                    
+
                     <div>
                       <label htmlFor="expiryDate" className="block text-sm font-medium text-customer-gray-700 mb-2">
                         Expiration Date (MM/YY)
@@ -597,7 +606,7 @@ const Checkout = () => {
                         required
                       />
                     </div>
-                    
+
                     <div>
                       <label htmlFor="cvv" className="block text-sm font-medium text-customer-gray-700 mb-2">
                         CVV
@@ -614,7 +623,7 @@ const Checkout = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div>
                     <label htmlFor="cardName" className="block text-sm font-medium text-customer-gray-700 mb-2">
                       Name on Card
@@ -631,7 +640,7 @@ const Checkout = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="border-t border-customer-gray-200 pt-6">
                   <div className="flex items-center">
                     <input
@@ -648,17 +657,17 @@ const Checkout = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex justify-between mt-8">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setCurrentStep(2)}
                   className="customer-btn-secondary"
                 >
                   Back to Shipping
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="customer-btn-primary"
                   disabled={loading}
                 >
@@ -667,7 +676,7 @@ const Checkout = () => {
               </div>
             </form>
           )}
-          
+
           {/* Step 4: Order Confirmation */}
           {currentStep === 4 && (
             <div className="text-center py-16">
@@ -677,7 +686,7 @@ const Checkout = () => {
               <h2 className="text-3xl font-bold text-customer-gray-900 mb-4">Thank You for Your Order!</h2>
               <p className="text-customer-gray-600 mb-2">A confirmation email has been sent to {formData.email}</p>
               <p className="text-customer-gray-600 mb-8">Order details will be available in your account</p>
-              
+
               <div className="customer-glass-card rounded-2xl p-6 max-w-md mx-auto mb-8">
                 <h3 className="text-lg font-semibold text-customer-gray-900 mb-4">Order Summary</h3>
                 <div className="space-y-2 text-left">
@@ -699,7 +708,7 @@ const Checkout = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/" className="customer-btn-primary">
                   Continue Shopping
@@ -711,18 +720,18 @@ const Checkout = () => {
             </div>
           )}
         </div>
-        
+
         {/* Order Summary */}
         <div className="w-full lg:w-96 flex-shrink-0">
           <div className="customer-glass-card rounded-2xl p-6 sticky top-8">
             <h2 className="text-xl font-bold text-customer-gray-900 mb-6">Order Summary</h2>
-            
+
             <div className="space-y-4 mb-6">
               {cartItems.map((item) => (
                 <div key={item._id || item.id} className="flex">
                   <div className="w-16 h-16 flex-shrink-0">
-                    <img 
-                      src={item.image || item.images?.[0] || item.product?.image || item.product?.images?.[0] || "https://placehold.co/300x300"} 
+                    <img
+                      src={item.image || item.images?.[0] || item.product?.image || item.product?.images?.[0] || "https://placehold.co/300x300"}
                       alt={item.name || item.product?.name}
                       className="w-full h-full object-cover rounded-lg"
                     />
@@ -737,7 +746,7 @@ const Checkout = () => {
                 </div>
               ))}
             </div>
-            
+
             <div className="space-y-4 mb-6">
               <div className="flex justify-between">
                 <span className="text-customer-gray-600">Subtotal</span>
@@ -756,7 +765,7 @@ const Checkout = () => {
                 <span className="text-customer-gray-900 font-bold text-lg">₦{total.toFixed(2)}</span>
               </div>
             </div>
-            
+
             {currentStep < 4 && (
               <div className="bg-customer-primary/5 border border-customer-primary/20 rounded-lg p-4">
                 <div className="flex items-center">

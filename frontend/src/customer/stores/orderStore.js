@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import customerApi from '../../shared/services/customerApi';
+import customerApi from '../../../shared/services/customerApi';
 
 const useOrderStore = create((set, get) => ({
   orders: [],

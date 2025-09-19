@@ -1,13 +1,10 @@
 import React, { useEffect } from "react";
-import { BrowserRouter as Router, useLocation } from "react-router-dom";
-import AppRouter from "./AppRouter";
-import useAuthStore from "./stores/authStore";
-import useCartStore from "./customer/stores/cartStore";
+import useAuthStore from "../stores/authStore";
+import useCartStore from "../customer/stores/cartStore";
 
-function AppContent() {
+const AuthSync = () => {
   const { isAuthenticated } = useAuthStore();
   const { setAuthStatus, mergeCart } = useCartStore();
-  const location = useLocation();
 
   useEffect(() => {
     // Sync authentication status between stores
@@ -19,11 +16,7 @@ function AppContent() {
     }
   }, [isAuthenticated, setAuthStatus, mergeCart]);
 
-  return <AppRouter />;
-}
+  return null; // This component doesn't render anything
+};
 
-function App() {
-  return <AppRouter />;
-}
-
-export default App;
+export default AuthSync;

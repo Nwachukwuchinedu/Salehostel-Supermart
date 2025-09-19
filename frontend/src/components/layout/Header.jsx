@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, ShoppingCart, Menu, X, User, ChevronDown } from "lucide-react";
-import useCartStore from "../../stores/cartStore";
+import useCartStore from "../../customer/stores/cartStore";
 import useAuthStore from "../../stores/authStore";
 import api from "../../shared/services/api";
 
@@ -17,12 +17,14 @@ const Header = () => {
   const searchTimeoutRef = useRef(null);
 
   const { items: cartItems } = useCartStore();
-  const { user, isAuthenticated, logout } = useAuthStore();
 
+  // Ensure cart count updates when cart items change
   const cartItemCount = cartItems.reduce(
     (total, item) => total + item.quantity,
     0
   );
+
+  const { user, isAuthenticated, logout } = useAuthStore();
 
   const categories = [
     { name: "Staple Foods", slug: "staple-foods", icon: "🌾" },

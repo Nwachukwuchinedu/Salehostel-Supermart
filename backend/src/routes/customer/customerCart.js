@@ -9,13 +9,15 @@ const {
 } = require('../../controllers/customer/customerCartController');
 const { protect, customer } = require('../../middleware/customerAuth');
 
+// Routes for / (cart root)
 router.route('/')
-  .get(protect, customer, getCart)
-  .post(protect, customer, addToCart)
-  .delete(protect, customer, clearCart);
+  .get(protect, customer, getCart)      // Get cart (protected)
+  .post(addToCart)                      // Add to cart (public)
+  .delete(clearCart);                   // Clear cart (public)
 
+// Routes for /:productId (specific items)
 router.route('/:productId')
-  .put(protect, customer, updateCart)
-  .delete(protect, customer, removeFromCart);
+  .put(updateCart)                      // Update item (public)
+  .delete(removeFromCart);              // Remove item (public)
 
 module.exports = router;
