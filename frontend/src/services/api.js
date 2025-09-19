@@ -1,10 +1,9 @@
 // Simple API service for SalesHostel
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
-// Debug logging in development
-if (import.meta.env.DEV) {
-  console.log('API Base URL:', API_BASE_URL);
-}
+// Debug logging
+console.log('VITE_API_URL from env:', import.meta.env.VITE_API_URL);
+console.log('Using API Base URL:', API_BASE_URL);
 
 class ApiService {
   constructor() {
@@ -16,10 +15,7 @@ class ApiService {
     const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
     const url = `${this.baseURL}${normalizedEndpoint}`;
 
-    // Debug logging in development
-    if (import.meta.env.DEV) {
-      console.log('Making API request to:', url);
-    }
+    console.log('Making API request to:', url);
 
     const config = {
       headers: {
@@ -45,14 +41,19 @@ class ApiService {
     try {
       const response = await fetch(url, config);
 
+      console.log('API response status:', response.status);
+      console.log('API response URL:', response.url);
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('API error data:', errorData);
         throw new Error(
           errorData.message || `HTTP error! status: ${response.status}`
         );
       }
 
       const data = await response.json();
+      console.log('API response data:', data);
       return { data, status: response.status };
     } catch (error) {
       console.error("API request failed:", error);
