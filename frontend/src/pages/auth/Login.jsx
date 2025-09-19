@@ -5,11 +5,12 @@ import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import useAuthStore from "../../stores/authStore";
 import { validateEmail } from "../../utils/helpers";
+import { getRedirectPathByRole } from "../../shared/utils/redirect";
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, loading, error, clearError } = useAuthStore();
+  const { login, loading, error, clearError, user } = useAuthStore();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -67,8 +68,12 @@ const Login = () => {
     const result = await login(formData);
 
     if (result.success) {
-      // Redirect to intended page or home
-      navigate(from, { replace: true });
+      // Redirect based on user role
+      const redirectPath = user?.role 
+        ? getRedirectPathByRole(user.role)
+        : from !== "/" ? from : "/";
+      
+      navigate(redirectPath, { replace: true });
     }
   };
 

@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const auth = require("../middleware/auth");
+const requireRole = require("../middleware/roleAuth");
 const { validateEmail, validatePhone } = require("../utils/validators");
 
 // @desc    Register user
@@ -68,6 +69,9 @@ router.post("/register", async (req, res) => {
       });
     }
 
+    // Prevent admin registration via public endpoint
+    const userRole = role === "admin" ? "customer" : role;
+
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -85,7 +89,7 @@ router.post("/register", async (req, res) => {
       password: hashedPassword,
       whatsappNumber: whatsappNumber.trim(),
       callNumber: callNumber.trim(),
-      role: role === "admin" ? "customer" : role, // Prevent admin registration via public endpoint
+      role: userRole,
     });
 
     await user.save();
@@ -147,6 +151,7 @@ router.post("/login", async (req, res) => {
       console.log("User ID:", user._id);
       console.log("User email:", user.email);
       console.log("User password hash:", user.password ? "Exists" : "Missing");
+      console.log("User role:", user.role);
     }
 
     if (!user) {
@@ -215,6 +220,7 @@ router.post("/test-login", async (req, res) => {
       console.log("User email:", user.email);
       console.log("User isActive:", user.isActive);
       console.log("User password hash:", user.password);
+      console.log("User role:", user.role);
       
       // Check password
       const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -226,7 +232,8 @@ router.post("/test-login", async (req, res) => {
         userFound: !!user,
         isActive: user ? user.isActive : false,
         passwordValid: isPasswordValid,
-        userId: user ? user._id : null
+        userId: user ? user._id : null,
+        userRole: user ? user.role : null
       });
     } else {
       return res.json({
@@ -235,7 +242,8 @@ router.post("/test-login", async (req, res) => {
         userFound: false,
         isActive: false,
         passwordValid: false,
-        userId: null
+        userId: null,
+        userRole: null
       });
     }
   } catch (error) {
@@ -398,6 +406,61 @@ router.post("/logout", (req, res) => {
     success: true,
     message: "Logged out successfully",
   });
+});
+
+// Role-specific routes
+// @desc    Get admin profile
+// @route   GET /api/auth/admin/profile
+// @access  Private (Admin only)
+router.get("/admin/profile", auth, requireRole("admin"), async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select("-password");
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin user not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    console.error("Admin profile fetch error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching admin profile",
+    });
+  }
+});
+
+// @desc    Get customer profile
+// @route   GET /api/auth/customer/profile
+// @access  Private (Customer only)
+router.get("/customer/profile", auth, requireRole("customer"), async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select("-password");
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer user not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    console.error("Customer profile fetch error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching customer profile",
+    });
+  }
 });
 
 module.exports = router;

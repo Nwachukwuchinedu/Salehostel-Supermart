@@ -83,7 +83,6 @@ app.use("/api/reports", require("./src/routes/reports"));
 app.use("/api/users", require("./src/routes/users"));
 
 // Admin routes
-app.use("/api/admin/auth", require("./src/routes/admin/adminAuth"));
 app.use("/api/admin/products", require("./src/routes/admin/adminProducts"));
 app.use("/api/admin/inventory", require("./src/routes/admin/adminInventory"));
 app.use("/api/admin/supplies", require("./src/routes/admin/adminSupplies"));
@@ -96,7 +95,6 @@ app.use("/api/admin/users", require("./src/routes/admin/adminUsers"));
 app.use("/api/supplier/supplies", require("./src/routes/supplier/supplierSupplies"));
 
 // Customer routes
-app.use("/api/customer/auth", require("./src/routes/customer/customerAuth"));
 app.use("/api/customer/products", require("./src/routes/customer/customerProducts"));
 app.use("/api/customer/orders", require("./src/routes/customer/customerOrders"));
 app.use("/api/customer/cart", require("./src/routes/customer/customerCart"));

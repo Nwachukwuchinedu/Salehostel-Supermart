@@ -3,12 +3,9 @@ import { Filter, Grid, List, ChevronDown, Star, ShoppingCart } from 'lucide-reac
 import { useParams } from 'react-router-dom';
 import ProductCard from '../../components/ProductCard';
 import api from '../../../shared/services/api';
-import useCartStore from '../../../stores/cartStore';
-import customerApi from '../../../shared/services/customerApi';
 
 const CategoryPage = () => {
   const { slug } = useParams();
-  const { addToCart } = useCartStore();
 
   const [viewMode, setViewMode] = useState('grid');
   const [sortBy, setSortBy] = useState('featured');
@@ -137,31 +134,6 @@ const CategoryPage = () => {
       setError('Failed to load category data. Please try again.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleAddToCart = async (product, e) => {
-    e.preventDefault();
-    // Add cart animation
-    const button = e.currentTarget;
-    button.classList.add('animate-pulse');
-    setTimeout(() => button.classList.remove('animate-pulse'), 300);
-    
-    // Add to cart logic
-    try {
-      // For now, we'll add a default quantity of 1
-      // In a more advanced implementation, we might want to show a modal to select unit/quantity
-      const itemData = {
-        productId: product._id || product.id,
-        quantity: 1
-      };
-      
-      // Add to cart (handles both local storage and server)
-      await addToCart(itemData);
-      // Could add a success notification here
-    } catch (error) {
-      console.error('Failed to add to cart:', error);
-      // Could add an error notification here
     }
   };
 
@@ -469,10 +441,7 @@ const CategoryPage = () => {
                       )}
                     </div>
                     <div className="mt-4">
-                      <button 
-                        onClick={(e) => handleAddToCart(product, e)}
-                        className="customer-btn-primary flex items-center"
-                      >
+                      <button className="customer-btn-primary flex items-center">
                         <ShoppingCart className="w-5 h-5 mr-2" />
                         Add to Cart
                       </button>

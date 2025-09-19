@@ -121,7 +121,15 @@ const login = async (req, res) => {
     // Check for user
     const user = await User.findOne({ email: email.toLowerCase(), isActive: true });
 
-    if (user && user.role === 'customer' && (await user.comparePassword(password))) {
+    if (user && (await user.comparePassword(password))) {
+      // Check if user is actually a customer
+      if (user.role !== 'customer') {
+        return res.status(403).json({ 
+          success: false,
+          message: `Please login through the ${user.role} portal` 
+        });
+      }
+      
       const token = generateToken(user._id, user.role);
       
       // Remove password from response
@@ -176,9 +184,11 @@ const updateProfile = async (req, res) => {
     const customer = await User.findById(req.user._id);
 
     if (customer) {
-      customer.name = req.body.name || customer.name;
+      customer.firstName = req.body.firstName || customer.firstName;
+      customer.lastName = req.body.lastName || customer.lastName;
       customer.email = req.body.email || customer.email;
-      customer.phone = req.body.phone || customer.phone;
+      customer.whatsappNumber = req.body.whatsappNumber || customer.whatsappNumber;
+      customer.callNumber = req.body.callNumber || customer.callNumber;
       customer.address = req.body.address || customer.address;
 
       const updatedCustomer = await customer.save();
@@ -187,9 +197,11 @@ const updateProfile = async (req, res) => {
         success: true,
         customer: {
           _id: updatedCustomer._id,
-          name: updatedCustomer.name,
+          firstName: updatedCustomer.firstName,
+          lastName: updatedCustomer.lastName,
           email: updatedCustomer.email,
-          phone: updatedCustomer.phone,
+          whatsappNumber: updatedCustomer.whatsappNumber,
+          callNumber: updatedCustomer.callNumber,
           address: updatedCustomer.address,
         },
         token: generateToken(updatedCustomer._id),

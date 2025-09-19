@@ -1,10 +1,9 @@
 import React, { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import AppRouter from "./AppRouter";
-import useAuthStore from "./stores/authStore";
-import useCartStore from "./customer/stores/cartStore";
+import useAuthStore from "../stores/authStore";
+import useCartStore from "../customer/stores/cartStore";
 
-function AppContent() {
+const AuthWrapper = () => {
   const { isAuthenticated, user } = useAuthStore();
   const { setAuthStatus, mergeCart } = useCartStore();
   const location = useLocation();
@@ -44,11 +43,7 @@ function AppContent() {
     }
   }, [isAuthenticated, user, setAuthStatus, mergeCart, navigate, location.pathname]);
 
-  return <AppRouter />;
-}
+  return null; // This component doesn't render anything
+};
 
-function App() {
-  return <AppRouter />;
-}
-
-export default App;
+export default AuthWrapper;
