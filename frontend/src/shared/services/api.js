@@ -1,6 +1,21 @@
-// Base API service
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+ // Use the environment variable if set, otherwise default based on environment
+const getApiBaseUrl = () => {
+  // Check if explicitly set in environment variables
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  
+  // In development, use proxy
+  if (import.meta.env.DEV) {
+    return '/api';
+  }
+  
+  // In production, default to your backend URL
+  // This ensures that even if VITE_API_URL is not set, we still have a fallback
+  return 'https://salehostel-supermart.onrender.com/api';
+};
 
+const API_BASE_URL = getApiBaseUrl();
 // Debug logging
 console.log('VITE_API_URL from env:', import.meta.env.VITE_API_URL);
 console.log('Using API Base URL:', API_BASE_URL);
