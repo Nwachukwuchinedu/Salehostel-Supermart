@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Heart, ShoppingCart, Eye, Star, Shuffle, Trash2 } from 'lucide-react'
-import useCartStore from '../../stores/cartStore'
-import customerApi from '../../../shared/services/customerApi'
+import useCartStore from '../stores/cartStore'
+import customerApi from '../../shared/services/customerApi'
 
 const ProductCard = ({ product }) => {
   const [isLiked, setIsLiked] = useState(false)

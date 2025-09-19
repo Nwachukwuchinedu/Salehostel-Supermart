@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, Grid, List, ChevronDown, Star, ShoppingCart } from 'lucide-react';
 import { useParams } from 'react-router-dom';
-import ProductCard from '../../components/shop/ProductCard';
+import ProductCard from '../../components/ProductCard';
 import api from '../../../shared/services/api';
 import useCartStore from '../../../stores/cartStore';
 import customerApi from '../../../shared/services/customerApi';

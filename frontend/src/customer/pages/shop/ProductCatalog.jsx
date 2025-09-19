@@ -130,7 +130,7 @@
 
 
 import React, { useState } from 'react'
-import ProductCard from '../../components/shop/ProductCard'
+import ProductCard from '../../components/ProductCard'
 
 const ProductCatalog = () => {
   console.log("ProductCatalog component rendering");

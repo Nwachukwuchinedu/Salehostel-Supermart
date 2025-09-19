@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import CustomerHeader from './CustomerHeader'
 import CustomerFooter from './CustomerFooter'
-import CartSidebar from '../cart/CartDropdown'
+import CartSidebar from '../CartDropdown'
 
 const CustomerLayout = () => {
   console.log("CustomerLayout component rendering");
