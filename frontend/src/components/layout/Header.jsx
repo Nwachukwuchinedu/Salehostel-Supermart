@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Search, ShoppingCart, Menu, X, User, ChevronDown } from "lucide-react";
 import useCartStore from "../../stores/cartStore";
 import useAuthStore from "../../stores/authStore";
-import api from "../../services/api";
+import api from "../../shared/services/api";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

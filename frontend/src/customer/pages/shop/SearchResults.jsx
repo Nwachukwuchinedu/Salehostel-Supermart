@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, Filter, Grid, List, ChevronDown, Star, ShoppingCart, Loader } from 'lucide-react';
 import ProductCard from '../../components/shop/ProductCard';
-import api from '../../../../services/api';
+import api from '../../../shared/services/api';
 
 const SearchResults = () => {
   const [viewMode, setViewMode] = useState('grid');

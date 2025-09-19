@@ -60,17 +60,6 @@ const CategoryPage = () => {
           pushLog('Making request to: ' + catUrl, null);
           const catRes = await api.get(catUrl);
           pushLog('Full category response:', catRes);
-          pushLog('typeof catRes:', typeof catRes);
-          pushLog('catRes keys:', Object.keys(catRes || {}));
-          
-          // Log the exact structure
-          if (catRes && typeof catRes === 'object') {
-            pushLog('catRes.category:', catRes.category);
-            pushLog('catRes.data:', catRes.data);
-            if (catRes.data) {
-              pushLog('catRes.data.category:', catRes.data.category);
-            }
-          }
           
           // Handle the response structure correctly
           // API service returns the parsed JSON directly
@@ -90,6 +79,8 @@ const CategoryPage = () => {
             pushLog('Error response:', slugError.response);
             pushLog('Error message:', slugError.message);
           }
+          // More descriptive error message
+          setError(`Failed to load category: ${slugError.message || 'Unknown error'}`);
         }
       }
 
@@ -98,43 +89,38 @@ const CategoryPage = () => {
 
       // Fetch products if we have a category ID
       if (categoryId) {
-        // Use the correct endpoint for products by category
-        const prodUrl = `/public/products/category/${categoryId}`;
-        pushLog('Making products request to: ' + prodUrl, null);
-        const productsResponse = await api.get(prodUrl);
-        pushLog('Full products response:', productsResponse);
-        pushLog('typeof productsResponse:', typeof productsResponse);
-        pushLog('productsResponse keys:', Object.keys(productsResponse || {}));
-        
-        // Log the exact structure
-        if (productsResponse && typeof productsResponse === 'object') {
-          pushLog('productsResponse.products:', productsResponse.products);
-          pushLog('productsResponse.data:', productsResponse.data);
-          if (productsResponse.data) {
-            pushLog('productsResponse.data.products:', productsResponse.data.products);
-          }
-        }
-        
-        // Handle the response structure correctly
-        // API service returns the parsed JSON directly
-        const productsData = productsResponse?.products || (productsResponse?.data?.products) || [];
-        pushLog('Final productsData:', productsData);
-        pushLog('Products count:', productsData.length);
-        setProducts(productsData);
+        try {
+          // Use the correct endpoint for products by category
+          const prodUrl = `/public/products/category/${categoryId}`;
+          pushLog('Making products request to: ' + prodUrl, null);
+          const productsResponse = await api.get(prodUrl);
+          pushLog('Full products response:', productsResponse);
+          
+          // Handle the response structure correctly
+          // API service returns the parsed JSON directly
+          const productsData = productsResponse?.products || (productsResponse?.data?.products) || [];
+          pushLog('Final productsData:', productsData);
+          pushLog('Products count:', productsData.length);
+          setProducts(productsData);
 
-        const uniqueBrands = [...new Set(productsData.map(p => p.brand).filter(Boolean))];
-        setFilters({
-          brands: uniqueBrands,
-          priceRanges: [
-            { label: 'Under ₦50', min: 0, max: 50 },
-            { label: '₦50 - ₦100', min: 50, max: 100 },
-            { label: '₦100 - ₦500', min: 100, max: 500 },
-            { label: 'Over ₦500', min: 500, max: Infinity }
-          ],
-          ratings: [4, 3, 2, 1]
-        });
+          const uniqueBrands = [...new Set(productsData.map(p => p.brand).filter(Boolean))];
+          setFilters({
+            brands: uniqueBrands,
+            priceRanges: [
+              { label: 'Under ₦50', min: 0, max: 50 },
+              { label: '₦50 - ₦100', min: 50, max: 100 },
+              { label: '₦100 - ₦500', min: 100, max: 500 },
+              { label: 'Over ₦500', min: 500, max: Infinity }
+            ],
+            ratings: [4, 3, 2, 1]
+          });
+        } catch (productsError) {
+          pushLog('Error fetching products. Error details:', productsError);
+          setError(`Failed to load products: ${productsError.message || 'Unknown error'}`);
+        }
       } else {
         pushLog('Missing categoryId, aborting products fetch. slug was:', slug);
+        setError('Category not found');
       }
 
       setError(null);

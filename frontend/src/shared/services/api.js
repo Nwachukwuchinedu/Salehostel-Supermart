@@ -1,5 +1,9 @@
 // Base API service
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
+// Debug logging
+console.log('VITE_API_URL from env:', import.meta.env.VITE_API_URL);
+console.log('Using API Base URL:', API_BASE_URL);
 
 // Get token from localStorage
 const getToken = () => {
@@ -18,7 +22,12 @@ const getToken = () => {
 const api = {
   // Generic request method
   request: async (endpoint, options = {}) => {
-    const url = `${API_BASE_URL}${endpoint}`;
+    // Ensure endpoint starts with /
+    const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const url = `${API_BASE_URL}${normalizedEndpoint}`;
+    
+    // Debug logging
+    console.log('Making API request to:', url);
     
     // Get token and add to headers if available
     const token = getToken();
@@ -35,9 +44,16 @@ const api = {
     try {
       const response = await fetch(url, config);
       
+      // Debug logging
+      console.log('API response status:', response.status);
+      console.log('API response URL:', response.url);
+      
       const data = await response.json().catch(() => ({}));
       
       if (!response.ok) {
+        // Debug logging
+        console.error('API error data:', data);
+        
         // Create an error object that matches the expected structure
         const error = new Error(data.message || `HTTP error! status: ${response.status}`);
         error.response = {
@@ -46,6 +62,9 @@ const api = {
         };
         throw error;
       }
+      
+      // Debug logging
+      console.log('API response data:', data);
       
       return data;
     } catch (error) {
