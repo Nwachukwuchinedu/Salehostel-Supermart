@@ -16,9 +16,12 @@ const useAuthStore = create(
         set({ loading: true, error: null });
 
         try {
-          const { data: response } = await api.post('/auth/login', credentials);
+          console.log('Logging in with credentials:', credentials);
+          const response = await api.post('/auth/login', credentials);
+          console.log('Login API response:', response);
           
-          if (response.success) {
+          // Check if response exists and has success property
+          if (response && typeof response === 'object' && response.success) {
             set({
               user: response.user,
               token: response.token,
@@ -29,18 +32,21 @@ const useAuthStore = create(
             
             return { success: true, user: response.user };
           } else {
+            const errorMessage = response && typeof response === 'object' && response.message ? response.message : 'Login failed';
             set({ 
-              error: response.message || 'Login failed',
+              error: errorMessage,
               loading: false 
             });
-            return { success: false, error: response.message || 'Login failed' };
+            return { success: false, error: errorMessage };
           }
         } catch (error) {
+          console.error('Login error:', error);
+          const errorMessage = error && error.message ? error.message : 'Login failed';
           set({ 
-            error: error.message || 'Login failed',
+            error: errorMessage,
             loading: false 
           });
-          return { success: false, error: error.message || 'Login failed' };
+          return { success: false, error: errorMessage };
         }
       },
 
@@ -49,9 +55,12 @@ const useAuthStore = create(
         set({ loading: true, error: null });
 
         try {
-          const { data: response } = await api.post('/auth/register', userData);
+          console.log('Registering user with data:', userData);
+          const response = await api.post('/auth/register', userData);
+          console.log('Registration API response:', response);
           
-          if (response.success) {
+          // Check if response exists and has success property
+          if (response && typeof response === 'object' && response.success) {
             set({
               user: response.user,
               token: response.token,
@@ -62,18 +71,21 @@ const useAuthStore = create(
             
             return { success: true, user: response.user };
           } else {
+            const errorMessage = response && typeof response === 'object' && response.message ? response.message : 'Registration failed';
             set({ 
-              error: response.message || 'Registration failed',
+              error: errorMessage,
               loading: false 
             });
-            return { success: false, error: response.message || 'Registration failed' };
+            return { success: false, error: errorMessage };
           }
         } catch (error) {
+          console.error('Registration error:', error);
+          const errorMessage = error && error.message ? error.message : 'Registration failed';
           set({ 
-            error: error.message || 'Registration failed',
+            error: errorMessage,
             loading: false 
           });
-          return { success: false, error: error.message || 'Registration failed' };
+          return { success: false, error: errorMessage };
         }
       },
 
@@ -98,7 +110,8 @@ const useAuthStore = create(
         try {
           const response = await api.put('/auth/profile', profileData);
           
-          if (response.success) {
+          // Check if response exists and has success property
+          if (response && typeof response === 'object' && response.success) {
             set({
               user: response.user,
               loading: false,
@@ -107,18 +120,20 @@ const useAuthStore = create(
             
             return { success: true, user: response.user };
           } else {
+            const errorMessage = response && typeof response === 'object' && response.message ? response.message : 'Profile update failed';
             set({ 
-              error: response.message || 'Profile update failed',
+              error: errorMessage,
               loading: false 
             });
-            return { success: false, error: response.message || 'Profile update failed' };
+            return { success: false, error: errorMessage };
           }
         } catch (error) {
+          const errorMessage = error && error.message ? error.message : 'Profile update failed';
           set({ 
-            error: error.message || 'Profile update failed',
+            error: errorMessage,
             loading: false 
           });
-          return { success: false, error: error.message || 'Profile update failed' };
+          return { success: false, error: errorMessage };
         }
       },
 
@@ -132,7 +147,8 @@ const useAuthStore = create(
         try {
           const response = await api.get('/auth/profile');
           
-          if (response.success) {
+          // Check if response exists and has success property
+          if (response && typeof response === 'object' && response.success) {
             set({
               user: response.user,
               isAuthenticated: true,
@@ -142,15 +158,17 @@ const useAuthStore = create(
             
             return response.user;
           } else {
+            const errorMessage = response && typeof response === 'object' && response.message ? response.message : 'Failed to fetch profile';
             set({ 
-              error: response.message || 'Failed to fetch profile',
+              error: errorMessage,
               loading: false 
             });
             return null;
           }
         } catch (error) {
+          const errorMessage = error && error.message ? error.message : 'Failed to fetch profile';
           set({ 
-            error: error.message || 'Failed to fetch profile',
+            error: errorMessage,
             loading: false 
           });
           return null;

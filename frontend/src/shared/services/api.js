@@ -1,4 +1,4 @@
- // Use the environment variable if set, otherwise default based on environment
+// Use the environment variable if set, otherwise default based on environment
 const getApiBaseUrl = () => {
   // Check if explicitly set in environment variables
   if (import.meta.env.VITE_API_URL) {
@@ -43,6 +43,7 @@ const api = {
     
     // Debug logging
     console.log('Making API request to:', url);
+    console.log('Request options:', options);
     
     // Get token and add to headers if available
     const token = getToken();
@@ -63,7 +64,16 @@ const api = {
       console.log('API response status:', response.status);
       console.log('API response URL:', response.url);
       
-      const data = await response.json().catch(() => ({}));
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        // Handle cases where response is not JSON
+        data = {};
+      }
+      
+      // Debug logging
+      console.log('API response data:', data);
       
       if (!response.ok) {
         // Debug logging
@@ -77,9 +87,6 @@ const api = {
         };
         throw error;
       }
-      
-      // Debug logging
-      console.log('API response data:', data);
       
       return data;
     } catch (error) {
@@ -107,6 +114,8 @@ const api = {
 
   // POST request
   post: async (endpoint, data, options = {}) => {
+    console.log('API POST request to:', endpoint);
+    console.log('Request data:', data);
     return api.request(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),

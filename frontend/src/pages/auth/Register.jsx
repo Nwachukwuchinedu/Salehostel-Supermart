@@ -122,11 +122,23 @@ const Register = () => {
       password: formData.password,
     };
 
-    const result = await register(registrationData);
-
-    if (result.success) {
-      // Redirect to home page after successful registration
-      navigate("/", { replace: true });
+    try {
+      console.log('Attempting registration with data:', registrationData);
+      const result = await register(registrationData);
+      console.log('Registration result:', result);
+      
+      // Check if result exists and has success property before accessing it
+      if (result && typeof result === 'object' && result.success) {
+        // Redirect to home page after successful registration
+        navigate("/", { replace: true });
+      } else {
+        console.error('Registration failed:', result);
+        // Handle the case where registration failed but didn't throw an error
+        // The error should already be set in the auth store
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      // Error should already be handled by the auth store
     }
   };
 

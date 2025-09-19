@@ -71,6 +71,11 @@ router.post("/register", async (req, res) => {
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    
+    // Debug logging
+    console.log("Registering user with email:", email.toLowerCase());
+    console.log("Plain password:", password);
+    console.log("Hashed password:", hashedPassword);
 
     // Create user
     const user = new User({
@@ -84,6 +89,9 @@ router.post("/register", async (req, res) => {
     });
 
     await user.save();
+    
+    // Debug logging
+    console.log("User saved successfully with ID:", user._id);
 
     // Generate JWT token
     const token = jwt.sign(
@@ -132,16 +140,29 @@ router.post("/login", async (req, res) => {
       isActive: true,
     });
 
+    // Debug logging
+    console.log("Login attempt for email:", email.toLowerCase());
+    console.log("User found:", user ? "Yes" : "No");
+    if (user) {
+      console.log("User ID:", user._id);
+      console.log("User email:", user.email);
+      console.log("User password hash:", user.password ? "Exists" : "Missing");
+    }
+
     if (!user) {
+      console.log("User not found or not active");
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
       });
     }
 
-    // Check password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    // Check password using the model method
+    const isPasswordValid = await user.comparePassword(password);
+    console.log("Password valid:", isPasswordValid);
+    
     if (!isPasswordValid) {
+      console.log("Password invalid");
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
@@ -170,6 +191,59 @@ router.post("/login", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error during login",
+    });
+  }
+});
+
+// @desc    Test login endpoint for debugging
+// @route   POST /api/auth/test-login
+// @access  Public
+router.post("/test-login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    console.log("Test login attempt for email:", email);
+    
+    // Find user without isActive filter to see if user exists
+    const user = await User.findOne({
+      email: email.toLowerCase()
+    });
+    
+    console.log("User found in test:", user ? "Yes" : "No");
+    if (user) {
+      console.log("User ID:", user._id);
+      console.log("User email:", user.email);
+      console.log("User isActive:", user.isActive);
+      console.log("User password hash:", user.password);
+      
+      // Check password
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      console.log("Password valid:", isPasswordValid);
+      
+      return res.json({
+        success: true,
+        message: "Test completed",
+        userFound: !!user,
+        isActive: user ? user.isActive : false,
+        passwordValid: isPasswordValid,
+        userId: user ? user._id : null
+      });
+    } else {
+      return res.json({
+        success: true,
+        message: "Test completed",
+        userFound: false,
+        isActive: false,
+        passwordValid: false,
+        userId: null
+      });
+    }
+  } catch (error) {
+    console.error("Test login error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Test error",
+      error: error.message
     });
   }
 });
