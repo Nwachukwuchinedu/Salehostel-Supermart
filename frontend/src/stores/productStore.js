@@ -162,7 +162,9 @@ const useProductStore = create((set, get) => ({
       const response = await api.get("/public/products/search", {
         params: queryParams,
       });
-      const { products, pagination } = response.data;
+      // Our API service directly returns the data, not wrapped in a data property
+      const products = response.products || [];
+      const pagination = response.pagination || {};
 
       set({
         products,

@@ -53,10 +53,12 @@ const SearchResults = () => {
     setLoading(true);
     try {
       const response = await api.searchProducts(query, { page, limit: 12 });
-      const { products, pagination: pagData } = response.data;
+      // Our API service directly returns the data, not wrapped in a data property
+      const products = response.products || [];
+      const pagData = response.pagination || {};
       
       setSearchResults(products);
-      setTotalResults(pagData.total);
+      setTotalResults(pagData.total || 0);
       setPagination(pagData);
     } catch (error) {
       console.error('Search error:', error);

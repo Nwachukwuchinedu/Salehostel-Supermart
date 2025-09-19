@@ -73,6 +73,15 @@ const api = {
     }
   },
 
+  // SEARCH request
+  searchProducts: async (query, filters = {}) => {
+    const params = { q: query, ...filters };
+    const queryString = new URLSearchParams(params).toString();
+    const endpoint = `/public/products/search${queryString ? `?${queryString}` : ''}`;
+    
+    return api.get(endpoint);
+  },
+
   // GET request
   get: async (endpoint, options = {}) => {
     return api.request(endpoint, {

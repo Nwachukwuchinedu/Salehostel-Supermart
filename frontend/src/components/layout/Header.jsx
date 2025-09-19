@@ -47,7 +47,8 @@ const Header = () => {
     setSearchLoading(true);
     try {
       const response = await api.searchProducts(query, { limit: 4 });
-      const { products } = response.data;
+      // Our API service directly returns the data, not wrapped in a data property
+      const products = response.products || [];
       setSearchResults(products);
       // Show dropdown regardless of whether there are results or not
       setIsSearchDropdownOpen(true);
