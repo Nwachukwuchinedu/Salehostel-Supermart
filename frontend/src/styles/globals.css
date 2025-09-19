@@ -292,4 +292,380 @@
   .focus-ring-customer {
     @apply focus:ring-2 focus:ring-offset-2 focus:ring-customer-primary focus:outline-none;
   }
+
+  /* ===== ADMIN COMPONENTS ===== */
+
+  /* Admin Layout */
+  .admin-layout {
+    @apply min-h-screen bg-admin-gray-50;
+  }
+
+  .admin-sidebar {
+    @apply fixed left-0 top-0 h-full w-64 bg-white border-r border-admin-gray-200 shadow-lg z-30;
+  }
+
+  .admin-main {
+    @apply ml-0 lg:ml-64 min-h-screen;
+  }
+
+  .admin-header {
+    @apply bg-white border-b border-admin-gray-200 px-6 py-4 shadow-sm;
+  }
+
+  .admin-content {
+    @apply p-6;
+  }
+
+  /* Admin Sidebar */
+  .admin-sidebar-item {
+    @apply flex items-center px-4 py-3 text-admin-gray-600 hover:bg-admin-gray-50 hover:text-admin-primary transition-colors duration-200 rounded-lg mx-2 my-1;
+  }
+
+  .admin-sidebar-item.active {
+    @apply bg-admin-primary/10 text-admin-primary font-medium;
+  }
+
+  .admin-sidebar-item.active::before {
+    content: '';
+    @apply absolute left-0 top-0 bottom-0 w-1 bg-admin-primary rounded-r-full;
+  }
+
+  /* Admin Cards */
+  .admin-card {
+    @apply bg-white rounded-xl border border-admin-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+
+  .admin-card-header {
+    @apply px-6 py-4 border-b border-admin-gray-200;
+  }
+
+  .admin-card-body {
+    @apply p-6;
+  }
+
+  .admin-card-footer {
+    @apply px-6 py-4 border-t border-admin-gray-200 bg-admin-gray-50 rounded-b-xl;
+  }
+
+  /* Admin Stats Cards */
+  .admin-stats-card {
+    @apply admin-card p-6 hover:shadow-lg transition-all duration-200;
+  }
+
+  .admin-stats-icon {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center mb-4;
+  }
+
+  .admin-stats-number {
+    @apply text-3xl font-bold text-admin-gray-900 mb-1;
+  }
+
+  .admin-stats-label {
+    @apply text-sm text-admin-gray-600 font-medium;
+  }
+
+  .admin-stats-change {
+    @apply text-sm font-medium flex items-center mt-2;
+  }
+
+  .admin-stats-change.positive {
+    @apply text-green-600;
+  }
+
+  .admin-stats-change.negative {
+    @apply text-red-600;
+  }
+
+  /* Admin Buttons */
+  .admin-btn {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .admin-btn-primary {
+    @apply admin-btn bg-admin-primary text-white hover:bg-admin-primary/90 focus:ring-admin-primary shadow-sm hover:shadow-md;
+  }
+
+  .admin-btn-secondary {
+    @apply admin-btn bg-white text-admin-gray-700 border border-admin-gray-300 hover:bg-admin-gray-50 focus:ring-admin-primary;
+  }
+
+  .admin-btn-success {
+    @apply admin-btn bg-admin-success text-white hover:bg-admin-success/90 focus:ring-admin-success;
+  }
+
+  .admin-btn-warning {
+    @apply admin-btn bg-admin-warning text-white hover:bg-admin-warning/90 focus:ring-admin-warning;
+  }
+
+  .admin-btn-danger {
+    @apply admin-btn bg-admin-danger text-white hover:bg-admin-danger/90 focus:ring-admin-danger;
+  }
+
+  .admin-btn-ghost {
+    @apply admin-btn text-admin-gray-600 hover:bg-admin-gray-100 focus:ring-admin-primary;
+  }
+
+  .admin-btn-sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+
+  .admin-btn-lg {
+    @apply px-6 py-3 text-base;
+  }
+
+  /* Admin Forms */
+  .admin-form-group {
+    @apply mb-4;
+  }
+
+  .admin-form-label {
+    @apply block text-sm font-medium text-admin-gray-700 mb-2;
+  }
+
+  .admin-form-input {
+    @apply w-full px-3 py-2 border border-admin-gray-300 rounded-lg focus:ring-2 focus:ring-admin-primary focus:border-admin-primary transition-colors duration-200;
+  }
+
+  .admin-form-select {
+    @apply admin-form-input appearance-none bg-white;
+  }
+
+  .admin-form-textarea {
+    @apply admin-form-input resize-none;
+  }
+
+  .admin-form-error {
+    @apply text-sm text-red-600 mt-1;
+  }
+
+  .admin-form-help {
+    @apply text-sm text-admin-gray-500 mt-1;
+  }
+
+  /* Admin Tables */
+  .admin-table {
+    @apply w-full bg-white rounded-xl border border-admin-gray-200 overflow-hidden;
+  }
+
+  .admin-table-header {
+    @apply bg-admin-gray-50 border-b border-admin-gray-200;
+  }
+
+  .admin-table-header th {
+    @apply px-6 py-3 text-left text-xs font-medium text-admin-gray-500 uppercase tracking-wider;
+  }
+
+  .admin-table-body tr {
+    @apply border-b border-admin-gray-200 hover:bg-admin-gray-50 transition-colors duration-150;
+  }
+
+  .admin-table-body tr:last-child {
+    @apply border-b-0;
+  }
+
+  .admin-table-body td {
+    @apply px-6 py-4 whitespace-nowrap text-sm text-admin-gray-900;
+  }
+
+  /* Admin Badges */
+  .admin-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .admin-badge-primary {
+    @apply admin-badge bg-admin-primary/10 text-admin-primary;
+  }
+
+  .admin-badge-success {
+    @apply admin-badge bg-green-100 text-green-800;
+  }
+
+  .admin-badge-warning {
+    @apply admin-badge bg-yellow-100 text-yellow-800;
+  }
+
+  .admin-badge-danger {
+    @apply admin-badge bg-red-100 text-red-800;
+  }
+
+  .admin-badge-gray {
+    @apply admin-badge bg-admin-gray-100 text-admin-gray-800;
+  }
+
+  /* Admin Modals */
+  .admin-modal-backdrop {
+    @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4;
+  }
+
+  .admin-modal {
+    @apply bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden;
+  }
+
+  .admin-modal-header {
+    @apply px-6 py-4 border-b border-admin-gray-200 flex items-center justify-between;
+  }
+
+  .admin-modal-body {
+    @apply px-6 py-4 overflow-y-auto;
+  }
+
+  .admin-modal-footer {
+    @apply px-6 py-4 border-t border-admin-gray-200 flex items-center justify-end gap-3;
+  }
+
+  /* Admin Navigation */
+  .admin-breadcrumb {
+    @apply flex items-center space-x-2 text-sm text-admin-gray-600 mb-6;
+  }
+
+  .admin-breadcrumb-item {
+    @apply hover:text-admin-primary transition-colors duration-200;
+  }
+
+  .admin-breadcrumb-separator {
+    @apply text-admin-gray-400;
+  }
+
+  /* Admin Search and Filters */
+  .admin-search-box {
+    @apply relative;
+  }
+
+  .admin-search-input {
+    @apply w-full pl-10 pr-4 py-2 border border-admin-gray-300 rounded-lg focus:ring-2 focus:ring-admin-primary focus:border-admin-primary;
+  }
+
+  .admin-search-icon {
+    @apply absolute left-3 top-1/2 transform -translate-y-1/2 text-admin-gray-400 w-4 h-4;
+  }
+
+  .admin-filter-bar {
+    @apply flex items-center gap-4 mb-6 p-4 bg-white rounded-lg border border-admin-gray-200;
+  }
+
+  .admin-filter-group {
+    @apply flex items-center gap-2;
+  }
+
+  .admin-filter-label {
+    @apply text-sm font-medium text-admin-gray-700 whitespace-nowrap;
+  }
+
+  /* Admin Loading States */
+  .admin-skeleton {
+    @apply animate-pulse bg-admin-gray-200 rounded;
+  }
+
+  .admin-skeleton-text {
+    @apply admin-skeleton h-4 w-full;
+  }
+
+  .admin-skeleton-title {
+    @apply admin-skeleton h-6 w-3/4;
+  }
+
+  .admin-skeleton-avatar {
+    @apply admin-skeleton w-10 h-10 rounded-full;
+  }
+
+  .admin-skeleton-card {
+    @apply admin-skeleton h-32 w-full rounded-lg;
+  }
+
+  /* Admin Empty States */
+  .admin-empty-state {
+    @apply text-center py-12;
+  }
+
+  .admin-empty-icon {
+    @apply w-16 h-16 text-admin-gray-300 mx-auto mb-4;
+  }
+
+  .admin-empty-title {
+    @apply text-lg font-semibold text-admin-gray-900 mb-2;
+  }
+
+  .admin-empty-description {
+    @apply text-admin-gray-600 mb-6;
+  }
+
+  /* Admin Alerts */
+  .admin-alert {
+    @apply p-4 rounded-lg border mb-4;
+  }
+
+  .admin-alert-success {
+    @apply admin-alert bg-green-50 border-green-200 text-green-800;
+  }
+
+  .admin-alert-warning {
+    @apply admin-alert bg-yellow-50 border-yellow-200 text-yellow-800;
+  }
+
+  .admin-alert-danger {
+    @apply admin-alert bg-red-50 border-red-200 text-red-800;
+  }
+
+  .admin-alert-info {
+    @apply admin-alert bg-blue-50 border-blue-200 text-blue-800;
+  }
+
+  /* Admin Tabs */
+  .admin-tabs {
+    @apply border-b border-admin-gray-200 mb-6;
+  }
+
+  .admin-tab-list {
+    @apply flex space-x-8;
+  }
+
+  .admin-tab {
+    @apply py-2 px-1 border-b-2 border-transparent text-sm font-medium text-admin-gray-500 hover:text-admin-gray-700 hover:border-admin-gray-300 transition-colors duration-200;
+  }
+
+  .admin-tab.active {
+    @apply border-admin-primary text-admin-primary;
+  }
+
+  .admin-tab-content {
+    @apply mt-6;
+  }
+
+  /* Admin Dropdown */
+  .admin-dropdown {
+    @apply relative inline-block text-left;
+  }
+
+  .admin-dropdown-menu {
+    @apply absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none;
+  }
+
+  .admin-dropdown-item {
+    @apply block px-4 py-2 text-sm text-admin-gray-700 hover:bg-admin-gray-100 transition-colors duration-150;
+  }
+
+  /* Admin Pagination */
+  .admin-pagination {
+    @apply flex items-center justify-between px-6 py-3 bg-white border-t border-admin-gray-200;
+  }
+
+  .admin-pagination-info {
+    @apply text-sm text-admin-gray-700;
+  }
+
+  .admin-pagination-controls {
+    @apply flex items-center space-x-2;
+  }
+
+  .admin-pagination-btn {
+    @apply admin-btn-ghost px-3 py-1.5 text-sm;
+  }
+
+  .admin-pagination-btn.active {
+    @apply bg-admin-primary text-white;
+  }
+
+  .admin-pagination-btn:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
 }

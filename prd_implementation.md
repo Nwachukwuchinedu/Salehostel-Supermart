@@ -159,7 +159,7 @@ saleshostel-backend/
 │   ├── config/
 │   │   ├── database.js
 │   │   ├── cloudinary.js
-│   │   └── paystack.js
+│   │   └── env.js
 │   ├── controllers/
 │   │   ├── authController.js
 │   │   ├── productController.js
@@ -212,77 +212,176 @@ saleshostel-frontend/
 │   ├── index.html
 │   └── favicon.ico
 ├── src/
+│   ├── admin/
+│   │   ├── components/
+│   │   │   └── layout/
+│   │   │       ├── AdminHeader.jsx
+│   │   │       ├── AdminLayout.jsx
+│   │   │       └── AdminSidebar.jsx
+│   │   ├── pages/
+│   │   │   ├── dashboard/
+│   │   │   │   └── AdminDashboard.jsx
+│   │   │   ├── inventory/
+│   │   │   │   ├── InventoryOverview.jsx
+│   │   │   │   ├── LowStockAlerts.jsx
+│   │   │   │   ├── StockAdjustments.jsx
+│   │   │   │   └── StockMovements.jsx
+│   │   │   ├── orders/
+│   │   │   │   ├── OrderDetails.jsx
+│   │   │   │   ├── OrderFulfillment.jsx
+│   │   │   │   ├── OrderList.jsx
+│   │   │   │   └── RefundManagement.jsx
+│   │   │   ├── products/
+│   │   │   │   ├── AddProduct.jsx
+│   │   │   │   ├── EditProduct.jsx
+│   │   │   │   └── ProductList.jsx
+│   │   │   ├── purchases/
+│   │   │   │   ├── CreatePurchase.jsx
+│   │   │   │   ├── PurchaseDetails.jsx
+│   │   │   │   ├── PurchaseList.jsx
+│   │   │   │   ├── SupplierManagement.jsx
+│   │   │   │   └── Supplies.jsx
+│   │   │   ├── reports/
+│   │   │   │   ├── CustomerReport.jsx
+│   │   │   │   ├── InventoryReport.jsx
+│   │   │   │   ├── ProductPerformance.jsx
+│   │   │   │   ├── ProfitLossReport.jsx
+│   │   │   │   └── SalesReport.jsx
+│   │   │   └── users/
+│   │   │       ├── AdminList.jsx
+│   │   │       ├── CustomerList.jsx
+│   │   │       └── UserManagement.jsx
+│   │   └── stores/
+│   │       ├── adminAuthStore.js
+│   │       ├── adminInventoryStore.js
+│   │       ├── adminOrderStore.js
+│   │       ├── adminProductStore.js
+│   │       ├── adminReportStore.js
+│   │       └── adminUserStore.js
 │   ├── components/
-│   │   ├── layout/
-│   │   │   ├── Header.jsx
-│   │   │   ├── Footer.jsx
-│   │   │   ├── Sidebar.jsx
-│   │   │   └── Layout.jsx
 │   │   ├── common/
 │   │   │   ├── Button.jsx
 │   │   │   ├── Input.jsx
-│   │   │   ├── Modal.jsx
 │   │   │   ├── Loading.jsx
 │   │   │   └── ProductCard.jsx
-│   │   ├── forms/
-│   │   │   ├── ProductForm.jsx
-│   │   │   ├── SupplyForm.jsx
-│   │   │   └── OrderForm.jsx
-│   │   └── tables/
-│   │       ├── ProductTable.jsx
-│   │       ├── InventoryTable.jsx
-│   │       └── OrderTable.jsx
+│   │   └── layout/
+│   │       ├── Footer.jsx
+│   │       ├── Header.jsx
+│   │       └── Layout.jsx
+│   ├── customer/
+│   │   ├── components/
+│   │   │   ├── cart/
+│   │   │   │   └── CartDropdown.jsx
+│   │   │   ├── layout/
+│   │   │   │   ├── CustomerFooter.jsx
+│   │   │   │   ├── CustomerHeader.jsx
+│   │   │   │   └── CustomerLayout.jsx
+│   │   │   └── shop/
+│   │   │       └── ProductCard.jsx
+│   │   ├── pages/
+│   │   │   ├── account/
+│   │   │   │   ├── AddressBook.jsx
+│   │   │   │   ├── ChangePassword.jsx
+│   │   │   │   ├── CustomerProfile.jsx
+│   │   │   │   ├── EditProfile.jsx
+│   │   │   │   └── OrderHistory.jsx
+│   │   │   ├── cart/
+│   │   │   │   └── Cart.jsx
+│   │   │   ├── checkout/
+│   │   │   │   ├── Checkout.jsx
+│   │   │   │   └── OrderConfirmation.jsx
+│   │   │   ├── errors/
+│   │   │   │   └── NotFound.jsx
+│   │   │   ├── orders/
+│   │   │   │   ├── OrderDetails.jsx
+│   │   │   │   └── TrackOrder.jsx
+│   │   │   └── shop/
+│   │   │       ├── CategoryPage.jsx
+│   │   │       ├── ProductCatalog.jsx
+│   │   │       ├── ProductPage.jsx
+│   │   │       └── SearchResults.jsx
+│   │   └── stores/
+│   │       ├── cartStore.js
+│   │       ├── customerAuthStore.js
+│   │       ├── orderStore.js
+│   │       ├── productStore.js
+│   │       └── profileStore.js
 │   ├── pages/
 │   │   ├── auth/
+│   │   │   ├── ForgotPassword.jsx
 │   │   │   ├── Login.jsx
-│   │   │   └── Register.jsx
-│   │   ├── public/
-│   │   │   ├── Home.jsx
-│   │   │   ├── ProductCatalog.jsx
-│   │   │   ├── ProductDetails.jsx
-│   │   │   ├── CategoryPage.jsx
-│   │   │   ├── Cart.jsx
-│   │   │   └── Checkout.jsx
-│   │   ├── admin/
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── ProductManagement.jsx
-│   │   │   ├── UserManagement.jsx
-│   │   │   ├── OrderManagement.jsx
-│   │   │   └── Reports.jsx
-│   │   ├── supplier/
-│   │   │   ├── SupplierDashboard.jsx
-│   │   │   ├── ProductSupply.jsx
-│   │   │   └── SupplyHistory.jsx
-│   │   ├── staff/
-│   │   │   ├── StaffDashboard.jsx
-│   │   │   └── OrderProcessing.jsx
-│   │   └── customer/
-│   │       ├── Account.jsx
-│   │       ├── OrderHistory.jsx
-│   │       └── Profile.jsx
-│   ├── hooks/
-│   │   ├── useAuth.js
-│   │   ├── useProducts.js
-│   │   ├── useCart.js
-│   │   └── useOrders.js
-│   ├── services/
-│   │   └── api.js
+│   │   │   ├── Register.jsx
+│   │   │   └── ResetPassword.jsx
+│   │   ├── errors/
+│   │   │   └── NotFound.jsx
+│   │   └── public/
+│   │       ├── Cart.jsx
+│   │       ├── CategoryPage.jsx
+│   │       ├── Checkout.jsx
+│   │       ├── Home.jsx
+│   │       ├── ProductCatalog.jsx
+│   │       ├── ProductDetails.jsx
+│   │       └── SearchResults.jsx
+│   ├── shared/
+│   │   ├── animation/
+│   │   │   └── index.js
+│   │   ├── components/
+│   │   │   └── DarkModeToggle.jsx
+│   │   ├── hooks/
+│   │   │   ├── useApi.jsx
+│   │   │   ├── useDebounce.jsx
+│   │   │   ├── useLocalStorage.jsx
+│   │   │   ├── usePerformance.jsx
+│   │   │   └── useSocket.jsx
+│   │   ├── services/
+│   │   │   ├── adminApi.js
+│   │   │   ├── api.js
+│   │   │   ├── customerApi.js
+│   │   │   ├── socketService.js
+│   │   │   └── supplierApi.js
+│   │   ├── ui/
+│   │   │   ├── components/
+│   │   │   │   ├── Alert.jsx
+│   │   │   │   ├── Badge.jsx
+│   │   │   │   ├── Button.jsx
+│   │   │   │   ├── Card.jsx
+│   │   │   │   ├── Dropdown.jsx
+│   │   │   │   ├── Input.jsx
+│   │   │   │   ├── Modal.jsx
+│   │   │   │   └── Table.jsx
+│   │   │   └── form/
+│   │   │       ├── DatePicker.jsx
+│   │   │       ├── FileUpload.jsx
+│   │   │       ├── FormField.jsx
+│   │   │       ├── Select.jsx
+│   │   │       └── TextArea.jsx
+│   │   └── utils/
+│   │       ├── auth.js
+│   │       ├── constants.js
+│   │       ├── formatters.js
+│   │       ├── helpers.js
+│   │       └── validators.js
 │   ├── stores/
 │   │   ├── authStore.js
-│   │   ├── productStore.js
 │   │   ├── cartStore.js
-│   │   └── orderStore.js
+│   │   ├── orderStore.js
+│   │   └── productStore.js
+│   ├── styles/
+│   │   └── globals.css
 │   ├── utils/
 │   │   ├── constants.js
-│   │   ├── helpers.js
-│   │   └── formatters.js
-│   ├── styles/
-│   │   └── index.css
+│   │   ├── formatters.js
+│   │   └── helpers.js
 │   ├── App.jsx
+│   ├── AppRouter.jsx
 │   └── main.jsx
-├── tailwind.config.js
+├── index.html
+├── package-lock.json
 ├── package.json
-└── README.md
+├── postcss.config.js
+├── tailwind.config.js
+├── vercel.json
+└── vite.config.js
 ```
 
 ---
@@ -291,7 +390,7 @@ saleshostel-frontend/
 
 ### User Schema
 
-```javascript
+```
 {
   firstName: String,
   lastName: String,
@@ -321,7 +420,7 @@ saleshostel-frontend/
 
 ### Product Schema
 
-```javascript
+```
 {
   name: String, // e.g., "Rice", "Beans"
   productGroup: {
@@ -349,7 +448,7 @@ saleshostel-frontend/
 
 ### Category Schema
 
-```javascript
+```
 {
   name: String, // "Staple Foods", "Frozen Foods", etc.
   description: String,
@@ -365,7 +464,7 @@ saleshostel-frontend/
 
 ### Supply Schema
 
-```javascript
+```
 {
   supplier: ObjectId (ref: User),
   productName: String,
@@ -390,7 +489,7 @@ saleshostel-frontend/
 
 ### Order Schema
 
-```javascript
+```
 {
   orderNumber: String (auto-generated),
   customer: ObjectId (ref: User),
@@ -429,7 +528,7 @@ saleshostel-frontend/
 
 ### Cart Schema
 
-```javascript
+```
 {
   customer: ObjectId (ref: User),
   items: [{
@@ -446,7 +545,7 @@ saleshostel-frontend/
 
 ### Stock Movement Schema
 
-```javascript
+```
 {
   product: ObjectId (ref: Product),
   unitType: String,
@@ -475,6 +574,7 @@ POST   /api/auth/register          # User registration
 POST   /api/auth/login             # User login
 GET    /api/auth/profile           # Get user profile
 PUT    /api/auth/profile           # Update user profile
+POST   /api/auth/logout            # User logout
 POST   /api/users/assign-role      # Admin assigns roles (admin only)
 GET    /api/users                  # Get all users (admin only)
 ```
@@ -622,14 +722,22 @@ GET    /api/reports/stock-movement # Stock movement reports
 - [ ] Order tracking and status updates
 - [ ] Customer order history
 
-### Phase 4: Advanced Features (Week 7-8)
+### Phase 4: Staff & Supplier Features (Week 7-8)
+
+- [ ] Staff order processing interface
+- [ ] Staff inventory management tools
+- [ ] Supplier supply management dashboard
+- [ ] Supplier product supply workflows
+- [ ] Staff customer service tools
+
+### Phase 5: Advanced Features (Week 9-10)
 
 - [ ] Advanced reporting and analytics
 - [ ] Bulk operations and data import
 - [ ] Mobile optimization
 - [ ] Performance optimization
 
-### Phase 5: Testing & Deployment (Week 9-10)
+### Phase 6: Testing & Deployment (Week 11-12)
 
 - [ ] Comprehensive testing
 - [ ] User acceptance testing
@@ -676,6 +784,16 @@ GET    /api/reports/stock-movement # Stock movement reports
 
 ## Recent Updates
 
+### Authentication System Consolidation (September 2025)
+
+1. **Unified Authentication Components**: Consolidated all authentication components (Login, Register, ForgotPassword, ResetPassword) into a single [auth](file://c:\Users\chine\Documents\coding\Salehostel%20Supermart\backend\src\routes\cart.js#L2-L2) folder to eliminate duplication across admin, customer, supplier, and staff sections.
+
+2. **Simplified Routing**: Updated AppRouter.jsx to use common authentication components for all user roles, reducing code duplication and maintenance overhead.
+
+3. **Removed Redundant Components**: Deleted duplicate authentication components from customer, admin, supplier, and staff sections to maintain a single source of truth for authentication UI.
+
+4. **Added Logout Endpoint**: Implemented POST /api/auth/logout endpoint to properly handle user logout across all roles.
+
 ### Search Functionality Changes (September 2025)
 
 1. **Real-time Search Implementation**: Added instant search results in the header dropdown as users type, providing immediate feedback without page navigation.
@@ -686,7 +804,29 @@ GET    /api/reports/stock-movement # Stock movement reports
 
 4. **View All Results Option**: Added a "View all results" button in the search dropdown for users who want to see a full page of search results.
 
+5. **Mobile Optimization**: Removed search bar from header in small screen resolutions and implemented a more mobile-friendly search experience.
+
 ### Payment System Update (September 2025)
 
 1. **Removed Paystack Integration**: Eliminated Paystack payment gateway in favor of manual payment processing.
 2. **Manual Payment Processing**: Implemented manual payment handling for order processing.
+
+### Error Page Consolidation (September 2025)
+
+1. **Unified Error Pages**: Consolidated role-specific error pages into a single general error page to eliminate duplication and maintain consistency across all user roles.
+
+2. **Removed Redundant Components**: Deleted duplicate NotFound.jsx components from customer, admin, supplier, and staff sections to maintain a single source of truth for error handling.
+
+### Route Structure Simplification (September 2025)
+
+1. **Merged Customer and Public Routes**: Consolidated customer-specific product browsing routes with public routes since both authenticated and unauthenticated users can access product information through the same interfaces.
+
+2. **Removed Redundant Product Pages**: Eliminated duplicate product detail pages in favor of category-based product browsing to simplify the user experience and reduce code duplication.
+
+3. **Streamlined Navigation**: Simplified the routing structure by removing unnecessary nested routes while maintaining access to customer-specific features like account management and order tracking.
+
+### Implementation Roadmap Update (September 2025)
+
+1. **Added Dedicated Phase for Staff and Supplier Features**: Created a new Phase 4 specifically for implementing staff order processing tools and supplier supply management features to ensure these user roles have the functionality they need.
+
+2. **Extended Timeline**: Adjusted the implementation roadmap to accommodate the additional staff and supplier functionality, extending the project timeline to 12 weeks.

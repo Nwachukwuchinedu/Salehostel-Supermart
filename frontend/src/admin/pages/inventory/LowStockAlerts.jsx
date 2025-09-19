@@ -87,30 +87,31 @@ const LowStockAlerts = () => {
   const statuses = [...new Set(alerts.map(alert => alert.status))];
 
   return (
-    <div className="p-8">
+    <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-admin-gray-900">Low Stock Alerts</h1>
+          <h1 className="text-2xl font-bold text-admin-gray-900">Low Stock Alerts</h1>
           <p className="text-admin-gray-600">Monitor and manage inventory alerts</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
           <button className="admin-btn-secondary" onClick={exportCsv}>
+            <Download className="w-4 h-4 mr-2" />
             Export CSV
           </button>
           <button className="admin-btn-secondary">
-            <Bell className="w-5 h-5 mr-2" />
+            <Bell className="w-4 h-4 mr-2" />
             Enable Notifications
           </button>
           <button className="admin-btn-primary">
-            <PackagePlus className="w-5 h-5 mr-2" />
+            <PackagePlus className="w-4 h-4 mr-2" />
             Create Purchase Order
           </button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="admin-stats-card">
           <div className="flex items-center justify-between mb-4">
             <div className="admin-stats-icon bg-amber-100 text-amber-600">

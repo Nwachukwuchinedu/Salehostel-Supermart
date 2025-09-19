@@ -28,16 +28,11 @@ import UserManagement from './admin/pages/users/UserManagement';
 import CustomerList from './admin/pages/users/CustomerList';
 import AdminList from './admin/pages/users/AdminList';
 import ProductCatalog from './customer/pages/shop/ProductCatalog';
-import ProductPage from './customer/pages/shop/ProductPage';
 import CategoryPage from './customer/pages/shop/CategoryPage';
 
 import Cart from './customer/pages/cart/Cart';
 import Checkout from './customer/pages/checkout/Checkout';
 import OrderConfirmation from './customer/pages/checkout/OrderConfirmation';
-import CustomerLogin from './customer/pages/auth/CustomerLogin';
-import CustomerRegister from './customer/pages/auth/CustomerRegister';
-import ForgotPassword from './customer/pages/auth/ForgotPassword';
-import ResetPassword from './customer/pages/auth/ResetPassword';
 import CustomerProfile from './customer/pages/account/CustomerProfile';
 import EditProfile from './customer/pages/account/EditProfile';
 import OrderHistory from './customer/pages/account/OrderHistory';
@@ -45,7 +40,18 @@ import AddressBook from './customer/pages/account/AddressBook';
 import ChangePassword from './customer/pages/account/ChangePassword';
 import OrderDetailsCustomer from './customer/pages/orders/OrderDetails';
 import TrackOrder from './customer/pages/orders/TrackOrder';
-import NotFound from './customer/pages/errors/NotFound';
+import NotFound from './pages/errors/NotFound';
+
+// Import public components
+import Layout from "./components/layout/Layout";
+import Home from "./pages/public/Home";
+import SearchResults from "./pages/public/SearchResults";
+
+// Import auth components
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 
 const AppRouter = () => {
   return (
@@ -104,19 +110,24 @@ const AppRouter = () => {
           </Route>
         </Route>
 
-        {/* Customer Authentication Routes */}
-        <Route path="/login" element={<CustomerLogin />} />
-        <Route path="/register" element={<CustomerRegister />} />
+        {/* Authentication Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* Customer Routes */}
-        <Route path="/" element={<CustomerLayout />}>
-          <Route index element={<ProductCatalog />} />
-          <Route path="product/:id" element={<ProductPage />} />
+        {/* Public Routes with Layout */}
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="products" element={<ProductCatalog />} />
           <Route path="categories/:slug" element={<CategoryPage />} />
+          <Route path="search" element={<SearchResults />} />
           <Route path="cart" element={<Cart />} />
           <Route path="checkout" element={<Checkout />} />
+        </Route>
+
+        {/* Customer Account Routes - These need to be under CustomerLayout */}
+        <Route path="/customer" element={<CustomerLayout />}>
           <Route path="order-confirmation" element={<OrderConfirmation />} />
 
           {/* Customer Account Routes */}

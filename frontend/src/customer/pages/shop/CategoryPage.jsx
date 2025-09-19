@@ -6,7 +6,7 @@ import api from '../../../shared/services/api';
 
 const CategoryPage = () => {
   const { slug } = useParams();
-  
+
   const [viewMode, setViewMode] = useState('grid');
   const [sortBy, setSortBy] = useState('featured');
   const [showFilters, setShowFilters] = useState(false);
@@ -25,8 +25,8 @@ const CategoryPage = () => {
 
   useEffect(() => {
     // Only fetch data when component mounts or slug changes
-    pushLog('CategoryPage component mounted or updated', { 
-      slug, 
+    pushLog('CategoryPage component mounted or updated', {
+      slug,
       windowLocation: window.location.href,
       pathname: window.location.pathname
     });
@@ -41,7 +41,7 @@ const CategoryPage = () => {
       setError(null);
 
       pushLog('fetchCategoryData called. Current slug:', slug);
-      
+
       // Check if slug is valid
       if (!slug || typeof slug !== 'string' || slug.trim() === '') {
         pushLog('Invalid slug provided:', slug);
@@ -60,12 +60,12 @@ const CategoryPage = () => {
           pushLog('Making request to: ' + catUrl, null);
           const catRes = await api.get(catUrl);
           pushLog('Full category response:', catRes);
-          
+
           // Handle the response structure correctly
           // API service returns the parsed JSON directly
           resolvedCategory = catRes?.category || (catRes?.data?.category) || null;
           pushLog('resolvedCategory:', resolvedCategory);
-          
+
           if (resolvedCategory) {
             categoryId = resolvedCategory._id || resolvedCategory.id || '';
             setCategory(resolvedCategory);
@@ -95,7 +95,7 @@ const CategoryPage = () => {
           pushLog('Making products request to: ' + prodUrl, null);
           const productsResponse = await api.get(prodUrl);
           pushLog('Full products response:', productsResponse);
-          
+
           // Handle the response structure correctly
           // API service returns the parsed JSON directly
           const productsData = productsResponse?.products || (productsResponse?.data?.products) || [];

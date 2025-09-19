@@ -58,58 +58,60 @@ const InventoryReport = () => {
   };
 
   return (
-    <div className="p-8">
+    <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-admin-gray-900">Inventory Report</h1>
+          <h1 className="text-2xl font-bold text-admin-gray-900">Inventory Report</h1>
           <p className="text-admin-gray-600">Track inventory levels, movements, and stock status</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
           <button className="admin-btn-secondary">
-            <Filter className="w-5 h-5 mr-2" />
+            <Filter className="w-4 h-4 mr-2" />
             Filter
           </button>
           <button className="admin-btn-secondary" onClick={exportCsv} disabled={exporting}>
-            <Download className="w-5 h-5 mr-2" />
+            <Download className="w-4 h-4 mr-2" />
             {exporting ? 'Exporting...' : 'Export CSV'}
           </button>
           <button className="admin-btn-secondary">
-            <Printer className="w-5 h-5 mr-2" />
+            <Printer className="w-4 h-4 mr-2" />
             Print
           </button>
         </div>
       </div>
 
       {/* Date Range Selector */}
-      <div className="admin-glass-card p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="form-label">Start Date</label>
-            <input
-              type="date"
-              className="admin-input w-full"
-              value={dateRange.start}
-              onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-            />
-          </div>
-          <div>
-            <label className="form-label">End Date</label>
-            <input
-              type="date"
-              className="admin-input w-full"
-              value={dateRange.end}
-              onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-            />
-          </div>
-          <div className="flex items-end">
-            <button className="admin-btn-primary w-full">Apply Filters</button>
+      <div className="admin-card">
+        <div className="admin-card-body">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="admin-form-group">
+              <label className="admin-form-label">Start Date</label>
+              <input
+                type="date"
+                className="admin-form-input"
+                value={dateRange.start}
+                onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+              />
+            </div>
+            <div className="admin-form-group">
+              <label className="admin-form-label">End Date</label>
+              <input
+                type="date"
+                className="admin-form-input"
+                value={dateRange.end}
+                onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+              />
+            </div>
+            <div className="admin-form-group flex items-end">
+              <button className="admin-btn-primary w-full">Apply Filters</button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="admin-stats-card">
           <div className="flex items-center justify-between mb-4">
             <div className="admin-stats-icon bg-blue-100 text-blue-600">
